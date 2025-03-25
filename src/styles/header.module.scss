@@ -1,4 +1,9 @@
-@use "variables";
+@use "variables" as vars;
 
 .header {
+  height: vars.$height-header;
+}
+
+.header > .container {
+  width: vars.$width-container;
 }

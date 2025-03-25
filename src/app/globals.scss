@@ -121,3 +121,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+body,
+html {
+  min-height: 100vh;
+}

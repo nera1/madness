@@ -1,9 +1,5 @@
-import Header from "@/components/header/header";
+import styles from "@/styles/index.module.scss";
 
 export default function Home() {
-  return (
-    <main>
-      <Header />
-    </main>
-  );
+  return <main className={`${styles["index"]}`}>hello</main>;
 }
