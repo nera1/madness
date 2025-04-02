@@ -6,14 +6,13 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
 } from "@/components/ui/command";
 
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@radix-ui/react-popover";
+} from "@/components/ui/popover";
 
 import { Button } from "../ui/button";
 import {
@@ -45,10 +44,10 @@ export function DropdownMenu() {
       <PopoverContent
         side="bottom"
         align="end"
-        className={`rounded-md bg-transparent ${styles["dropdown-menu"]}`}
+        className={`p-2 rounded-md bg-transparent ${styles["dropdown-menu"]} transition-all duration-300 ease-out scale-95 opacity-0 data-[state=open]:scale-100 data-[state=open]:opacity-100`}
       >
         <Command className="rounded-lg bg-transparent">
-          <CommandList className={`${styles["list"]} p-3`}>
+          <CommandList className={`${styles["list"]}`}>
             <CommandGroup heading="">
               <CommandItem>
                 <LogIn />
