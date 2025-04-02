@@ -3,3 +3,7 @@
 .index {
   min-height: 100vh;
 }
+
+.container {
+  width: vars.$width-container;
+}

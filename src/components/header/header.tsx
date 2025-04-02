@@ -1,31 +1,23 @@
 import { FunctionComponent } from "react";
 
-import { Button } from "../ui/button";
-
-import { Menu } from "lucide-react";
+import LogoLink from "../logo/LogoLink";
+import { DropdownMenu } from "./dropdown-menu";
 
 import styles from "@/styles/header.module.scss";
-import LogoLink from "../logo/LogoLink";
 
 const Header: FunctionComponent = () => {
   return (
     <header
-      className={`w-full fixed top-0 left-0 z-[999] ${styles["header"]} flex justify-center`}
+      className={`w-full fixed top-0 left-0 z-[999] ${styles["header"]} flex justify-center backdrop-blur-md`}
     >
-      <div className={`${styles["container"]} flex`}>
+      <div className={`${styles["container"]} flex relative`}>
         <div className={`${styles["left"]} grow flex items-center`}>
           <LogoLink />
         </div>
         <div
-          className={`${styles["right"]} grow flex justify-end items-center`}
+          className={`${styles["right"]} grow flex justify-end items-center relative`}
         >
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`${styles["menu-btn"]}`}
-          >
-            <Menu color="#fff" />
-          </Button>
+          <DropdownMenu />
         </div>
       </div>
     </header>

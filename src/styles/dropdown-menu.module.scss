@@ -1,0 +1,21 @@
+@use "variables" as vars;
+
+.dropdown-menu {
+  position: fixed;
+  right: 0;
+  top: 5px;
+  background-color: vars.$color-primary;
+  width: vars.$width-header-menu;
+  box-sizing: border-box;
+  border: 0.5px solid vars.$color-accent;
+  & .seperator {
+    background-color: vars.$color-accent;
+  }
+}
+
+.menu-btn {
+  border: 0.5px solid vars.$color-accent;
+  &:hover {
+    background-color: vars.$color-accent;
+  }
+}
