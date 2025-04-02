@@ -2,10 +2,7 @@
 
 import {
   Command,
-  CommandDialog,
-  CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
   CommandSeparator,
@@ -20,20 +17,22 @@ import {
 
 import { Button } from "../ui/button";
 import {
-  Calculator,
-  Calendar,
-  CreditCard,
-  Menu,
+  UserRoundPlusIcon,
   Settings,
-  Smile,
-  User,
+  LogOut,
+  Menu,
+  MessageSquarePlus,
+  CircleUserRound,
+  Search,
+  LogIn,
+  MessageSquare,
 } from "lucide-react";
 
 import styles from "@/styles/dropdown-menu.module.scss";
 
 export function DropdownMenu() {
   return (
-    <Popover open>
+    <Popover>
       <PopoverTrigger asChild>
         <Button
           className={`pointer cursor-pointer ${styles["menu-btn"]}`}
@@ -46,41 +45,48 @@ export function DropdownMenu() {
       <PopoverContent
         side="bottom"
         align="end"
-        className={`p-2 rounded-md bg-transparent ${styles["dropdown-menu"]}`}
+        className={`rounded-md bg-transparent ${styles["dropdown-menu"]}`}
       >
         <Command className="rounded-lg bg-transparent">
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Suggestions">
+          <CommandList className={`${styles["list"]} p-3`}>
+            <CommandGroup heading="">
               <CommandItem>
-                <Calendar />
-                <span>Calendar</span>
+                <LogIn />
+                <span>로그인</span>
               </CommandItem>
               <CommandItem>
-                <Smile />
-                <span>Search Emoji</span>
+                <UserRoundPlusIcon />
+                <span>회원가입</span>
               </CommandItem>
-              <CommandItem disabled>
-                <Calculator />
-                <span>Calculator</span>
+              <CommandItem>
+                <CircleUserRound />
+                <span>회원정보 변경</span>
               </CommandItem>
             </CommandGroup>
             <CommandSeparator className={`${styles["seperator"]}`} />
-            <CommandGroup heading="Settings">
+            <CommandGroup heading="채팅">
               <CommandItem>
-                <User />
-                <span>Profile</span>
-                <CommandShortcut>⌘P</CommandShortcut>
+                <Search />
+                <span>채팅 검색</span>
               </CommandItem>
               <CommandItem>
-                <CreditCard />
-                <span>Billing</span>
-                <CommandShortcut>⌘B</CommandShortcut>
+                <MessageSquare />
+                <span>채팅목록</span>
               </CommandItem>
+              <CommandItem>
+                <MessageSquarePlus />
+                <span>채팅창 개설</span>
+              </CommandItem>
+            </CommandGroup>
+            <CommandSeparator className={`${styles["seperator"]}`} />
+            <CommandGroup heading="">
               <CommandItem>
                 <Settings />
-                <span>Settings</span>
-                <CommandShortcut>⌘S</CommandShortcut>
+                <span>설정</span>
+              </CommandItem>
+              <CommandItem>
+                <LogOut />
+                <span>로그아웃</span>
               </CommandItem>
             </CommandGroup>
           </CommandList>

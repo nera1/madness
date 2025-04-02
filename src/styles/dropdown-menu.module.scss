@@ -3,13 +3,29 @@
 .dropdown-menu {
   position: fixed;
   right: 0;
-  top: 5px;
+  top: 8px;
   background-color: vars.$color-primary;
   width: vars.$width-header-menu;
-  box-sizing: border-box;
   border: 0.5px solid vars.$color-accent;
   & .seperator {
     background-color: vars.$color-accent;
+  }
+}
+
+.list {
+  max-height: fit-content;
+}
+
+.list > div > div {
+  color: vars.$color-200;
+  & svg {
+    color: vars.$color-400;
+  }
+  & > div > div {
+    &[data-selected="true"] {
+      background-color: vars.$color-700;
+      color: vars.$color-300;
+    }
   }
 }
 
