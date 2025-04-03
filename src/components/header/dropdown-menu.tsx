@@ -28,13 +28,14 @@ import {
 } from "lucide-react";
 
 import styles from "@/styles/dropdown-menu.module.scss";
+import Link from "next/link";
 
 export function DropdownMenu() {
   return (
     <Popover>
-      <PopoverTrigger asChild>
+      <PopoverTrigger className="" asChild>
         <Button
-          className={`pointer cursor-pointer ${styles["menu-btn"]}`}
+          className={`my-5 pointer cursor-pointer ${styles["menu-btn"]}`}
           variant="ghost"
           size="icon"
         >
@@ -54,8 +55,10 @@ export function DropdownMenu() {
                 <span>로그인</span>
               </CommandItem>
               <CommandItem>
-                <UserRoundPlusIcon />
-                <span>회원가입</span>
+                <Link href={"/signup"}>
+                  <UserRoundPlusIcon />
+                  <span>회원가입</span>
+                </Link>
               </CommandItem>
               <CommandItem>
                 <CircleUserRound />

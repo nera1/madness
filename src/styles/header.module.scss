@@ -2,6 +2,13 @@
 
 .header {
   height: vars.$height-header;
+  &.border {
+    border-bottom: 0.5px solid vars.$color-800;
+  }
+
+  & .right.logo-center {
+    display: none;
+  }
 }
 
 .header > .container {

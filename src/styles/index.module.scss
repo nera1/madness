@@ -1,6 +1,7 @@
 @use "variables" as vars;
 
 .index {
+  margin-top: vars.$height-header;
   min-height: 100vh;
 }
 
