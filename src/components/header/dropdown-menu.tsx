@@ -14,6 +14,8 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 
+import Link from "next/link";
+
 import { Button } from "../ui/button";
 import {
   UserRoundPlusIcon,
@@ -28,7 +30,6 @@ import {
 } from "lucide-react";
 
 import styles from "@/styles/dropdown-menu.module.scss";
-import Link from "next/link";
 
 export function DropdownMenu() {
   return (
@@ -54,7 +55,7 @@ export function DropdownMenu() {
                 <LogIn />
                 <span>로그인</span>
               </CommandItem>
-              <CommandItem>
+              <CommandItem asChild>
                 <Link href={"/signup"}>
                   <UserRoundPlusIcon />
                   <span>회원가입</span>

@@ -18,10 +18,18 @@
 
 .list > div > div {
   color: vars.$color-200;
+
   & svg {
     color: vars.$color-400;
   }
+  & > div {
+    & > a {
+      cursor: pointer;
+    }
+  }
   & > div > div {
+    cursor: pointer;
+
     &[data-selected="true"] {
       background-color: vars.$color-700;
       color: vars.$color-300;
