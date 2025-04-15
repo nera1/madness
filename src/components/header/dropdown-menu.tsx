@@ -55,8 +55,11 @@ export function DropdownMenu() {
                 <LogIn />
                 <span>로그인</span>
               </CommandItem>
-              <CommandItem asChild>
-                <Link href={"/signup"}>
+              <CommandItem
+                asChild
+                className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white"
+              >
+                <Link href={"/signup"} className="bg-transparent">
                   <UserRoundPlusIcon />
                   <span>회원가입</span>
                 </Link>

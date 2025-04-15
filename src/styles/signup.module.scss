@@ -5,6 +5,25 @@
 
 .container {
   width: vars.$width-container;
+  min-height: 100vh;
+}
+
+.container {
+  & form input {
+    color: vars.$color-50 !important;
+    &::selection {
+      background-color: vars.$color-50;
+      color: vars.$color-950;
+    }
+  }
+  & form input:-webkit-autofill,
+  & form input:-webkit-autofill:hover,
+  & form input:-webkit-autofill:focus,
+  & form input:-webkit-autofill:active {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: vars.$color-50;
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
 @include vars.media-xs {
