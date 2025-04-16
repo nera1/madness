@@ -4,13 +4,22 @@
 }
 
 .container {
-  width: vars.$width-container;
+  width: 100%;
+  max-width: vars.$width-container-signup;
   min-height: 100vh;
 }
 
 .container {
+  & h1 {
+    text-align: center;
+    color: vars.$color-50;
+  }
+  & form label {
+    color: vars.$color-300;
+  }
   & form input {
     color: vars.$color-50 !important;
+    border-color: vars.$color-700;
     &::selection {
       background-color: vars.$color-50;
       color: vars.$color-950;
