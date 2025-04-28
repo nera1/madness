@@ -1,6 +1,13 @@
 @use "../styles/variables" as vars;
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Pretendard";
+  font-display: swap;
+  src: url("/fonts/pretendard/Pretendard-Regular.woff2") format("woff2"),
+    url("/fonts/pretendard/Pretendard-Regular.woff") format("woff");
+}
+
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
@@ -127,6 +134,10 @@ body,
 html {
   padding: 0;
   margin: 0;
+}
+
+html * {
+  font-family: "Pretendard";
 }
 
 body {

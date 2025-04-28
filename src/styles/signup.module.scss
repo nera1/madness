@@ -6,12 +6,11 @@
 .container {
   width: 100%;
   max-width: vars.$width-container-signup;
-  min-height: 100vh;
+  height: calc(100dvh - var(--header-height));
 }
 
 .container {
   & h1 {
-    text-align: center;
     color: vars.$color-50;
   }
   & form label {

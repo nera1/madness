@@ -11,8 +11,10 @@ export default function Signup() {
   return (
     <>
       <Header logoCenter />
-      <main className={`${styles["signup"]} flex justify-center`}>
-        <div className={`${styles["container"]} flex flex-col align-center`}>
+      <main className={`${styles["signup"]} flex justify-center box-border`}>
+        <div
+          className={`${styles["container"]} flex flex-col align-center pt-5`}
+        >
           <h1 className="text-3xl font-extrabold tracking-tight">Sign up</h1>
           <form className="flex justify-center flex-col align-center gap-y-5 py-4">
             <div className="flex flex-col gap-2">
