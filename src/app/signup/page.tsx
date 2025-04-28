@@ -13,10 +13,15 @@ export default function Signup() {
       <Header logoCenter />
       <main className={`${styles["signup"]} flex justify-center box-border`}>
         <div
-          className={`${styles["container"]} flex flex-col align-center pt-5`}
+          className={`${styles["container"]} flex flex-col align-center pt-8`}
         >
-          <h1 className="text-3xl font-extrabold tracking-tight">Sign up</h1>
-          <form className="flex justify-center flex-col align-center gap-y-5 py-4">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Create account
+          </h1>
+          <p className="text-base text-muted-foreground">
+            Enter your details to create your account
+          </p>
+          <form className="flex justify-center flex-col align-center gap-y-5 pt-6">
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
               <Input type="email" id="email" placeholder="Email" />
@@ -38,7 +43,7 @@ export default function Signup() {
               />
             </div>
             <Button type="submit" className="cursor-pointer">
-              Sign up
+              Create account
             </Button>
           </form>
         </div>
