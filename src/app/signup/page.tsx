@@ -13,22 +13,22 @@ export default function Signup() {
       <Header logoCenter />
       <main className={`${styles["signup"]} flex justify-center box-border`}>
         <div
-          className={`${styles["container"]} flex flex-col align-center pt-8`}
+          className={`${styles["container"]} flex flex-col align-center pt-12`}
         >
           <h1 className="text-3xl font-semibold tracking-tight">
             Create account
           </h1>
           <p className="text-base text-muted-foreground">
-            Enter your details to create your account
+            Create your account and get started.
           </p>
-          <form className="flex justify-center flex-col align-center gap-y-5 pt-6">
+          <form className="flex justify-center flex-col align-center gap-y-5 py-8">
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
               <Input type="email" id="email" placeholder="Email" />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="nickname">Nickname</Label>
-              <Input type="text" id="nicname" placeholder="Nickname" />
+              <Input type="text" id="nickname" placeholder="Nickname" />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="password">Password</Label>
