@@ -18,7 +18,7 @@ type SignupState = {
 };
 
 export default function Signup() {
-  const [state, setState] = useState<SignupState>({
+  const [state] = useState<SignupState>({
     email: "",
     nickname: "",
     password: "",
