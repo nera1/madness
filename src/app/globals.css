@@ -1,6 +1,10 @@
 @use "../styles/variables" as vars;
 @import "tailwindcss";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @font-face {
   font-family: "Pretendard";
   font-display: swap;

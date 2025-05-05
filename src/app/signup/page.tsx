@@ -70,7 +70,6 @@ export default function Signup() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    // 추가적인 유효성 검사 및 폼 제출 처리
     if (
       !errors.email &&
       !errors.password &&
@@ -79,7 +78,6 @@ export default function Signup() {
       state.password &&
       state.confirmPassword
     ) {
-      // 폼 제출 로직
       console.log("Form Submitted:", state);
     }
   };
