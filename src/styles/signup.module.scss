@@ -1,6 +1,31 @@
 @use "variables" as vars;
 
 .signup {
+  .invalid {
+    & input {
+      border-color: vars.$color-invalid;
+      &:focus-visible {
+        --tw-ring-color: vars.$color-invalid;
+        --tw-ring-opacity: 0.75;
+      }
+    }
+    svg {
+      fill: vars.$color-invalid;
+    }
+  }
+
+  .valid {
+    & input {
+      border-color: vars.$color-valid;
+      &:focus-visible {
+        --tw-ring-color: vars.$color-valid;
+        --tw-ring-opacity: 0.75;
+      }
+    }
+    svg {
+      fill: vars.$color-valid;
+    }
+  }
 }
 
 .container {

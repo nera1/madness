@@ -22,6 +22,9 @@ $color-bg: $color-950;
 $color-primary: $color-900;
 $color-accent: $color-800;
 
+$color-invalid: #b91c1c;
+$color-valid: #166534;
+
 @mixin media-xs {
   @media (max-width: 480px) {
     @content;
