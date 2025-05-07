@@ -2,7 +2,7 @@
 
 import Header from "@/components/header/header";
 import SignupField from "@/components/signup-field/signup-field";
-import { ChangeEventHandler, FormEvent, useState } from "react";
+import { ChangeEventHandler, FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import styles from "@/styles/signup.module.scss";
 
@@ -42,10 +42,29 @@ export default function Signup() {
     confirmPassword: false,
   });
 
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
+  useEffect(() => {
+    if (state.password != state.confirmPassword) {
+      setValid((prev) => ({ ...prev, confirmPassword: false }));
+      setErrors((s) => ({
+        ...s,
+        confirmPassword: "비밀번호가 일치하지 않습니다",
+      }));
+    } else {
+      setValid((prev) => ({ ...prev, confirmPassword: true }));
+      setErrors((s) => ({
+        ...s,
+        confirmPassword: "",
+      }));
+    }
+  }, [state.confirmPassword, state.password, setValid]);
+
+  const emailRegex =
+    /^(?=.{5,254}$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
+
   const passwordRegex =
-    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
-  const nicknameRegex = /^[A-Za-z가-힣0-9_-]+$/;
+    /^(?=.{8,32}$)(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]+$/;
+
+  const nicknameRegex = /^(?=.{2,12}$)[A-Za-z가-힣0-9_-]+$/;
 
   const onChangeEmail: ChangeEventHandler<HTMLInputElement> = (e) => {
     const email = e.target.value;
@@ -53,7 +72,7 @@ export default function Signup() {
     setState((s) => ({ ...s, email }));
     setErrors((s) => ({
       ...s,
-      email: isValid ? "" : "유효하지 않은 이메일 형식입니다.",
+      email: isValid ? "" : "유효하지 않은 이메일 형식입니다",
     }));
     setValid((v) => ({ ...v, email: isValid }));
   };
@@ -66,7 +85,7 @@ export default function Signup() {
       ...s,
       nickname: isValid
         ? ""
-        : "유효하지 않은 닉네임입니다. 영문, 한글, 숫자, '-', '_'만 사용할 수 있습니다.",
+        : "유효하지 않은 닉네임입니다. 2자 이상 16자 이하의 영문, 한글, 숫자, '-', '_'만 사용할 수 있습니다",
     }));
     setValid((v) => ({ ...v, nickname: isValid }));
   };
@@ -79,7 +98,7 @@ export default function Signup() {
       ...s,
       password: isValid
         ? ""
-        : "최소 8자 이상이어야 하며, 문자, 숫자, 특수문자를 포함해야 합니다.",
+        : "최소 8자 이상이어야 하며, 문자, 숫자, 특수문자를 포함해야 합니다",
     }));
     setValid((v) => ({
       ...v,
@@ -94,7 +113,7 @@ export default function Signup() {
     setState((s) => ({ ...s, confirmPassword }));
     setErrors((s) => ({
       ...s,
-      confirmPassword: isValid ? "" : "비밀번호가 일치하지 않습니다.",
+      confirmPassword: isValid ? "" : "비밀번호가 일치하지 않습니다",
     }));
     setValid((v) => ({ ...v, confirmPassword: isValid }));
   };

@@ -53,7 +53,9 @@ export default function SignupField({
             <CircleAlert size={18} className="absolute right-0 mr-2" />
           ))}
       </div>
-      <span className="text-sm text-muted-foreground">{error}</span>
+      <span className="text-sm text-muted-foreground">
+        {value ? error : ""}
+      </span>
     </div>
   );
 }
