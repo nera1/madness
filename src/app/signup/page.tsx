@@ -1,9 +1,19 @@
 "use client";
 
+import { debounce } from "lodash";
 import Header from "@/components/header/header";
 import SignupField from "@/components/signup-field/signup-field";
-import { ChangeEventHandler, FormEvent, useEffect, useState } from "react";
+import {
+  ChangeEventHandler,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
+
+import { checkEmailDuplicate, checkNicknameDuplicate } from "@/lib/api";
+
 import styles from "@/styles/signup.module.scss";
 
 type SignupState = {
@@ -43,79 +53,122 @@ export default function Signup() {
   });
 
   useEffect(() => {
-    if (state.password != state.confirmPassword) {
-      setValid((prev) => ({ ...prev, confirmPassword: false }));
-      setErrors((s) => ({
-        ...s,
+    if (state.password !== state.confirmPassword) {
+      setValid((v) => ({ ...v, confirmPassword: false }));
+      setErrors((e) => ({
+        ...e,
         confirmPassword: "비밀번호가 일치하지 않습니다",
       }));
     } else {
-      setValid((prev) => ({ ...prev, confirmPassword: true }));
-      setErrors((s) => ({
-        ...s,
-        confirmPassword: "",
-      }));
+      setValid((v) => ({ ...v, confirmPassword: true }));
+      setErrors((e) => ({ ...e, confirmPassword: "" }));
     }
-  }, [state.confirmPassword, state.password, setValid]);
+  }, [state.password, state.confirmPassword]);
 
   const emailRegex =
     /^(?=.{5,254}$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
-
+  const nicknameRegex = /^(?=.{2,12}$)[A-Za-z가-힣0-9_-]+$/;
   const passwordRegex =
     /^(?=.{8,32}$)(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]+$/;
 
-  const nicknameRegex = /^(?=.{2,12}$)[A-Za-z가-힣0-9_-]+$/;
+  const debouncedCheckEmail = useMemo(
+    () =>
+      debounce(async (email: string) => {
+        try {
+          const res = await checkEmailDuplicate(email);
+          if (res.data.isDuplicate) {
+            setErrors((e) => ({ ...e, email: "이미 사용 중인 이메일입니다" }));
+            setValid((v) => ({ ...v, email: false }));
+          } else {
+            setErrors((e) => ({ ...e, email: "" }));
+            setValid((v) => ({ ...v, email: true }));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }, 500),
+    []
+  );
+
+  const debouncedCheckNickname = useMemo(
+    () =>
+      debounce(async (nickname: string) => {
+        try {
+          const res = await checkNicknameDuplicate(nickname);
+          if (res.data.isDuplicate) {
+            setErrors((e) => ({
+              ...e,
+              nickname: "이미 사용 중인 닉네임입니다",
+            }));
+            setValid((v) => ({ ...v, nickname: false }));
+          } else {
+            setErrors((e) => ({ ...e, nickname: "" }));
+            setValid((v) => ({ ...v, nickname: true }));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }, 500),
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedCheckEmail.cancel();
+      debouncedCheckNickname.cancel();
+    };
+  }, [debouncedCheckEmail, debouncedCheckNickname]);
 
   const onChangeEmail: ChangeEventHandler<HTMLInputElement> = (e) => {
     const email = e.target.value;
-    const isValid = emailRegex.test(email);
     setState((s) => ({ ...s, email }));
-    setErrors((s) => ({
-      ...s,
-      email: isValid ? "" : "유효하지 않은 이메일 형식입니다",
-    }));
-    setValid((v) => ({ ...v, email: isValid }));
+
+    if (!emailRegex.test(email)) {
+      setErrors((e) => ({ ...e, email: "유효하지 않은 이메일 형식입니다" }));
+      setValid((v) => ({ ...v, email: false }));
+    } else {
+      // 정규식 통과했지만, 중복 검사 전까지는 유효 false 처리
+      setErrors((e) => ({ ...e, email: "" }));
+      setValid((v) => ({ ...v, email: false }));
+      debouncedCheckEmail(email);
+    }
   };
 
   const onChangeNickname: ChangeEventHandler<HTMLInputElement> = (e) => {
     const nickname = e.target.value;
-    const isValid = nicknameRegex.test(nickname);
     setState((s) => ({ ...s, nickname }));
-    setErrors((s) => ({
-      ...s,
-      nickname: isValid
-        ? ""
-        : "유효하지 않은 닉네임입니다. 2자 이상 16자 이하의 영문, 한글, 숫자, '-', '_'만 사용할 수 있습니다",
-    }));
-    setValid((v) => ({ ...v, nickname: isValid }));
+
+    if (!nicknameRegex.test(nickname)) {
+      setErrors((e) => ({
+        ...e,
+        nickname:
+          "유효하지 않은 닉네임입니다. 2자 이상 12자 이하의 영문, 한글, 숫자, '-', '_'만 사용할 수 있습니다",
+      }));
+      setValid((v) => ({ ...v, nickname: false }));
+    } else {
+      setErrors((e) => ({ ...e, nickname: "" }));
+      setValid((v) => ({ ...v, nickname: false }));
+      debouncedCheckNickname(nickname);
+    }
   };
 
   const onChangePassword: ChangeEventHandler<HTMLInputElement> = (e) => {
     const password = e.target.value;
     const isValid = passwordRegex.test(password);
     setState((s) => ({ ...s, password }));
-    setErrors((s) => ({
-      ...s,
+    setErrors((e) => ({
+      ...e,
       password: isValid
         ? ""
         : "최소 8자 이상이어야 하며, 문자, 숫자, 특수문자를 포함해야 합니다",
     }));
-    setValid((v) => ({
-      ...v,
-      password: isValid,
-      confirmPassword: state.confirmPassword === password,
-    }));
+    setValid((v) => ({ ...v, password: isValid }));
   };
 
   const onChangeConfirmPassword: ChangeEventHandler<HTMLInputElement> = (e) => {
     const confirmPassword = e.target.value;
-    const isValid = confirmPassword === state.password;
     setState((s) => ({ ...s, confirmPassword }));
-    setErrors((s) => ({
-      ...s,
-      confirmPassword: isValid ? "" : "비밀번호가 일치하지 않습니다",
-    }));
-    setValid((v) => ({ ...v, confirmPassword: isValid }));
+    // valid/ error는 useEffect에서 처리 중복 방지
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -126,9 +179,15 @@ export default function Signup() {
       valid.password &&
       valid.confirmPassword
     ) {
-      console.log("Form Submitted:", state);
+      const { confirmPassword, ...payload } = state;
+      fetch("http://localhost:8080/api/member", {
+        body: JSON.stringify(payload),
+        method: "post",
+      })
+        .then((r) => r.json())
+        .then((data) => console.log(data));
     } else {
-      console.log("Validation failed", valid);
+      console.log("Validation failed", valid, errors);
     }
   };
 
@@ -154,8 +213,8 @@ export default function Signup() {
               placeholder="user@example.com 형태로 입력하세요"
               value={state.email}
               onChange={onChangeEmail}
-              maxLength={64}
-              error={state.email ? errors.email : ""}
+              maxLength={254}
+              error={errors.email}
               isValid={valid.email}
             />
             <SignupField
