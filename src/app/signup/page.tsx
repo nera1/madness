@@ -179,7 +179,7 @@ export default function Signup() {
       valid.password &&
       valid.confirmPassword
     ) {
-      const { confirmPassword, ...payload } = state;
+      const { confirmPassword: _, ...payload } = state;
       fetch("http://localhost:8080/api/member", {
         body: JSON.stringify(payload),
         method: "post",
