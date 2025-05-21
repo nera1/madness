@@ -1,6 +1,6 @@
 "use client";
 
-import { debounce } from "lodash";
+import { debounce, omit } from "lodash";
 import Header from "@/components/header/header";
 import SignupField from "@/components/signup-field/signup-field";
 import {
@@ -179,7 +179,7 @@ export default function Signup() {
       valid.password &&
       valid.confirmPassword
     ) {
-      const { confirmPassword: _, ...payload } = state;
+      const payload = omit(state, ["confirmPassword"]);
       fetch("http://localhost:8080/api/member", {
         body: JSON.stringify(payload),
         method: "post",
