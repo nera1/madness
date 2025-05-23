@@ -1,6 +1,6 @@
 "use client";
 
-import { debounce, omit } from "lodash";
+import { debounce } from "lodash";
 import Header from "@/components/header/header";
 import SignupField from "@/components/signup-field/signup-field";
 import {
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 
 import { checkEmailDuplicate, checkNicknameDuplicate } from "@/lib/api";
 
-import { signup } from "@/lib/api/methods/post";
+// import { signup } from "@/lib/api/methods/post";
 
 import styles from "@/styles/signup.module.scss";
 
