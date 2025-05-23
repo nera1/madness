@@ -32,11 +32,6 @@ type ValidState = {
   confirmPassword: boolean;
 };
 
-enum Mode {
-  Idle = "idle",
-  Success = "success",
-}
-
 export default function Signup() {
   const [state, setState] = useState<SignupState>({
     email: "",
@@ -44,8 +39,6 @@ export default function Signup() {
     password: "",
     confirmPassword: "",
   });
-
-  const [mode, setMode] = useState<Mode>(Mode.Idle);
 
   const [errors, setErrors] = useState<SignupState>({
     email: "",
