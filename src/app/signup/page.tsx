@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 
 import { checkEmailDuplicate, checkNicknameDuplicate } from "@/lib/api";
 
+import { signup } from "@/lib/api/methods/post";
+
 import styles from "@/styles/signup.module.scss";
 
 type SignupState = {
@@ -30,6 +32,11 @@ type ValidState = {
   confirmPassword: boolean;
 };
 
+enum Mode {
+  Idle = "idle",
+  Success = "success",
+}
+
 export default function Signup() {
   const [state, setState] = useState<SignupState>({
     email: "",
@@ -37,6 +44,8 @@ export default function Signup() {
     password: "",
     confirmPassword: "",
   });
+
+  const [mode, setMode] = useState<Mode>(Mode.Idle);
 
   const [errors, setErrors] = useState<SignupState>({
     email: "",
@@ -127,7 +136,6 @@ export default function Signup() {
       setErrors((e) => ({ ...e, email: "유효하지 않은 이메일 형식입니다" }));
       setValid((v) => ({ ...v, email: false }));
     } else {
-      // 정규식 통과했지만, 중복 검사 전까지는 유효 false 처리
       setErrors((e) => ({ ...e, email: "" }));
       setValid((v) => ({ ...v, email: false }));
       debouncedCheckEmail(email);
@@ -168,7 +176,6 @@ export default function Signup() {
   const onChangeConfirmPassword: ChangeEventHandler<HTMLInputElement> = (e) => {
     const confirmPassword = e.target.value;
     setState((s) => ({ ...s, confirmPassword }));
-    // valid/ error는 useEffect에서 처리 중복 방지
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -180,12 +187,9 @@ export default function Signup() {
       valid.confirmPassword
     ) {
       const payload = omit(state, ["confirmPassword"]);
-      fetch("http://localhost:8080/api/member", {
-        body: JSON.stringify(payload),
-        method: "post",
-      })
-        .then((r) => r.json())
-        .then((data) => console.log(data));
+      signup(payload)
+        .then((data) => {})
+        .catch((err) => {});
     } else {
       console.log("Validation failed", valid, errors);
     }
