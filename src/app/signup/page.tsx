@@ -179,10 +179,8 @@ export default function Signup() {
       valid.password &&
       valid.confirmPassword
     ) {
-      const payload = omit(state, ["confirmPassword"]);
-      signup(payload)
-        .then((data) => {})
-        .catch((err) => {});
+      // const payload = omit(state, ["confirmPassword"]);
+      // signup(payload);
     } else {
       console.log("Validation failed", valid, errors);
     }
