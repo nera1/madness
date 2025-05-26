@@ -1,18 +1,9 @@
 "use client";
 
-import { debounce } from "lodash";
+import { ChangeEventHandler, FormEvent, useState } from "react";
 import Header from "@/components/header/header";
 import SignupField from "@/components/signup-field/signup-field";
-import {
-  ChangeEventHandler,
-  FormEvent,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
 import { Button } from "@/components/ui/button";
-
-import { checkEmailDuplicate, checkNicknameDuplicate } from "@/lib/api";
 
 import styles from "@/styles/signin.module.scss";
 
@@ -42,7 +33,34 @@ export default function Signin() {
     password: false,
   });
 
-  const handleSubmit = (e: FormEvent) => {};
+  const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const { id, value } = e.target;
+    setState((prev) => ({ ...prev, [id]: value }));
+
+    // Clear any previous error for this field
+    setErrors((prev) => ({ ...prev, [id]: "" }));
+
+    if (id === "email") {
+      setValid((prev) => ({ ...prev, email: value.includes("@") }));
+      if (!value.includes("@")) {
+        setErrors((prev) => ({ ...prev, email: "Invalid email address" }));
+      }
+    }
+    if (id === "password") {
+      setValid((prev) => ({ ...prev, password: value.length >= 6 }));
+      if (value.length < 6) {
+        setErrors((prev) => ({
+          ...prev,
+          password: "Password must be at least 6 characters",
+        }));
+      }
+    }
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    console.log("Signing in with:", state);
+  };
 
   return (
     <>
@@ -63,7 +81,7 @@ export default function Signin() {
               type="email"
               placeholder="Email"
               value={state.email}
-              onChange={() => {}}
+              onChange={handleChange}
               maxLength={254}
               error={errors.email}
               isValid={valid.email}
@@ -74,7 +92,7 @@ export default function Signin() {
               type="password"
               placeholder="Password"
               value={state.password}
-              onChange={() => {}}
+              onChange={handleChange}
               error={errors.password}
               isValid={valid.password}
             />
