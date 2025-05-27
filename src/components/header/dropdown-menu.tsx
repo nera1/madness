@@ -51,9 +51,14 @@ export function DropdownMenu() {
         <Command className="rounded-lg bg-transparent">
           <CommandList className={`${styles["list"]}`}>
             <CommandGroup heading="">
-              <CommandItem>
-                <LogIn />
-                <span>로그인</span>
+              <CommandItem
+                asChild
+                className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white"
+              >
+                <Link href={"/signin"} className="bg-transparent">
+                  <LogIn />
+                  <span>로그인</span>
+                </Link>
               </CommandItem>
               <CommandItem
                 asChild

@@ -1,6 +1,6 @@
 "use client";
 
-import { debounce } from "lodash";
+import { debounce, omit } from "lodash";
 import Header from "@/components/header/header";
 import SignupField from "@/components/signup-field/signup-field";
 import {
@@ -10,11 +10,11 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 import { checkEmailDuplicate, checkNicknameDuplicate } from "@/lib/api";
-
-// import { signup } from "@/lib/api/methods/post";
+import { signup } from "@/lib/api/methods/post";
 
 import styles from "@/styles/signup.module.scss";
 
@@ -33,6 +33,7 @@ type ValidState = {
 };
 
 export default function Signup() {
+  const router = useRouter();
   const [state, setState] = useState<SignupState>({
     email: "",
     nickname: "",
@@ -179,8 +180,20 @@ export default function Signup() {
       valid.password &&
       valid.confirmPassword
     ) {
-      // const payload = omit(state, ["confirmPassword"]);
-      // signup(payload);
+      const payload = omit(state, ["confirmPassword"]);
+      signup(payload)
+        .then((data) => {
+          router.push("/signup/success");
+        })
+        .catch((error) => {
+          console.error(error);
+          setValid({
+            email: false,
+            nickname: false,
+            password: false,
+            confirmPassword: false,
+          });
+        });
     } else {
       console.log("Validation failed", valid, errors);
     }
