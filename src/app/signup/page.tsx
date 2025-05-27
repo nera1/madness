@@ -182,7 +182,7 @@ export default function Signup() {
     ) {
       const payload = omit(state, ["confirmPassword"]);
       signup(payload)
-        .then((data) => {
+        .then(() => {
           router.push("/signup/success");
         })
         .catch((error) => {
