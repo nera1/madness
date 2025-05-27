@@ -37,7 +37,6 @@ export default function Signin() {
     const { id, value } = e.target;
     setState((prev) => ({ ...prev, [id]: value }));
 
-    // Clear any previous error for this field
     setErrors((prev) => ({ ...prev, [id]: "" }));
 
     if (id === "email") {

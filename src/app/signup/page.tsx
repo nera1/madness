@@ -12,6 +12,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 
 import { checkEmailDuplicate, checkNicknameDuplicate } from "@/lib/api";
 import { signup } from "@/lib/api/methods/post";
@@ -54,6 +55,8 @@ export default function Signup() {
     password: false,
     confirmPassword: false,
   });
+
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (state.password !== state.confirmPassword) {
@@ -181,6 +184,7 @@ export default function Signup() {
       valid.confirmPassword
     ) {
       const payload = omit(state, ["confirmPassword"]);
+      setIsLoading(true);
       signup(payload)
         .then(() => {
           router.push("/signup/success");
@@ -193,6 +197,9 @@ export default function Signup() {
             password: false,
             confirmPassword: false,
           });
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     } else {
       console.log("Validation failed", valid, errors);
@@ -256,8 +263,9 @@ export default function Signup() {
             />
             <Button
               type="submit"
-              className="cursor-pointer"
+              className="flex items-center justify-center cursor-pointer"
               disabled={
+                isLoading ||
                 !(
                   valid.email &&
                   valid.nickname &&
@@ -266,7 +274,7 @@ export default function Signup() {
                 )
               }
             >
-              Create account
+              {isLoading ? <Spinner size={16} /> : "Create account"}
             </Button>
           </form>
         </div>
