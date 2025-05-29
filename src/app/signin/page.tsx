@@ -70,6 +70,7 @@ export default function Signin() {
       await signin(state);
       router.back();
     } catch (err) {
+      console.error(err);
       setValid({ email: false, password: false });
       setErrors({
         email: "Invalid email or password",
