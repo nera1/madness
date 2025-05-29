@@ -32,5 +32,6 @@ export function signin(request: SigninRequest): Promise<SignupResponse> {
   return fetcher<SignupResponse>(`/auth/signin`, {
     method: "post",
     body: JSON.stringify(request),
+    credentials: "include",
   });
 }
