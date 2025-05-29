@@ -1,10 +1,12 @@
 "use client";
 
 import { ChangeEventHandler, FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/header/header";
 import SignupField from "@/components/signup-field/signup-field";
 import { Button } from "@/components/ui/button";
-
+import Spinner from "@/components/ui/spinner";
+import { signin } from "@/lib/api/methods/post";
 import styles from "@/styles/signin.module.scss";
 
 type SigninState = {
@@ -18,6 +20,7 @@ type ValidState = {
 };
 
 export default function Signin() {
+  const router = useRouter();
   const [state, setState] = useState<SigninState>({
     email: "",
     password: "",
@@ -33,6 +36,8 @@ export default function Signin() {
     password: false,
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const { id, value } = e.target;
     setState((prev) => ({ ...prev, [id]: value }));
@@ -40,14 +45,16 @@ export default function Signin() {
     setErrors((prev) => ({ ...prev, [id]: "" }));
 
     if (id === "email") {
-      setValid((prev) => ({ ...prev, email: value.includes("@") }));
-      if (!value.includes("@")) {
+      const isValidEmail = value.includes("@");
+      setValid((prev) => ({ ...prev, email: isValidEmail }));
+      if (!isValidEmail) {
         setErrors((prev) => ({ ...prev, email: "Invalid email address" }));
       }
     }
     if (id === "password") {
-      setValid((prev) => ({ ...prev, password: value.length >= 6 }));
-      if (value.length < 6) {
+      const isValidPassword = value.length >= 6;
+      setValid((prev) => ({ ...prev, password: isValidPassword }));
+      if (!isValidPassword) {
         setErrors((prev) => ({
           ...prev,
           password: "Password must be at least 6 characters",
@@ -56,9 +63,21 @@ export default function Signin() {
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Signing in with:", state);
+    setIsLoading(true);
+    try {
+      await signin(state);
+      router.back();
+    } catch (err) {
+      setValid({ email: false, password: false });
+      setErrors({
+        email: "Invalid email or password",
+        password: "Invalid email or password",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -99,9 +118,9 @@ export default function Signin() {
             <Button
               type="submit"
               className="cursor-pointer"
-              disabled={!(valid.email && valid.password)}
+              disabled={!(valid.email && valid.password) || isLoading}
             >
-              Sign in
+              {isLoading ? <Spinner /> : "Sign in"}
             </Button>
           </form>
         </div>

@@ -1,10 +1,11 @@
 import { LogIn, House } from "lucide-react";
 
-import styles from "@/styles/signup.module.scss";
-import style from "@/styles/signup-success.module.scss";
 import { Button } from "@/components/ui/button";
 import MadIcon from "@/components/logo/MadIcon";
 import Link from "next/link";
+
+import styles from "@/styles/signup.module.scss";
+import style from "@/styles/signup-success.module.scss";
 
 export default function SignupSuccess() {
   return (
