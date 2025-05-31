@@ -27,6 +27,9 @@ import {
   Search,
   LogIn,
   MessageSquare,
+  Github,
+  Server,
+  PanelTop,
 } from "lucide-react";
 
 import styles from "@/styles/dropdown-menu.module.scss";
@@ -91,6 +94,36 @@ export function DropdownMenu() {
             </CommandGroup>
             <CommandSeparator className={`${styles["seperator"]}`} />
             <CommandGroup heading="">
+              <CommandItem>
+                <a
+                  className="flex gap-x-2 items-center"
+                  href="https://github.com/nera1/api.madness"
+                  target="_blank"
+                >
+                  <Server />
+                  <span>Backend Repository</span>
+                </a>
+              </CommandItem>
+              <CommandItem>
+                <a
+                  className="flex gap-x-2 items-center"
+                  href="https://github.com/nera1/madness"
+                  target="_blank"
+                >
+                  <PanelTop />
+                  <span>Frontend Repository</span>
+                </a>
+              </CommandItem>
+              <CommandItem>
+                <a
+                  className="flex gap-x-2 items-center"
+                  href="https://github.com/nera1"
+                  target="_blank"
+                >
+                  <Github />
+                  <span>Github</span>
+                </a>
+              </CommandItem>
               <CommandItem>
                 <Settings />
                 <span>설정</span>
