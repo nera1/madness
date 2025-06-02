@@ -25,7 +25,6 @@ import {
   MessageSquarePlus,
   CircleUserRound,
   Search,
-  LogIn,
   MessageSquare,
   Github,
   Server,
