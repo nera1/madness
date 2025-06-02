@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 
 import styles from "@/styles/dropdown-menu.module.scss";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 export function DropdownMenu() {
   return (
@@ -54,15 +55,23 @@ export function DropdownMenu() {
         <Command className="rounded-lg bg-transparent">
           <CommandList className={`${styles["list"]}`}>
             <CommandGroup heading="">
-              <CommandItem
-                asChild
-                className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white"
-              >
-                <Link href={"/signin"} className="bg-transparent">
-                  <LogIn />
-                  <span>로그인</span>
+              <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
+                <Link
+                  href={"/signin"}
+                  className="bg-transparent flex gap-x-2 items-center"
+                >
+                  <Avatar>
+                    <AvatarImage src="" alt="Nickname" />
+                    <AvatarFallback className="bg-neutral-950">
+                      🤪
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>로그인이 필요합니다</span>
                 </Link>
               </CommandItem>
+            </CommandGroup>
+            <CommandGroup heading="">
+              <CommandSeparator className={`${styles["seperator"]}`} />
               <CommandItem
                 asChild
                 className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white"
