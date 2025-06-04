@@ -1,4 +1,5 @@
 import { fetcher } from "../fetcher";
+import { ApiResponse } from "../types/api-response";
 
 export interface SignupRequest {
   email: string;
@@ -6,20 +7,19 @@ export interface SignupRequest {
   password: string;
 }
 
-export interface SignupResponse {
-  email: string;
-  nickname: string;
-}
-
 export interface SigninRequest {
   email: string;
   password: string;
 }
 
-export interface SigninResponse {
+export interface SignupResponseData {
   email: string;
-  password: string;
+  nickname: string;
 }
+
+export type SignupResponse = ApiResponse<SignupResponseData>;
+
+export type SigninResponse = ApiResponse<SignupResponseData>;
 
 export function signup(request: SignupRequest): Promise<SignupResponse> {
   return fetcher<SignupResponse>(`/member`, {
@@ -28,8 +28,8 @@ export function signup(request: SignupRequest): Promise<SignupResponse> {
   });
 }
 
-export function signin(request: SigninRequest): Promise<SignupResponse> {
-  return fetcher<SignupResponse>(`/auth/signin`, {
+export function signin(request: SigninRequest): Promise<SigninResponse> {
+  return fetcher<SigninResponse>(`/auth/signin`, {
     method: "post",
     body: JSON.stringify(request),
     credentials: "include",
