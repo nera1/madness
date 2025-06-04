@@ -27,9 +27,9 @@ export function checkEmailDuplicate(email: string): Promise<CheckDuplicate> {
 }
 
 export function refresh(): Promise<RefreshResponse> {
-  return fetcher<RefreshResponse>(`/auth/refresh`);
+  return fetcher<RefreshResponse>(`/auth/refresh`, { credentials: "include" });
 }
 
 export function getMe(): Promise<MeResponse> {
-  return fetcher<MeResponse>(`/auth/me`);
+  return fetcher<MeResponse>(`/auth/me`, { credentials: "include" });
 }
