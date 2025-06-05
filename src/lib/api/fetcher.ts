@@ -1,10 +1,10 @@
-const API_BASE = `https://api.madn.es`;
-
 export async function fetcher<T>(
   query: string,
   options?: RequestInit
 ): Promise<T> {
-  const res = await fetch(`${API_BASE}${query}`, {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE || "https://api.madn.es";
+
+  const res = await fetch(`${baseUrl}${query}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });

@@ -21,7 +21,6 @@ import {
   LogOut,
   Menu,
   MessageSquarePlus,
-  CircleUserRound,
   Search,
   MessageSquare,
   Github,
@@ -31,7 +30,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
-import { getMe, MeResponseData, refresh } from "@/lib/api/methods/get";
+import { getMe, MeResponseData, refresh, signOut } from "@/lib/api/methods/get";
 
 import styles from "@/styles/dropdown-menu.module.scss";
 
@@ -55,11 +54,21 @@ export function DropdownMenu() {
       });
   }, []);
 
+  const handleSignOut = () => {
+    signOut()
+      .then(() => {
+        setUser(null);
+      })
+      .catch(() => {
+        setUser(null);
+      });
+  };
+
   const renderUserSection = () => {
     if (user) {
       return (
         <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
-          <Link href="/profile" className="flex gap-x-3 items-center">
+          <Link href="#" className="flex gap-x-3 items-center">
             <Avatar>
               <AvatarImage src="" alt={user.nickname} />
               <AvatarFallback className="bg-neutral-950">🤪</AvatarFallback>
@@ -88,16 +97,12 @@ export function DropdownMenu() {
 
   const renderAccountAction = () => {
     if (user) {
-      return (
-        <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
-          <CircleUserRound />
-          <span>회원정보 변경</span>
-        </CommandItem>
-      );
+      return <></>;
     }
 
     return (
       <>
+        <CommandSeparator className={styles["seperator"]} />
         <CommandItem
           asChild
           className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white"
@@ -123,7 +128,10 @@ export function DropdownMenu() {
   const renderLogoutItem = () => {
     if (!user) return null;
     return (
-      <CommandItem>
+      <CommandItem
+        onSelect={handleSignOut}
+        className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white flex items-center gap-x-2"
+      >
         <LogOut />
         <span>로그아웃</span>
       </CommandItem>
@@ -141,7 +149,6 @@ export function DropdownMenu() {
           <Menu color="#fff" />
         </Button>
       </PopoverTrigger>
-
       <PopoverContent
         side="bottom"
         align="end"
@@ -156,7 +163,6 @@ export function DropdownMenu() {
         <Command className="rounded-lg bg-transparent">
           <CommandList className={styles["list"]}>
             <CommandGroup heading="">{renderUserSection()}</CommandGroup>
-            <CommandSeparator className={styles["seperator"]} />
             <CommandGroup heading="">{renderAccountAction()}</CommandGroup>
             <CommandSeparator className={styles["seperator"]} />
             <CommandGroup heading="채팅">
