@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+![madness](banner.svg)
 
-## Getting Started
+# madness
 
-First, run the development server:
+## 개요
+
+채팅 웹 어플리케이션 **Madness** 프론트엔드
+
+## 주요 기능
+
+- **실시간 채팅 인터페이스**
+  - WebSocket(STOMP, SockJS)
+  - 채팅방 목록 조회 및 입장, 메시지 송수신
+- **채팅방 UI**
+  - Shadcn/components 기반의 채팅 메시지 리스트, 입력 폼
+  - 채팅방 입장 시 최신 메시지 로딩 및 스크롤 관리
+- **프로필 및 설정 페이지**
+  - Avatar 컴포넌트를 통한 사용자 프로필 이미지 표시 및 변경
+  - 사용자 정보 조회/수정
+- **반응형 레이아웃**
+  - Tailwind CSS를 활용하여 모바일/데스크탑 모두 지원하는 반응형 UI 구현
+
+## 기술 스택
+
+- **Frontend Framework & Language**
+  - Next.js 15.2.2 (App Router)
+  - React 19.0.0, TypeScript
+- **스타일 & UI 컴포넌트**
+  - Tailwind CSS 4.x, Tailwind CSS Animate
+  - Shadcn/components
+- **웹소켓 & 메시징**
+  - STOMP, SockJS (백엔드 WebSocket 엔드포인트와 연결)
+- **빌드 & 배포**
+  - GitHub Actions, GitHub Pages
+
+## 프로젝트 설치 및 실행
 
 ```bash
+# 1. 레포지토리 클론
+git clone https://github.com/nera1/madness.git
+cd madness
+
+# 2. 의존성 설치
+npm install
+# 또는 yarn install
+
+# 3. 개발 서버 실행 (localhost:3000)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 또는 yarn dev
+
+# 4. 프로덕션 빌드 & 실행
+npm run build
+npm run start
+
+# 또는 yarn build && yarn start
+npm install: package.json에 명시된 모든 의존성을 설치
+npm run dev: Next.js 개발 모드로 실행
+npm run build: 프로덕션 빌드를 수행
+npm run start: 빌드된 정적 파일로 실제 서비스 모드를 실행
+npm run lint: ESLint 규칙에 따라 코드 스타일을 검증
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 환경 변수
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Local(Development)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+NEXT_PUBLIC_API_BASE=http://localhost:8080
+```
 
-## Learn More
+### Production(not required)
 
-To learn more about Next.js, take a look at the following resources:
+```bash
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 도메인
 
-## Deploy on Vercel
+[madn.es](https://madn.es)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contact
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Email: nera4936@gmail.com
