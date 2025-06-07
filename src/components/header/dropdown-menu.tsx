@@ -31,13 +31,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 import { getMe, MeResponseData, refresh, signOut } from "@/lib/api/methods/get";
+import Spinner from "../ui/spinner";
 
 import styles from "@/styles/dropdown-menu.module.scss";
 
 export function DropdownMenu() {
   const [user, setUser] = useState<MeResponseData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     getMe()
       .then((res) => {
         setUser(res.data);
@@ -51,20 +54,25 @@ export function DropdownMenu() {
           .catch(() => {
             setUser(null);
           });
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const handleSignOut = () => {
     signOut()
-      .then(() => {
-        setUser(null);
-      })
-      .catch(() => {
-        setUser(null);
-      });
+      .then(() => setUser(null))
+      .catch(() => setUser(null));
   };
 
   const renderUserSection = () => {
+    if (loading) {
+      return (
+        <CommandItem className="flex justify-center">
+          <Spinner />
+        </CommandItem>
+      );
+    }
+
     if (user) {
       return (
         <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
@@ -96,10 +104,7 @@ export function DropdownMenu() {
   };
 
   const renderAccountAction = () => {
-    if (user) {
-      return <></>;
-    }
-
+    if (user) return null;
     return (
       <>
         <CommandSeparator className={styles["seperator"]} />
@@ -145,8 +150,9 @@ export function DropdownMenu() {
           className={`my-5 pointer cursor-pointer ${styles["menu-btn"]}`}
           variant="ghost"
           size="icon"
+          disabled={loading}
         >
-          <Menu color="#fff" />
+          {loading ? <Spinner /> : <Menu color="#fff" />}
         </Button>
       </PopoverTrigger>
       <PopoverContent
