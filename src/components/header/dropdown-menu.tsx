@@ -29,10 +29,8 @@ import {
   UserRoundX,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-
 import { getMe, MeResponseData, refresh, signOut } from "@/lib/api/methods/get";
 import Spinner from "../ui/spinner";
-
 import styles from "@/styles/dropdown-menu.module.scss";
 
 export function DropdownMenu() {
@@ -65,39 +63,37 @@ export function DropdownMenu() {
   };
 
   const renderUserSection = () => {
-    if (loading) {
-      return (
-        <CommandItem className="flex justify-center">
-          <Spinner />
-        </CommandItem>
-      );
-    }
-
-    if (user) {
+    if (!user) {
       return (
         <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
-          <Link href="#" className="flex gap-x-3 items-center">
-            <Avatar>
-              <AvatarImage src="" alt={user.nickname} />
-              <AvatarFallback className="bg-neutral-950">🤪</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col gap-1">
-              <span className="text-sm leading-none font-medium">
-                {user.nickname}
-              </span>
-              <span className="text-muted-foreground text-sm leading-none font-medium">
-                {user.email}
-              </span>
-            </div>
-          </Link>
+          {loading ? (
+            <span className="w-100 flex gap-x-2 items-center justify-center">
+              <Spinner />
+            </span>
+          ) : (
+            <Link href="/signin" className="flex gap-x-2 items-center">
+              <span className="w-100">로그인이 필요합니다</span>
+            </Link>
+          )}
         </CommandItem>
       );
     }
 
     return (
       <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
-        <Link href="/signin" className="flex gap-x-2 items-center">
-          <span className="w-100">로그인이 필요합니다</span>
+        <Link href="#" className="flex gap-x-3 items-center">
+          <Avatar>
+            <AvatarImage src="" alt={user.nickname} />
+            <AvatarFallback className="bg-neutral-950">🤪</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col gap-1">
+            <span className="text-sm leading-none font-medium">
+              {user.nickname}
+            </span>
+            <span className="text-muted-foreground text-sm leading-none font-medium">
+              {user.email}
+            </span>
+          </div>
         </Link>
       </CommandItem>
     );
@@ -107,7 +103,6 @@ export function DropdownMenu() {
     if (user) return null;
     return (
       <>
-        <CommandSeparator className={styles["seperator"]} />
         <CommandItem
           asChild
           className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white"
@@ -150,9 +145,8 @@ export function DropdownMenu() {
           className={`my-5 pointer cursor-pointer ${styles["menu-btn"]}`}
           variant="ghost"
           size="icon"
-          disabled={loading}
         >
-          {loading ? <Spinner /> : <Menu color="#fff" />}
+          <Menu color="#fff" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -169,6 +163,11 @@ export function DropdownMenu() {
         <Command className="rounded-lg bg-transparent">
           <CommandList className={styles["list"]}>
             <CommandGroup heading="">{renderUserSection()}</CommandGroup>
+            {user ? (
+              <></>
+            ) : (
+              <CommandSeparator className={styles["seperator"]} />
+            )}
             <CommandGroup heading="">{renderAccountAction()}</CommandGroup>
             <CommandSeparator className={styles["seperator"]} />
             <CommandGroup heading="채팅">
