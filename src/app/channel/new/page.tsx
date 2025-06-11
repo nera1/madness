@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
 
 import { Button } from "@/components/ui/button";
-import Spinner from "@/components/ui/spinner";
+// import Spinner from "@/components/ui/spinner";
 
 import styles from "@/styles/new-channel.module.scss";
 
@@ -17,7 +16,6 @@ interface ChannelFormState {
 
 export default function NewChannel() {
   const [form, setForm] = useState<ChannelFormState>({ name: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -52,7 +50,7 @@ export default function NewChannel() {
               className="flex items-center justify-center cursor-pointer"
               disabled={!form.name}
             >
-              {isSubmitting ? <Spinner size={16} /> : "Create Channel"}
+              {false}
             </Button>
           </form>
         </div>
