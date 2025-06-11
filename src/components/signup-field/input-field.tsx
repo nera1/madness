@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { CircleCheck, CircleAlert } from "lucide-react";
 import styles from "@/styles/signup.module.scss";
 
-type SignupFieldProps = {
+type InputFieldProps = {
   id: string;
   label: string;
   type?: string;
@@ -18,7 +18,7 @@ type SignupFieldProps = {
   maxLength?: number;
 };
 
-export default function SignupField({
+export default function InputField({
   id,
   label,
   type = "text",
@@ -28,7 +28,7 @@ export default function SignupField({
   error = "",
   isValid,
   maxLength,
-}: SignupFieldProps) {
+}: InputFieldProps) {
   const showIcon = value.length > 0;
   return (
     <div

@@ -2,7 +2,7 @@
 
 import { debounce, omit } from "lodash";
 import Header from "@/components/header/header";
-import SignupField from "@/components/signup-field/signup-field";
+import InputField from "@/components/signup-field/input-field";
 import {
   ChangeEventHandler,
   FormEvent,
@@ -221,7 +221,7 @@ export default function Signup() {
             onSubmit={handleSubmit}
             className="flex flex-col gap-y-3 py-8 w-full max-w-md"
           >
-            <SignupField
+            <InputField
               id="email"
               label="Email"
               type="email"
@@ -232,7 +232,7 @@ export default function Signup() {
               error={errors.email}
               isValid={valid.email}
             />
-            <SignupField
+            <InputField
               id="nickname"
               label="Nickname"
               placeholder="닉네임을 입력하세요"
@@ -241,7 +241,7 @@ export default function Signup() {
               error={errors.nickname}
               isValid={valid.nickname}
             />
-            <SignupField
+            <InputField
               id="password"
               label="Password"
               type="password"
@@ -251,7 +251,7 @@ export default function Signup() {
               error={errors.password}
               isValid={valid.password}
             />
-            <SignupField
+            <InputField
               id="confirm-password"
               label="Confirm password"
               type="password"

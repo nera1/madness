@@ -1,7 +1,7 @@
 import { LogIn, House } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import MadIcon from "@/components/logo/MadIcon";
+import TextLogo from "@/components/logo/TextLogo";
 import Link from "next/link";
 
 import styles from "@/styles/signup.module.scss";
@@ -15,7 +15,7 @@ export default function SignupSuccess() {
       >
         <div className="mt-32 w-100">
           <div className="flex justify-center py-10">
-            <MadIcon size={128} className="border-4 border-neutral-50" />
+            <TextLogo width={164} fill="#fff" />
           </div>
           <h2 className="scroll-m-20 text-4xl font-semibold tracking-tight flex items-center gap-x-2">
             Success

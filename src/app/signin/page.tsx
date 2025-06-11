@@ -3,7 +3,7 @@
 import { ChangeEventHandler, FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/header/header";
-import SignupField from "@/components/signup-field/signup-field";
+import InputField from "@/components/signup-field/input-field";
 import { Button } from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import { signin } from "@/lib/api/methods/post";
@@ -94,7 +94,7 @@ export default function Signin() {
             onSubmit={handleSubmit}
             className="flex flex-col gap-y-3 py-8 w-full max-w-md"
           >
-            <SignupField
+            <InputField
               id="email"
               label="Email"
               type="email"
@@ -105,7 +105,7 @@ export default function Signin() {
               error={errors.email}
               isValid={valid.email}
             />
-            <SignupField
+            <InputField
               id="password"
               label="Password"
               type="password"

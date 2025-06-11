@@ -1,0 +1,61 @@
+@use "variables" as vars;
+
+.new-channel {
+  margin-top: vars.$height-header;
+  min-height: calc(100vh - vars.$height-header);
+}
+
+.container {
+  width: 100%;
+  max-width: vars.$width-container-signup;
+  padding-top: vars.$padding-top-container;
+}
+
+.container {
+  & h1 {
+    color: vars.$color-50;
+  }
+  & form label {
+    color: vars.$color-300;
+  }
+  & form input {
+    color: vars.$color-50 !important;
+    border-color: vars.$color-700;
+    &::selection {
+      background-color: vars.$color-50;
+      color: vars.$color-950;
+    }
+  }
+  & form input:-webkit-autofill,
+  & form input:-webkit-autofill:hover,
+  & form input:-webkit-autofill:focus,
+  & form input:-webkit-autofill:active {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: vars.$color-50;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+@include vars.media-xs {
+  .container {
+    padding-left: vars.$padding-aside-container;
+    padding-right: vars.$padding-aside-container;
+  }
+}
+
+@include vars.media-sm {
+  .container {
+    padding-left: vars.$padding-aside-container;
+    padding-right: vars.$padding-aside-container;
+  }
+}
+
+@include vars.media-md {
+  .container {
+    padding-left: vars.$padding-aside-container;
+    padding-right: vars.$padding-aside-container;
+  }
+}
+
+@include vars.media-lg {
+}
