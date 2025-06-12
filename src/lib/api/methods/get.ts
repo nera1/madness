@@ -16,6 +16,7 @@ export type CheckDuplicate = ApiResponse<CheckDuplicateData>;
 export type RefreshResponse = ApiResponse<null>;
 export type MeResponse = ApiResponse<MeResponseData>;
 export type SignoutRespone = ApiResponse<null>;
+export type AuthCheckRespone = ApiResponse<null>;
 
 export function checkNicknameDuplicate(
   nickname: string
@@ -37,4 +38,8 @@ export function getMe(): Promise<MeResponse> {
 
 export function signOut(): Promise<SignoutRespone> {
   return fetcher<SignoutRespone>(`/auth/signout`, { credentials: "include" });
+}
+
+export function authCheck(): Promise<AuthCheckRespone> {
+  return fetcher<AuthCheckRespone>(`/auth/check`, { credentials: "include" });
 }

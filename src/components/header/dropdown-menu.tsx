@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Command,
   CommandGroup,
@@ -29,13 +30,21 @@ import {
   UserRoundX,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { getMe, MeResponseData, refresh, signOut } from "@/lib/api/methods/get";
+import {
+  authCheck,
+  getMe,
+  MeResponseData,
+  refresh,
+  signOut,
+} from "@/lib/api/methods/get";
 import Spinner from "../ui/spinner";
 import styles from "@/styles/dropdown-menu.module.scss";
 
 export function DropdownMenu() {
   const [user, setUser] = useState<MeResponseData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const router = useRouter();
 
   useEffect(() => {
     setLoading(true);
@@ -60,6 +69,23 @@ export function DropdownMenu() {
     signOut()
       .then(() => setUser(null))
       .catch(() => setUser(null));
+  };
+
+  const handleNewChannel = () => {
+    authCheck()
+      .then((res) => {
+        router.push("/channel/new");
+      })
+      .catch(() => {
+        refresh()
+          .then(() => authCheck())
+          .then((res2) => {
+            router.push("/channel/new");
+          })
+          .catch(() => {
+            router.push("/signin");
+          });
+      });
   };
 
   const renderUserSection = () => {
@@ -170,18 +196,18 @@ export function DropdownMenu() {
             )}
             <CommandGroup heading="">{renderAccountAction()}</CommandGroup>
             <CommandSeparator className={styles["seperator"]} />
-            <CommandGroup heading="채팅">
+            <CommandGroup heading="채널">
               <CommandItem>
                 <Search />
-                <span>채팅 검색</span>
+                <span>채널 검색</span>
               </CommandItem>
               <CommandItem>
                 <MessageSquare />
-                <span>채팅목록</span>
+                <span>채널 목록</span>
               </CommandItem>
-              <CommandItem>
+              <CommandItem onSelect={handleNewChannel}>
                 <MessageSquarePlus />
-                <span>채팅창 개설</span>
+                <span>채널 생성</span>
               </CommandItem>
             </CommandGroup>
             <CommandSeparator className={styles["seperator"]} />

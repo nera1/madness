@@ -5,7 +5,7 @@ import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
 
 import { Button } from "@/components/ui/button";
-// import Spinner from "@/components/ui/spinner";
+import Spinner from "@/components/ui/spinner";
 
 import styles from "@/styles/new-channel.module.scss";
 
@@ -50,7 +50,7 @@ export default function NewChannel() {
               className="flex items-center justify-center cursor-pointer"
               disabled={!form.name}
             >
-              {false}
+              {"Create Channel"}
             </Button>
           </form>
         </div>
