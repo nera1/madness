@@ -7,6 +7,12 @@ import InputField from "@/components/signup-field/input-field";
 import { Button } from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 
+import { createChannel } from "@/lib/api/methods/post";
+import { useRouter } from "next/navigation";
+import { refresh } from "@/lib/api";
+
+import { Check, CircleX, House } from "lucide-react";
+
 import styles from "@/styles/new-channel.module.scss";
 
 interface ChannelFormState {
@@ -14,16 +20,70 @@ interface ChannelFormState {
   name: string;
 }
 
+enum Status {
+  idle,
+  success,
+  failed,
+}
+
 export default function NewChannel() {
   const [form, setForm] = useState<ChannelFormState>({ name: "" });
+  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<Status>(Status.idle);
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setForm((prev) => ({ ...prev, name: value }));
+    setStatus(Status.idle);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    createChannel(form)
+      .then(() => {
+        setStatus(Status.success);
+      })
+      .catch(() => {
+        refresh()
+          .then(() => createChannel(form))
+          .then(() => {
+            setStatus(Status.success);
+          })
+          .catch(() => {
+            setStatus(Status.failed);
+          });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  const sumbitButtonText = (status: Status) => {
+    switch (status) {
+      case Status.idle:
+        return "Create Channel";
+      case Status.success:
+        return "Channel Created";
+      case Status.failed:
+        return "Create Failed";
+      default:
+        return "Create Channel";
+    }
+  };
+
+  const sumbitButtonIcon = (status: Status) => {
+    switch (status) {
+      case Status.idle:
+        return <></>;
+      case Status.success:
+        return <Check />;
+      case Status.failed:
+        return <CircleX />;
+      default:
+        return <></>;
+    }
   };
 
   return (
@@ -50,8 +110,23 @@ export default function NewChannel() {
               className="flex items-center justify-center cursor-pointer"
               disabled={!form.name}
             >
-              {"Create Channel"}
+              {isLoading ? <></> : sumbitButtonIcon(status)}
+              {isLoading ? <Spinner size={16} /> : sumbitButtonText(status)}
             </Button>
+            {status === Status.success ? (
+              <Button
+                className="cursor-pointer border border-neutral-600 text-neutral-100 hover:bg-neutral-600 hover:text-neutral-100"
+                variant="ghost"
+                onClick={() => {
+                  router.push("/");
+                }}
+              >
+                <House />
+                <span>Home</span>
+              </Button>
+            ) : (
+              <></>
+            )}
           </form>
         </div>
       </main>

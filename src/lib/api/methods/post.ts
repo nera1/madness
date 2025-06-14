@@ -17,9 +17,20 @@ export interface SignupResponseData {
   nickname: string;
 }
 
-export type SignupResponse = ApiResponse<SignupResponseData>;
+export interface CreateChannelRequest {
+  name: string;
+}
 
+export interface CreateChannelData {
+  id: number;
+  name: string;
+  creatorId: number;
+  createdAt: string;
+}
+
+export type SignupResponse = ApiResponse<SignupResponseData>;
 export type SigninResponse = ApiResponse<SignupResponseData>;
+export type CreateChannelResponse = ApiResponse<CreateChannelData>;
 
 export function signup(request: SignupRequest): Promise<SignupResponse> {
   return fetcher<SignupResponse>(`/member`, {
@@ -30,6 +41,16 @@ export function signup(request: SignupRequest): Promise<SignupResponse> {
 
 export function signin(request: SigninRequest): Promise<SigninResponse> {
   return fetcher<SigninResponse>(`/auth/signin`, {
+    method: "post",
+    body: JSON.stringify(request),
+    credentials: "include",
+  });
+}
+
+export function createChannel(
+  request: CreateChannelRequest
+): Promise<CreateChannelResponse> {
+  return fetcher<CreateChannelResponse>(`/channel`, {
     method: "post",
     body: JSON.stringify(request),
     credentials: "include",
