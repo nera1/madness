@@ -73,13 +73,13 @@ export function DropdownMenu() {
 
   const handleNewChannel = () => {
     authCheck()
-      .then((res) => {
+      .then(() => {
         router.push("/channel/new");
       })
       .catch(() => {
         refresh()
           .then(() => authCheck())
-          .then((res2) => {
+          .then(() => {
             router.push("/channel/new");
           })
           .catch(() => {
