@@ -2,8 +2,9 @@
 
 import { FunctionComponent, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import ChannelHeader from "@/components/channel-header/channel-header";
 
-const ChannelHeader: FunctionComponent = () => {
+const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
   useEffect(() => {
     console.log("c:", searchParams.get("c"));
@@ -16,4 +17,4 @@ const ChannelHeader: FunctionComponent = () => {
   );
 };
 
-export default ChannelHeader;
+export default ChannelContent;
