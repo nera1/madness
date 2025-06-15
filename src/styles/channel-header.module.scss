@@ -1,23 +1,15 @@
 @use "variables" as vars;
 
-.header {
+.channel-header {
   height: vars.$height-header;
-  &.border {
-    border-bottom: 0.5px solid vars.$color-800;
+  border-bottom: 0.5px solid vars.$color-800;
+  & > .container {
+    width: vars.$width-container;
+    & > .left {
+    }
+    & > .right {
+    }
   }
-  & .left {
-  }
-
-  & .right.logo-center {
-    display: none;
-  }
-}
-
-.header > .container {
-  width: vars.$width-container;
-}
-
-.menu-icon {
 }
 
 @include vars.media-xs {

@@ -77,10 +77,6 @@
 }
 
 @include vars.media-md {
-  .container {
-    padding-left: vars.$padding-aside-container;
-    padding-right: vars.$padding-aside-container;
-  }
 }
 
 @include vars.media-lg {

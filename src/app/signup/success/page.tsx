@@ -13,8 +13,8 @@ export default function SignupSuccess() {
       <main
         className={`${styles.signup} ${style["signup-success"]} flex justify-center box-border`}
       >
-        <div className="mt-32 w-100">
-          <div className="flex justify-center py-10">
+        <div className={`${styles["container"]} mt-32 w-full`}>
+          <div className="flex justify-center py-10 mb-10 w-full">
             <TextLogo width={164} fill="#fff" />
           </div>
           <h2 className="scroll-m-20 text-4xl font-semibold tracking-tight flex items-center gap-x-2">
@@ -25,13 +25,13 @@ export default function SignupSuccess() {
           </p>
           <div className="py-3 flex flex-col gap-y-2">
             <Link href={"/signin"} className="bg-transparent">
-              <Button className="w-100 cursor-pointer">
+              <Button className="w-full cursor-pointer">
                 <LogIn /> Login
               </Button>
             </Link>
             <Link href={"/"} className="bg-transparent">
               <Button
-                className="w-100 cursor-pointer border border-neutral-600 text-neutral-100 hover:bg-neutral-600 hover:text-neutral-100"
+                className="w-full cursor-pointer border border-neutral-600 text-neutral-100 hover:bg-neutral-600 hover:text-neutral-100"
                 variant="ghost"
               >
                 <House />

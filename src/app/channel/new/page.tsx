@@ -108,26 +108,26 @@ export default function NewChannel() {
             <Button
               type="submit"
               className="flex items-center justify-center cursor-pointer"
-              disabled={!form.name}
+              disabled={!form.name || status !== Status.idle}
             >
               {isLoading ? <></> : sumbitButtonIcon(status)}
               {isLoading ? <Spinner size={16} /> : sumbitButtonText(status)}
             </Button>
-            {status === Status.success ? (
-              <Button
-                className="cursor-pointer border border-neutral-600 text-neutral-100 hover:bg-neutral-600 hover:text-neutral-100"
-                variant="ghost"
-                onClick={() => {
-                  router.push("/");
-                }}
-              >
-                <House />
-                <span>Home</span>
-              </Button>
-            ) : (
-              <></>
-            )}
           </form>
+          {status === Status.success ? (
+            <Button
+              className="cursor-pointer border border-neutral-600 mt-2 text-neutral-100 hover:bg-neutral-600 hover:text-neutral-100 w-full"
+              variant="ghost"
+              onClick={() => {
+                router.push("/");
+              }}
+            >
+              <House />
+              <span>Home</span>
+            </Button>
+          ) : (
+            <></>
+          )}
         </div>
       </main>
     </>

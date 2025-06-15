@@ -92,7 +92,7 @@ export default function Signin() {
           </span>
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-y-3 py-8 w-full max-w-md"
+            className="flex flex-col gap-y-3 py-8 w-full"
           >
             <InputField
               id="email"

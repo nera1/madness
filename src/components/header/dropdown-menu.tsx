@@ -28,6 +28,7 @@ import {
   Server,
   PanelTop,
   UserRoundX,
+  MessageSquareMore,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -208,6 +209,15 @@ export function DropdownMenu() {
               <CommandItem onSelect={handleNewChannel}>
                 <MessageSquarePlus />
                 <span>채널 생성</span>
+              </CommandItem>
+              <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
+                <Link
+                  href="/channel?c=32221"
+                  className="flex gap-x-2 items-center"
+                >
+                  <MessageSquareMore />
+                  <span>채널 테스트</span>
+                </Link>
               </CommandItem>
             </CommandGroup>
             <CommandSeparator className={styles["seperator"]} />

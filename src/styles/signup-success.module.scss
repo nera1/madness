@@ -1,6 +1,9 @@
 @use "variables" as vars;
 
 .signup-success {
+  & > .container {
+    background-color: darkblue;
+  }
   h2 {
     color: vars.$color-50;
   }
