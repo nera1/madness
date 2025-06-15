@@ -5,9 +5,7 @@ import { FunctionComponent, useEffect } from "react";
 
 import styles from "@/styles/channel-header.module.scss";
 
-interface ChannelHeaderProps {}
-
-const ChannelHeader: FunctionComponent<ChannelHeaderProps> = () => {
+const ChannelHeader: FunctionComponent = () => {
   const searchParams = useSearchParams();
   useEffect(() => {
     const value = searchParams.get("c");
