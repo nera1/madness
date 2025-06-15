@@ -8,9 +8,8 @@ import styles from "@/styles/channel-header.module.scss";
 const ChannelHeader: FunctionComponent = () => {
   const searchParams = useSearchParams();
   useEffect(() => {
-    const value = searchParams.get("c");
-    console.log(value);
-  }, []);
+    console.log("Query param:", searchParams.get("c"));
+  }, [searchParams]);
   return (
     <header
       className={`${styles["channel-header"]} box-border flex justify-center`}
