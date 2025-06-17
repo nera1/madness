@@ -134,6 +134,10 @@
   }
 }
 
+:root {
+  --vh: 1vh;
+}
+
 body,
 html {
   padding: 0;

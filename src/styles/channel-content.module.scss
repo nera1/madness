@@ -1,0 +1,38 @@
+@use "variables" as vars;
+
+.channel-content {
+  & > .container {
+    width: vars.$width-container;
+    box-sizing: border-box;
+    border-left: 0.5px solid vars.$color-800;
+    border-right: 0.5px solid vars.$color-800;
+    & > .content {
+      padding: 0 vars.$padding-aside-container;
+      height: calc(
+        100vh - vars.$height-channel-input-area - vars.$height-header
+      );
+      height: calc(
+        100dvh - vars.$height-channel-input-area - vars.$height-header
+      );
+    }
+
+    & > .input-area {
+      padding: 0 vars.$padding-aside-container;
+      height: vars.$height-channel-input-area;
+      border-top: 0.5px solid vars.$color-800;
+      box-sizing: border-box;
+    }
+  }
+}
+
+@include vars.media-xs {
+}
+
+@include vars.media-sm {
+}
+
+@include vars.media-md {
+}
+
+@include vars.media-lg {
+}

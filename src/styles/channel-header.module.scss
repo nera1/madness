@@ -2,8 +2,10 @@
 
 .channel-header {
   height: vars.$height-header;
-  border-bottom: 0.5px solid vars.$color-800;
+
   & > .container {
+    border-top: 0.5px solid vars.$color-800;
+    border-bottom: 0.5px solid vars.$color-800;
     width: vars.$width-container;
     & > .left {
     }
@@ -14,15 +16,28 @@
 
 @include vars.media-xs {
   .container {
+    border-left: 0.5px solid vars.$color-800;
+    border-right: 0.5px solid vars.$color-800;
     padding: 0 vars.$padding-aside-container;
   }
 }
 
 @include vars.media-sm {
+  .container {
+    border-left: 0.5px solid vars.$color-800;
+    border-right: 0.5px solid vars.$color-800;
+    padding: 0 vars.$padding-aside-container;
+  }
 }
 
 @include vars.media-md {
+  .container {
+    padding: 0 vars.$padding-aside-container;
+  }
 }
 
 @include vars.media-lg {
+  .container {
+    padding: 0 vars.$padding-aside-container;
+  }
 }
