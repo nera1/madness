@@ -16,8 +16,6 @@
 
 @include vars.media-xs {
   .container {
-    border-left: 0.5px solid vars.$color-800;
-    border-right: 0.5px solid vars.$color-800;
     padding: 0 vars.$padding-aside-container;
   }
 }

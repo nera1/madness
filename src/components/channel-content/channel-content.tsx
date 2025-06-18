@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 import ChannelHeader from "@/components/channel-header/channel-header";
 import styles from "@/styles/channel-content.module.scss";
+import { Input } from "../ui/input";
 
 const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
@@ -19,7 +20,12 @@ const ChannelContent: FunctionComponent = () => {
       <main className={`${styles["channel-content"]} flex justify-center`}>
         <div className={styles["container"]}>
           <div className={styles["content"]}></div>
-          <div className={`${styles["input-area"]}`}></div>
+          <div className={`${styles["input-area"]} flex items-center`}>
+            <Input
+              type="text"
+              className="focus-visible:ring-0 border-0 rounded-sm rounded-md"
+            />
+          </div>
         </div>
       </main>
     </>
