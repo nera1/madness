@@ -1,6 +1,6 @@
 "use client";
 
-import { FunctionComponent } from "react";
+import { FunctionComponent, MouseEventHandler } from "react";
 
 import { Button } from "../ui/button";
 
@@ -11,9 +11,12 @@ import styles from "@/styles/channel-header.module.scss";
 interface ChannelHeaderProps {
   name?: string;
   creator?: string;
+  toggleChatMenu: MouseEventHandler<HTMLButtonElement>;
 }
 
-const ChannelHeader: FunctionComponent<ChannelHeaderProps> = () => {
+const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
+  toggleChatMenu,
+}) => {
   return (
     <header
       className={`${styles["channel-header"]} box-border flex justify-center`}
@@ -38,6 +41,7 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = () => {
             className={`hover:bg-neutral-800 cursor-pointer`}
             size={"icon"}
             variant={"ghost"}
+            onClick={toggleChatMenu}
           >
             <Menu color="white" />
           </Button>

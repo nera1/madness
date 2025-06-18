@@ -16,7 +16,7 @@
 
       & > .chat-menu {
         position: absolute;
-        background-color: darksalmon;
+        background-color: vars.$color-900;
         height: 100%;
         width: vars.$width-channel-menu;
         z-index: 32;
@@ -24,7 +24,6 @@
       }
 
       & > .chat-list {
-        background-color: darkcyan;
         padding: 0 vars.$padding-aside-container;
       }
     }

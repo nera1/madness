@@ -1,7 +1,14 @@
 "use client";
 
-import { FunctionComponent, useEffect } from "react";
+import {
+  FunctionComponent,
+  MouseEventHandler,
+  useEffect,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
+
+import { motion } from "framer-motion";
 
 import ChannelHeader from "@/components/channel-header/channel-header";
 import { Button } from "../ui/button";
@@ -13,18 +20,30 @@ import styles from "@/styles/channel-content.module.scss";
 
 const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
     console.log("c:", searchParams.get("c"));
   }, [searchParams]);
 
+  const toggleChatMenu: MouseEventHandler<HTMLButtonElement> = () => {
+    setMenuOpen((prev) => !prev);
+  };
+
   return (
     <>
-      <ChannelHeader />
+      <ChannelHeader toggleChatMenu={toggleChatMenu} />
       <main className={`${styles["channel-content"]} flex justify-center`}>
         <div className={styles["container"]}>
           <div className={styles["content"]}>
-            <div className={`${styles["chat-menu"]}`}></div>
+            <motion.div
+              initial={{ clipPath: "inset(0 0 0 100%)" }}
+              animate={{
+                clipPath: menuOpen ? "inset(0 0 0 0)" : "inset(0 0 0 100%)",
+              }}
+              transition={{ duration: 0.2 }}
+              className={`${styles["chat-menu"]}`}
+            ></motion.div>
             <ul
               className={`${styles["chat-list"]} m-0 px-2 py-2 w-full h-full`}
             ></ul>
