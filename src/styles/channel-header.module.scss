@@ -9,6 +9,11 @@
     width: vars.$width-container;
     & > .left {
     }
+    & > .center {
+      & > .name {
+        color: vars.$color-50;
+      }
+    }
     & > .right {
     }
   }

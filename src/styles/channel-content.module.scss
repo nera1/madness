@@ -6,13 +6,27 @@
     box-sizing: border-box;
 
     & > .content {
-      padding: 0 vars.$padding-aside-container;
+      position: relative;
       height: calc(
         100vh - vars.$height-channel-input-area - vars.$height-header
       );
       height: calc(
         100dvh - vars.$height-channel-input-area - vars.$height-header
       );
+
+      & > .chat-menu {
+        position: absolute;
+        background-color: darksalmon;
+        height: 100%;
+        width: vars.$width-channel-menu;
+        z-index: 32;
+        right: 0;
+      }
+
+      & > .chat-list {
+        background-color: darkcyan;
+        padding: 0 vars.$padding-aside-container;
+      }
     }
 
     & > .input-area {
@@ -20,9 +34,25 @@
       height: vars.$height-channel-input-area;
       border-top: 0.5px solid vars.$color-800;
       box-sizing: border-box;
-      & > input {
-        background-color: vars.$color-950;
+      & > textarea {
+        background-color: vars.$color-900;
         color: vars.$color-100;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        &:focus {
+          outline: none;
+        }
+      }
+      & .sticker-btn {
+      }
+      & .submit-btn {
+        background-color: vars.$color-50;
+        &:hover {
+          background-color: vars.$color-300;
+        }
+        & svg {
+          color: vars.$color-950;
+        }
       }
     }
   }
