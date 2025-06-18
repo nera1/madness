@@ -27,6 +27,9 @@
 }
 
 @include vars.media-sm {
+  .container {
+    padding: 0 vars.$padding-aside-container;
+  }
 }
 
 @include vars.media-md {
