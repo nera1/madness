@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  FunctionComponent,
-  MouseEventHandler,
-  useEffect,
-  useState,
-} from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { motion } from "framer-motion";
@@ -26,14 +21,15 @@ const ChannelContent: FunctionComponent = () => {
     console.log("c:", searchParams.get("c"));
   }, [searchParams]);
 
-  const toggleChatMenu: MouseEventHandler<HTMLButtonElement> = () => {
-    setMenuOpen((prev) => !prev);
-  };
-
   return (
     <>
-      <ChannelHeader toggleChatMenu={toggleChatMenu} />
-      <main className={`${styles["channel-content"]} flex justify-center`}>
+      <ChannelHeader setMenuOpen={setMenuOpen} />
+      <main
+        className={`${styles["channel-content"]} flex justify-center`}
+        onClick={() => {
+          setMenuOpen(false);
+        }}
+      >
         <div className={styles["container"]}>
           <div className={styles["content"]}>
             <motion.div

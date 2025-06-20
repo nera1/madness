@@ -1,13 +1,26 @@
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { LogIn, House } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import TextLogo from "@/components/logo/TextLogo";
 import Link from "next/link";
 
+import { authCheck } from "@/lib/api";
+
 import styles from "@/styles/signup.module.scss";
 import style from "@/styles/signup-success.module.scss";
 
 export default function SignupSuccess() {
+  const router = useRouter();
+  useEffect(() => {
+    authCheck()
+      .then(() => {
+        router.push("/");
+      })
+      .catch(() => {});
+  }, []);
   return (
     <>
       <main

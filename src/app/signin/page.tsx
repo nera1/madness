@@ -1,12 +1,14 @@
 "use client";
 
-import { ChangeEventHandler, FormEvent, useState } from "react";
+import { ChangeEventHandler, FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
 import { Button } from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import { signin } from "@/lib/api/methods/post";
+import { authCheck } from "@/lib/api";
+
 import styles from "@/styles/signin.module.scss";
 
 type SigninState = {

@@ -1,6 +1,11 @@
 "use client";
 
-import { FunctionComponent, MouseEventHandler } from "react";
+import {
+  Dispatch,
+  FunctionComponent,
+  MouseEventHandler,
+  SetStateAction,
+} from "react";
 
 import { Button } from "../ui/button";
 
@@ -11,15 +16,22 @@ import styles from "@/styles/channel-header.module.scss";
 interface ChannelHeaderProps {
   name?: string;
   creator?: string;
-  toggleChatMenu: MouseEventHandler<HTMLButtonElement>;
+  setMenuOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
-  toggleChatMenu,
+  setMenuOpen,
 }) => {
+  const toggleChatMenu: MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.stopPropagation();
+    setMenuOpen((prev) => !prev);
+  };
   return (
     <header
       className={`${styles["channel-header"]} box-border flex justify-center`}
+      onClick={() => {
+        setMenuOpen(false);
+      }}
     >
       <div className={`${styles["container"]} h-full flex items-center`}>
         <div className={`${styles["left"]} grow`}>
