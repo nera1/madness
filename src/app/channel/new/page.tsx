@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
 
@@ -9,7 +9,7 @@ import Spinner from "@/components/ui/spinner";
 
 import { createChannel } from "@/lib/api/methods/post";
 import { useRouter } from "next/navigation";
-import { authCheck, refresh } from "@/lib/api";
+import { refresh } from "@/lib/api";
 
 import { Check, CircleX, House } from "lucide-react";
 

@@ -198,9 +198,14 @@ export function DropdownMenu() {
             <CommandGroup heading="">{renderAccountAction()}</CommandGroup>
             <CommandSeparator className={styles["seperator"]} />
             <CommandGroup heading="채널">
-              <CommandItem>
-                <Search />
-                <span>채널 검색</span>
+              <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
+                <Link
+                  href="/channel/search"
+                  className="flex gap-x-2 items-center"
+                >
+                  <Search />
+                  <span>채널 검색</span>
+                </Link>
               </CommandItem>
               <CommandItem>
                 <MessageSquare />
