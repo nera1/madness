@@ -22,9 +22,9 @@ export interface CreateChannelRequest {
 }
 
 export interface CreateChannelData {
-  id: number;
+  publicId: string;
   name: string;
-  creatorId: number;
+  creatorNickname: string;
   createdAt: string;
 }
 
