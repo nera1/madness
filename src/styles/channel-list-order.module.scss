@@ -1,0 +1,15 @@
+@use "variables" as vars;
+
+.channel-list-order {
+  border: 1px solid vars.$color-600;
+  background-color: vars.$color-800;
+}
+
+.channel-list-order-trigger {
+  border: 1px solid vars.$color-600;
+  color: vars.$color-100;
+}
+
+.select-group {
+  color: vars.$color-100;
+}

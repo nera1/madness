@@ -12,7 +12,8 @@
 }
 
 .container {
-  & h1 {
+  & h1,
+  & h3 {
     color: vars.$color-50;
   }
   & form label {

@@ -201,7 +201,7 @@ export function DropdownMenu() {
               <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
                 <Link
                   href="/channel/search"
-                  className="flex gap-x-2 items-center"
+                  className="flex gap-x-2 items-center w-full"
                 >
                   <Search />
                   <span>채널 검색</span>
