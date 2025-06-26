@@ -12,6 +12,13 @@ export interface MeResponseData {
   updatedAt: string;
 }
 
+export interface ChannelDto {
+  publicId: string;
+  name: string;
+  createdAt: string;
+}
+
+export type SearchChannelsResponse = ApiResponse<ChannelDto[]>;
 export type CheckDuplicate = ApiResponse<CheckDuplicateData>;
 export type RefreshResponse = ApiResponse<null>;
 export type MeResponse = ApiResponse<MeResponseData>;
@@ -42,4 +49,21 @@ export function signOut(): Promise<SignoutRespone> {
 
 export function authCheck(): Promise<AuthCheckRespone> {
   return fetcher<AuthCheckRespone>(`/auth/check`, { credentials: "include" });
+}
+
+export function searchChannels(
+  keyword: string,
+  cursor?: string,
+  size: number = 10,
+  order: "asc" | "desc" | "participants" = "desc"
+): Promise<SearchChannelsResponse> {
+  const params = new URLSearchParams();
+  params.append("keyword", keyword);
+  if (cursor) params.append("cursor", cursor);
+  params.append("size", size.toString());
+  params.append("order", order);
+
+  return fetcher<SearchChannelsResponse>(
+    `/channel/search?${params.toString()}`
+  );
 }
