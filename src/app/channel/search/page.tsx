@@ -103,12 +103,13 @@ export default function SearchChannel() {
 
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold tracking-tight grow">
-              {state.search ? `"${state.search}" 검색결과` : ""}
-              {isLoading && (
-                <div className="w-full h-full items-center flex justify-center">
+              {isLoading ? (
+                <div className="w-full h-full flex items-center justify-center">
                   <Spinner size={28} />
                 </div>
-              )}
+              ) : state.search ? (
+                `"${state.search}" 검색결과`
+              ) : null}
             </h3>
             <ChannelListOrder value={state.order} onChange={onOrderChange} />
           </div>
