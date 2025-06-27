@@ -1,0 +1,31 @@
+@use "variables" as vars;
+
+.channel-search-list-item {
+  &:hover {
+    background-color: vars.$color-900;
+  }
+  & > .left {
+    & > .top {
+      color: vars.$color-200;
+    }
+    & > .middle {
+      color: vars.$color-600;
+    }
+    & > .bottom {
+    }
+  }
+  & > .right {
+  }
+}
+
+@include vars.media-xs {
+}
+
+@include vars.media-sm {
+}
+
+@include vars.media-md {
+}
+
+@include vars.media-lg {
+}

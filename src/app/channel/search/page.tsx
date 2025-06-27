@@ -1,68 +1,60 @@
 "use client";
 
-import {
-  ChangeEventHandler,
-  FormEvent,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+import { ChangeEventHandler, useEffect, useState, useCallback } from "react";
 import debounce from "lodash/debounce";
 
 import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
 import ChannelListOrder from "@/components/channel-order/channel-order";
-
+import ChannelSearchListItem from "@/components/channel-search-list-item/channel-search-list-item";
 import { searchChannels, ChannelDto } from "@/lib/api";
-
 import Spinner from "@/components/ui/spinner";
 
 import styles from "@/styles/channel-search.module.scss";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ChevronDown } from "lucide-react";
 
 type OrderType = "desc" | "asc" | "participants";
 
-interface SearchChannelState {
-  search: string;
-  order: OrderType;
-}
+const PAGE_SIZE = 10;
 
 export default function SearchChannel() {
-  const [state, setState] = useState<SearchChannelState>({
+  const [state, setState] = useState<{ search: string; order: OrderType }>({
     search: "",
     order: "desc",
   });
   const [channels, setChannels] = useState<ChannelDto[]>([]);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const onChangeInputHandler: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setState((prev) => ({ ...prev, search: e.target.value }));
-  };
-  const onOrderChange = (value: OrderType) => {
-    setState((prev) => ({ ...prev, order: value }));
-  };
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    triggerSearch(state.search, state.order);
-  };
+  const onChangeInputHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
+    setState((p) => ({ ...p, search: e.target.value }));
+  const onOrderChange = (order: OrderType) =>
+    setState((p) => ({ ...p, order }));
 
   const triggerSearch = useCallback(
     debounce((keyword: string, order: OrderType) => {
       if (!keyword) {
         setChannels([]);
+        setCursor(undefined);
+        setHasMore(false);
         return;
       }
       setIsLoading(true);
-      searchChannels(keyword, undefined, 10, order)
+      searchChannels(keyword, undefined, PAGE_SIZE, order)
         .then((res) => {
           if (res.code === 0) {
-            setChannels(res.data);
-          } else {
-            console.error("search failed:", res);
+            const data = res.data;
+            setChannels(data);
+            setCursor(
+              data.length > 0 ? data[data.length - 1].publicId : undefined
+            );
+            setHasMore(data.length === PAGE_SIZE);
           }
         })
-        .finally(() => {
-          setIsLoading(false);
-        });
+        .finally(() => setIsLoading(false));
     }, 500),
     []
   );
@@ -74,21 +66,29 @@ export default function SearchChannel() {
     };
   }, [state.search, state.order, triggerSearch]);
 
+  const handleLoadMore = () => {
+    if (isLoading || !hasMore || !state.search) return;
+    setIsLoading(true);
+    searchChannels(state.search, cursor, PAGE_SIZE, state.order)
+      .then((res) => {
+        if (res.code === 0) {
+          const next = res.data;
+          setChannels((prev) => [...prev, ...next]);
+          setCursor(next.length > 0 ? next[next.length - 1].publicId : cursor);
+          setHasMore(next.length === PAGE_SIZE);
+        }
+      })
+      .finally(() => setIsLoading(false));
+  };
+
   return (
     <>
       <Header fixed border menu />
-      <main
-        className={`${styles["channel-search"]} flex justify-center box-border`}
-      >
+      <main className={`${styles["channel-search"]} flex justify-center pb-10`}>
         <div className={`${styles["container"]}`}>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Channel Search
-          </h1>
+          <h1 className="text-3xl font-semibold">Channel Search</h1>
 
-          <form
-            onSubmit={handleSubmit}
-            className="mt-6 mb-1 flex flex-col gap-y-4"
-          >
+          <form onSubmit={(e) => e.preventDefault()} className="mt-6 mb-1">
             <InputField
               id="search"
               label="Channel name"
@@ -97,16 +97,14 @@ export default function SearchChannel() {
               value={state.search}
               onChange={onChangeInputHandler}
               maxLength={254}
-              isValid={true}
+              isValid
             />
           </form>
 
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold tracking-tight grow">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold grow">
               {isLoading ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Spinner size={28} />
-                </div>
+                <Spinner size={28} />
               ) : state.search ? (
                 `"${state.search}" 검색결과`
               ) : null}
@@ -114,15 +112,35 @@ export default function SearchChannel() {
             <ChannelListOrder value={state.order} onChange={onOrderChange} />
           </div>
 
-          <ul>
-            {channels.map((ch) => (
-              <li key={ch.publicId} className="py-2 border-b">
-                <h4 className="font-medium">{ch.name}</h4>
-                <p className="text-sm text-gray-500">
-                  생성일: {new Date(ch.createdAt).toLocaleDateString()}
-                </p>
+          <ul className="py-3 flex flex-col gap-y-2">
+            {!isLoading && state.search && channels.length === 0 && (
+              <li className="text-center text-muted-foreground text-sm py-10">
+                검색 결과가 없습니다
               </li>
+            )}
+            {channels.map((ch) => (
+              <ChannelSearchListItem key={ch.publicId} {...ch} />
             ))}
+            {hasMore && (
+              <li className="flex justify-center pt-4 w-full">
+                <button onClick={handleLoadMore} disabled={isLoading}>
+                  {isLoading ? (
+                    <Spinner size={18} />
+                  ) : (
+                    <div className={`${styles["more-container"]}`}>
+                      <div></div>
+                      <Badge
+                        variant="outline"
+                        className={`${styles["more"]} cursor-pointer`}
+                      >
+                        More
+                        <ChevronDown />
+                      </Badge>
+                    </div>
+                  )}
+                </button>
+              </li>
+            )}
           </ul>
         </div>
       </main>
