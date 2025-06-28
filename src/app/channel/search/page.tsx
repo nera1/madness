@@ -1,6 +1,12 @@
 "use client";
 
-import { ChangeEventHandler, useEffect, useState, useCallback } from "react";
+import {
+  ChangeEventHandler,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import debounce from "lodash/debounce";
 
 import Header from "@/components/header/header";
@@ -10,14 +16,15 @@ import ChannelSearchListItem from "@/components/channel-search-list-item/channel
 import { searchChannels, ChannelDto } from "@/lib/api";
 import Spinner from "@/components/ui/spinner";
 
-import styles from "@/styles/channel-search.module.scss";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ChevronDown } from "lucide-react";
+
+import styles from "@/styles/channel-search.module.scss";
 
 type OrderType = "desc" | "asc" | "participants";
 
 const PAGE_SIZE = 10;
+const FETCH_SIZE = PAGE_SIZE + 1;
 
 export default function SearchChannel() {
   const [state, setState] = useState<{ search: string; order: OrderType }>({
@@ -28,11 +35,14 @@ export default function SearchChannel() {
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const bottomRef = useRef<HTMLLIElement>(null);
 
   const onChangeInputHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
-    setState((p) => ({ ...p, search: e.target.value }));
+    setState((prev) => ({ ...prev, search: e.target.value }));
   const onOrderChange = (order: OrderType) =>
-    setState((p) => ({ ...p, order }));
+    setState((prev) => ({ ...prev, order }));
 
   const triggerSearch = useCallback(
     debounce((keyword: string, order: OrderType) => {
@@ -43,15 +53,18 @@ export default function SearchChannel() {
         return;
       }
       setIsLoading(true);
-      searchChannels(keyword, undefined, PAGE_SIZE, order)
+      searchChannels(keyword, undefined, FETCH_SIZE, order)
         .then((res) => {
           if (res.code === 0) {
             const data = res.data;
-            setChannels(data);
+            const more = data.length > PAGE_SIZE;
+            const items = data.slice(0, PAGE_SIZE);
+
+            setChannels(items);
             setCursor(
-              data.length > 0 ? data[data.length - 1].publicId : undefined
+              items.length > 0 ? items[items.length - 1].publicId : undefined
             );
-            setHasMore(data.length === PAGE_SIZE);
+            setHasMore(more);
           }
         })
         .finally(() => setIsLoading(false));
@@ -66,16 +79,30 @@ export default function SearchChannel() {
     };
   }, [state.search, state.order, triggerSearch]);
 
+  // Load more 후 스크롤을 맨 아래로 이동
+  useEffect(() => {
+    if (!isLoading && loadingMore && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+      setLoadingMore(false);
+    }
+  }, [isLoading, loadingMore]);
+
   const handleLoadMore = () => {
     if (isLoading || !hasMore || !state.search) return;
+    setLoadingMore(true);
     setIsLoading(true);
-    searchChannels(state.search, cursor, PAGE_SIZE, state.order)
+    searchChannels(state.search, cursor, FETCH_SIZE, state.order)
       .then((res) => {
         if (res.code === 0) {
-          const next = res.data;
-          setChannels((prev) => [...prev, ...next]);
-          setCursor(next.length > 0 ? next[next.length - 1].publicId : cursor);
-          setHasMore(next.length === PAGE_SIZE);
+          const data = res.data;
+          const more = data.length > PAGE_SIZE;
+          const items = data.slice(0, PAGE_SIZE);
+
+          setChannels((prev) => [...prev, ...items]);
+          setCursor(
+            items.length > 0 ? items[items.length - 1].publicId : cursor
+          );
+          setHasMore(more);
         }
       })
       .finally(() => setIsLoading(false));
@@ -122,25 +149,25 @@ export default function SearchChannel() {
               <ChannelSearchListItem key={ch.publicId} {...ch} />
             ))}
             {hasMore && (
-              <li className="flex justify-center pt-4 w-full">
-                <button onClick={handleLoadMore} disabled={isLoading}>
+              <li
+                className={`${styles["more"]} flex justify-center mt-6 w-full`}
+              >
+                <Button
+                  className="w-full rounded-sm cursor-pointer"
+                  onClick={handleLoadMore}
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     <Spinner size={18} />
                   ) : (
-                    <div className={`${styles["more-container"]}`}>
-                      <div></div>
-                      <Badge
-                        variant="outline"
-                        className={`${styles["more"]} cursor-pointer`}
-                      >
-                        More
-                        <ChevronDown />
-                      </Badge>
-                    </div>
+                    <>
+                      <ChevronDown /> more
+                    </>
                   )}
-                </button>
+                </Button>
               </li>
             )}
+            <li ref={bottomRef} className="h-0" />
           </ul>
         </div>
       </main>

@@ -9,22 +9,9 @@
   width: 100%;
   max-width: vars.$width-container-signup;
   padding-top: vars.$padding-top-container;
-}
 
-.more-container {
-  width: 100%;
-  display: flex;
-  align-items: center;
-
-  & > .more {
-    border: 1px solid vars.$color-700;
-    color: vars.$color-300;
-  }
-
-  & > div {
-    height: 1px;
-    width: 100%;
-    background-color: vars.$color-300;
+  & .more > button {
+    background-color: vars.$color-950;
   }
 }
 

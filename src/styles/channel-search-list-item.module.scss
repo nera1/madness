@@ -1,15 +1,21 @@
 @use "variables" as vars;
 
 .channel-search-list-item {
+  background-color: vars.$color-950;
+  box-shadow: rgba(0, 0, 0, 0.15) 2.4px 2.4px 3.2px;
   &:hover {
     background-color: vars.$color-900;
   }
   & > .left {
     & > .top {
-      color: vars.$color-200;
+      color: vars.$color-100;
+      &:hover {
+        text-underline-offset: 3px;
+        text-decoration: underline;
+      }
     }
     & > .middle {
-      color: vars.$color-600;
+      color: vars.$color-500;
     }
     & > .bottom {
     }

@@ -9,7 +9,9 @@ import { formatDotDateTime12Hour } from "../../../util";
 
 import styles from "@/styles/channel-search-list-item.module.scss";
 
-interface ChannelSearchListItemProps extends ChannelDto {}
+interface ChannelSearchListItemProps extends ChannelDto {
+  participants?: number;
+}
 
 const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
   createdAt,
@@ -24,10 +26,14 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
   return (
     <li
       className={`${styles["channel-search-list-item"]} px-5 pb-3 pt-4 cursor-pointer flex rounded-sm`}
-      onClick={onClick}
     >
       <div className={`${styles["left"]} flex flex-col gap-y-1`}>
-        <div className={`${styles["top"]} text-sm font-bold`}>{name}</div>
+        <span
+          className={`${styles["top"]} text-sm font-bold`}
+          onClick={onClick}
+        >
+          {name}
+        </span>
         <div className={`${styles["middle"]} text-xs`}>
           {formatDotDateTime12Hour(createdAt)}
         </div>

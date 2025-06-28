@@ -7,6 +7,8 @@ import {
   SetStateAction,
 } from "react";
 
+import { useRouter } from "next/navigation";
+
 import { Button } from "../ui/button";
 
 import { ChevronLeft, Menu } from "lucide-react";
@@ -22,10 +24,17 @@ interface ChannelHeaderProps {
 const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
   setMenuOpen,
 }) => {
+  const router = useRouter();
+
   const toggleChatMenu: MouseEventHandler<HTMLButtonElement> = (event) => {
     event.stopPropagation();
     setMenuOpen((prev) => !prev);
   };
+
+  const goBack: MouseEventHandler<HTMLButtonElement> = () => {
+    router.back();
+  };
+
   return (
     <header
       className={`${styles["channel-header"]} box-border flex justify-center`}
@@ -39,6 +48,7 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
             className={`hover:bg-transparent cursor-pointer`}
             size={"icon"}
             variant={"ghost"}
+            onClick={goBack}
           >
             <ChevronLeft color="white" />
           </Button>
