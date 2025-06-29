@@ -1,10 +1,10 @@
 "use client";
 
-import { FunctionComponent, MouseEventHandler } from "react";
+import { FunctionComponent, MouseEventHandler, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { ChannelDto } from "@/lib/api";
-
+import { ChannelDto, refresh } from "@/lib/api";
+import { JoinChannelRequest, joinChannel } from "@/lib/api/methods/post";
 import { formatDotDateTime12Hour } from "../../../util";
 
 import styles from "@/styles/channel-search-list-item.module.scss";
@@ -19,25 +19,64 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
   publicId,
 }) => {
   const router = useRouter();
-  const onClick: MouseEventHandler<HTMLLIElement> = (event) => {
-    event.stopPropagation();
-    router.push(`/channel/?c=${publicId}`);
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    if (loading) return;
+    setLoading(true);
+
+    const payload: JoinChannelRequest = {
+      publicChannelId: publicId,
+      password: "",
+    };
+
+    try {
+      await joinChannel(payload);
+      router.push(`/channel/?c=${publicId}`);
+      return;
+    } catch (error) {
+      if (error instanceof Response) {
+        if (error.status === 409) {
+          router.push(`/channel/?c=${publicId}`);
+          return;
+        }
+        if (error.status === 401) {
+          try {
+            await refresh();
+            await joinChannel(payload);
+            router.push(`/channel/?c=${publicId}`);
+            return;
+          } catch (retryError) {
+            console.error("refreshed and failed", retryError);
+          }
+        }
+      } else {
+        //console.error("알 수 없는 에러:", error);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const onClick: MouseEventHandler<HTMLLIElement> = (e) => {
+    e.stopPropagation();
+    handleClick();
+  };
+
   return (
     <li
-      className={`${styles["channel-search-list-item"]} px-5 pb-3 pt-4 cursor-pointer flex rounded-sm`}
+      className={`${
+        styles["channel-search-list-item"]
+      } px-5 pb-3 pt-4 cursor-pointer flex rounded-sm ${
+        loading ? "opacity-50 pointer-events-none" : ""
+      }`}
+      onClick={onClick}
     >
       <div className={`${styles["left"]} flex flex-col gap-y-1`}>
-        <span
-          className={`${styles["top"]} text-sm font-bold`}
-          onClick={onClick}
-        >
-          {name}
-        </span>
+        <span className={`${styles["top"]} text-sm font-bold`}>{name}</span>
         <div className={`${styles["middle"]} text-xs`}>
           {formatDotDateTime12Hour(createdAt)}
         </div>
-        <div className={`${styles["bottom"]}`}></div>
       </div>
       <div className={`${styles["right"]}`}></div>
     </li>

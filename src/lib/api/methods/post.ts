@@ -28,9 +28,20 @@ export interface CreateChannelData {
   createdAt: string;
 }
 
+export interface JoinChannelRequest {
+  publicChannelId: string;
+  password: string;
+}
+
+export interface JoinChannelData {
+  publicChannelId: string;
+  joinAt: string;
+}
+
 export type SignupResponse = ApiResponse<SignupResponseData>;
 export type SigninResponse = ApiResponse<SignupResponseData>;
 export type CreateChannelResponse = ApiResponse<CreateChannelData>;
+export type JoinChannelResponse = ApiResponse<JoinChannelData>;
 
 export function signup(request: SignupRequest): Promise<SignupResponse> {
   return fetcher<SignupResponse>(`/member`, {
@@ -51,6 +62,16 @@ export function createChannel(
   request: CreateChannelRequest
 ): Promise<CreateChannelResponse> {
   return fetcher<CreateChannelResponse>(`/channel`, {
+    method: "post",
+    body: JSON.stringify(request),
+    credentials: "include",
+  });
+}
+
+export function joinChannel(
+  request: JoinChannelRequest
+): Promise<JoinChannelResponse> {
+  return fetcher<JoinChannelResponse>(`/channel/join`, {
     method: "post",
     body: JSON.stringify(request),
     credentials: "include",

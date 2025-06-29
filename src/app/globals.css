@@ -7,6 +7,8 @@
 
 @font-face {
   font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400;
   font-display: swap;
   src: url("/fonts/pretendard/Pretendard-Regular.woff2") format("woff2"),
     url("/fonts/pretendard/Pretendard-Regular.woff") format("woff");

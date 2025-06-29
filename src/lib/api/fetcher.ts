@@ -10,9 +10,7 @@ export async function fetcher<T>(
   });
 
   if (!res.ok) {
-    const errorBody = await res.json().catch(() => null);
-    const message = errorBody?.message ?? res.statusText;
-    throw new Error(`Request failed (${res.status}): ${message}`);
+    throw res;
   }
 
   return res.json();
