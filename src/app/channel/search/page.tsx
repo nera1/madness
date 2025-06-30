@@ -79,7 +79,6 @@ export default function SearchChannel() {
     };
   }, [state.search, state.order, triggerSearch]);
 
-  // Load more 후 스크롤을 맨 아래로 이동
   useEffect(() => {
     if (!isLoading && loadingMore && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: "smooth" });

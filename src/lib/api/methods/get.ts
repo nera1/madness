@@ -67,3 +67,9 @@ export function searchChannels(
     `/channel/search?${params.toString()}`
   );
 }
+
+export function checkChannelJoin(channelId: string): Promise<void> {
+  return fetcher<void>(`/channel/${channelId}/members`, {
+    credentials: "include",
+  });
+}

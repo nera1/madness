@@ -8,8 +8,12 @@ import { motion } from "framer-motion";
 import ChannelHeader from "@/components/channel-header/channel-header";
 import { Button } from "../ui/button";
 
+import Spinner from "../ui/spinner";
+
 import MadIcon from "../logo/MadIcon";
 import { Sticker } from "lucide-react";
+
+import { checkChannelJoin, refresh } from "@/lib/api";
 
 import styles from "@/styles/channel-content.module.scss";
 
@@ -17,9 +21,61 @@ const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isJoined, setIsJoined] = useState<boolean | null>(null);
+
   useEffect(() => {
-    console.log("c:", searchParams.get("c"));
+    const publicId = searchParams.get("c");
+    if (!publicId) {
+      setIsLoading(false);
+      setIsJoined(false);
+      return;
+    }
+
+    const verifyJoin = async () => {
+      setIsLoading(true);
+      try {
+        // 1차 시도
+        await checkChannelJoin(publicId);
+        setIsJoined(true);
+      } catch (firstErr) {
+        try {
+          // 실패 시 토큰 리프레시
+          await refresh();
+          // 2차 시도
+          await checkChannelJoin(publicId);
+          setIsJoined(true);
+        } catch (secondErr) {
+          setIsJoined(false);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    verifyJoin();
   }, [searchParams]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner size={48} />
+      </div>
+    );
+  }
+
+  if (isJoined === false) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-4">
+        <p className="text-lg text-red-500 mb-4">
+          채널에 참가할 권한이 없습니다.
+        </p>
+        <Button onClick={() => window.location.replace("/")}>
+          메인으로 돌아가기
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
