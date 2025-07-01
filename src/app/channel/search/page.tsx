@@ -81,7 +81,7 @@ export default function SearchChannel() {
 
   useEffect(() => {
     if (!isLoading && loadingMore && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+      // bottomRef.current.scrollIntoView({ behavior: "instant" });
       setLoadingMore(false);
     }
   }, [isLoading, loadingMore]);
@@ -145,7 +145,11 @@ export default function SearchChannel() {
               </li>
             )}
             {channels.map((ch) => (
-              <ChannelSearchListItem key={ch.publicId} {...ch} />
+              <ChannelSearchListItem
+                key={ch.publicId}
+                {...ch}
+                disabled={isLoading}
+              />
             ))}
             {hasMore && (
               <li

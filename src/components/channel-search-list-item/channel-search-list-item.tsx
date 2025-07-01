@@ -11,18 +11,19 @@ import styles from "@/styles/channel-search-list-item.module.scss";
 
 interface ChannelSearchListItemProps extends ChannelDto {
   participants?: number;
+  disabled?: boolean;
 }
 
 const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
   createdAt,
   name,
   publicId,
+  disabled = false,
 }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
-    if (loading) return;
     setLoading(true);
 
     const payload: JoinChannelRequest = {
@@ -45,7 +46,6 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
             await refresh();
             await joinChannel(payload);
             router.push(`/channel/?c=${publicId}`);
-            return;
           } catch (retryError) {
             console.error("refreshed and failed", retryError);
           }
@@ -59,6 +59,7 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
   };
 
   const onClick: MouseEventHandler<HTMLLIElement> = (e) => {
+    if (loading || disabled) return;
     e.stopPropagation();
     handleClick();
   };
@@ -73,7 +74,7 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
       onClick={onClick}
     >
       <div className={`${styles["left"]} flex flex-col gap-y-1`}>
-        <span className={`${styles["top"]} text-sm font-bold`}>{name}</span>
+        <div className={`${styles["top"]} text-sm font-bold`}>{name}</div>
         <div className={`${styles["middle"]} text-xs`}>
           {formatDotDateTime12Hour(createdAt)}
         </div>

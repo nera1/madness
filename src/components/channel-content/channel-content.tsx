@@ -16,13 +16,14 @@ import { Sticker } from "lucide-react";
 import { checkChannelJoin, refresh } from "@/lib/api";
 
 import styles from "@/styles/channel-content.module.scss";
+import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 
 const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isJoined, setIsJoined] = useState<boolean | null>(null);
+  const [isJoined, setIsJoined] = useState<boolean>(false);
 
   useEffect(() => {
     const publicId = searchParams.get("c");
@@ -33,24 +34,29 @@ const ChannelContent: FunctionComponent = () => {
     }
 
     const verifyJoin = async () => {
-      setIsLoading(true);
-      try {
-        // 1차 시도
-        await checkChannelJoin(publicId);
-        setIsJoined(true);
-      } catch (firstErr) {
-        try {
-          // 실패 시 토큰 리프레시
-          await refresh();
-          // 2차 시도
-          await checkChannelJoin(publicId);
+      checkChannelJoin(publicId)
+        .then(() => {
           setIsJoined(true);
-        } catch (secondErr) {
-          setIsJoined(false);
-        }
-      } finally {
-        setIsLoading(false);
-      }
+        })
+        .catch((firstErr) => {
+          if (firstErr instanceof Response) {
+            switch (firstErr.status) {
+              case 401:
+                return refresh().then(() => checkChannelJoin(publicId));
+              case 403:
+                setIsJoined(false);
+                return Promise.reject("NO_PERMISSION");
+            }
+          }
+          return Promise.reject(firstErr);
+        })
+        .then(() => {
+          setIsJoined(true);
+        })
+        .catch(() => {})
+        .finally(() => {
+          setIsLoading(false);
+        });
     };
 
     verifyJoin();
@@ -65,16 +71,7 @@ const ChannelContent: FunctionComponent = () => {
   }
 
   if (isJoined === false) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-4">
-        <p className="text-lg text-red-500 mb-4">
-          채널에 참가할 권한이 없습니다.
-        </p>
-        <Button onClick={() => window.location.replace("/")}>
-          메인으로 돌아가기
-        </Button>
-      </div>
-    );
+    return <ChannelForbidden />;
   }
 
   return (

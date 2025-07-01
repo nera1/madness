@@ -1,0 +1,35 @@
+@use "variables" as vars;
+
+.channel-forbidden {
+  background-color: red;
+  height: 100vh;
+  & > .container {
+    height: 100vh;
+    background-color: darkblue;
+    width: vars.$width-container;
+  }
+}
+
+@include vars.media-xs {
+  .container {
+    padding-left: vars.$padding-aside-container;
+    padding-right: vars.$padding-aside-container;
+  }
+}
+
+@include vars.media-sm {
+  .container {
+    padding-left: vars.$padding-aside-container;
+    padding-right: vars.$padding-aside-container;
+  }
+}
+
+@include vars.media-md {
+  .container {
+    padding-left: vars.$padding-aside-container;
+    padding-right: vars.$padding-aside-container;
+  }
+}
+
+@include vars.media-lg {
+}
