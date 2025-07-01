@@ -8,9 +8,11 @@ import { Search, SquarePlus } from "lucide-react";
 
 import styles from "@/styles/channel-forbidden.module.scss";
 
-interface ChannelForbidden {}
+interface ChannelForbidden {
+  publicChannelId?: string;
+}
 
-const ChannelForbidden: FunctionComponent = () => {
+const ChannelForbidden: FunctionComponent<ChannelForbidden> = () => {
   return (
     <>
       <main
