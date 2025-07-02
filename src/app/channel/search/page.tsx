@@ -81,7 +81,7 @@ export default function SearchChannel() {
 
   useEffect(() => {
     if (!isLoading && loadingMore && bottomRef.current) {
-      // bottomRef.current.scrollIntoView({ behavior: "instant" });
+      bottomRef.current.scrollIntoView({ behavior: "instant" });
       setLoadingMore(false);
     }
   }, [isLoading, loadingMore]);

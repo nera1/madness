@@ -7,60 +7,56 @@ import { motion } from "framer-motion";
 
 import ChannelHeader from "@/components/channel-header/channel-header";
 import { Button } from "../ui/button";
-
 import Spinner from "../ui/spinner";
 
 import MadIcon from "../logo/MadIcon";
 import { Sticker } from "lucide-react";
 
-import { checkChannelJoin, refresh } from "@/lib/api";
+import { checkChannelJoin } from "@/lib/api";
 
 import styles from "@/styles/channel-content.module.scss";
 import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 
+type JoinError = 401 | 403 | null;
+
 const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
+  const publicId = searchParams.get("c") ?? "";
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isJoined, setIsJoined] = useState<boolean>(false);
+  const [joinError, setJoinError] = useState<JoinError>(null);
 
   useEffect(() => {
-    const publicId = searchParams.get("c");
     if (!publicId) {
+      setJoinError(403);
       setIsLoading(false);
-      setIsJoined(false);
       return;
     }
 
     const verifyJoin = async () => {
-      checkChannelJoin(publicId)
-        .then(() => {
-          setIsJoined(true);
-        })
-        .catch((firstErr) => {
-          if (firstErr instanceof Response) {
-            switch (firstErr.status) {
-              case 401:
-                return refresh().then(() => checkChannelJoin(publicId));
-              case 403:
-                setIsJoined(false);
-                return Promise.reject("NO_PERMISSION");
-            }
+      try {
+        await checkChannelJoin(publicId);
+        setJoinError(null); // 정상 참여
+      } catch (err: any) {
+        if (err instanceof Response) {
+          if (err.status === 401) {
+            setJoinError(401);
+            return;
           }
-          return Promise.reject(firstErr);
-        })
-        .then(() => {
-          setIsJoined(true);
-        })
-        .catch(() => {})
-        .finally(() => {
-          setIsLoading(false);
-        });
+          if (err.status === 403) {
+            setJoinError(403);
+            return;
+          }
+        }
+        setJoinError(403);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     verifyJoin();
-  }, [searchParams]);
+  }, [publicId]);
 
   if (isLoading) {
     return (
@@ -70,8 +66,8 @@ const ChannelContent: FunctionComponent = () => {
     );
   }
 
-  if (isJoined === false) {
-    return <ChannelForbidden />;
+  if (joinError === 401 || joinError === 403) {
+    return <ChannelForbidden status={joinError} publicChannelId={publicId} />;
   }
 
   return (
@@ -79,9 +75,7 @@ const ChannelContent: FunctionComponent = () => {
       <ChannelHeader setMenuOpen={setMenuOpen} />
       <main
         className={`${styles["channel-content"]} flex justify-center`}
-        onClick={() => {
-          setMenuOpen(false);
-        }}
+        onClick={() => setMenuOpen(false)}
       >
         <div className={styles["container"]}>
           <div className={styles["content"]}>
@@ -92,33 +86,29 @@ const ChannelContent: FunctionComponent = () => {
               }}
               transition={{ duration: 0.2 }}
               className={`${styles["chat-menu"]}`}
-            ></motion.div>
+            />
             <ul
               className={`${styles["chat-list"]} m-0 px-2 py-2 w-full h-full`}
             ></ul>
           </div>
           <div className={`${styles["input-area"]} flex items-center gap-x-2`}>
-            <div>
-              <Button
-                size="icon"
-                className={`${styles["sticker-btn"]} hover:bg-neutral-800 size-9 cursor-pointer rounded-full [&_svg]:!h-5 [&_svg]:!w-5`}
-              >
-                <Sticker />
-              </Button>
-            </div>
+            <Button
+              size="icon"
+              className={`${styles["sticker-btn"]} hover:bg-neutral-800 size-9 cursor-pointer rounded-full [&_svg]:!h-5 [&_svg]:!w-5`}
+            >
+              <Sticker />
+            </Button>
             <textarea
               id="chat-input"
               cols={0}
               className="w-full px-3 pt-1 pb-2 h-9 box-border rounded-md resize-none"
             />
-            <div>
-              <Button
-                size="icon"
-                className={`${styles["submit-btn"]} size-9 [&_svg]:!h-6 [&_svg]:!w-6 cursor-pointer`}
-              >
-                <MadIcon fillColor="#000" bgColor="transparent" />
-              </Button>
-            </div>
+            <Button
+              size="icon"
+              className={`${styles["submit-btn"]} size-9 [&_svg]:!h-6 [&_svg]:!w-6 cursor-pointer`}
+            >
+              <MadIcon fillColor="#000" bgColor="transparent" />
+            </Button>
           </div>
         </div>
       </main>
