@@ -12,15 +12,13 @@ import Spinner from "../ui/spinner";
 import MadIcon from "../logo/MadIcon";
 import { Sticker } from "lucide-react";
 
-import { checkChannelJoin } from "@/lib/api";
+import { checkChannelJoin, refresh } from "@/lib/api";
 
 import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 
 import styles from "@/styles/channel-content.module.scss";
 
 export type JoinError = 401 | 403 | 409 | null;
-
-interface Channel {}
 
 const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
@@ -44,8 +42,14 @@ const ChannelContent: FunctionComponent = () => {
       } catch (err) {
         if (err instanceof Response) {
           if (err.status === 401) {
-            setJoinError(401);
-            return;
+            try {
+              await refresh();
+              setJoinError(null);
+            } catch (secondErr) {
+              setJoinError(401);
+            } finally {
+              return;
+            }
           }
           if (err.status === 403) {
             setJoinError(403);
@@ -60,6 +64,12 @@ const ChannelContent: FunctionComponent = () => {
 
     verifyJoin();
   }, [publicId]);
+
+  useEffect(() => {
+    if (!isLoading && joinError === null) {
+      console.log("HERE");
+    }
+  }, [isLoading, joinError, publicId]);
 
   if (isLoading) {
     return (

@@ -9,6 +9,8 @@ import {
 } from "react";
 import debounce from "lodash/debounce";
 
+import { Toaster } from "sonner";
+
 import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
 import ChannelListOrder from "@/components/channel-order/channel-order";
@@ -20,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 
 import styles from "@/styles/channel-search.module.scss";
-import { Toaster } from "sonner";
 
 type OrderType = "desc" | "asc" | "participants";
 
