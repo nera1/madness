@@ -13,5 +13,11 @@ export async function fetcher<T>(
     throw res;
   }
 
-  return res.json();
+  const contentType = res.headers.get("Content-Type") ?? "";
+
+  if (res.status === 204 || !contentType.includes("application/json")) {
+    return undefined as unknown as T;
+  }
+
+  return res.json() as Promise<T>;
 }

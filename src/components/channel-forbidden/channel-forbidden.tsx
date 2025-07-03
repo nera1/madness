@@ -8,6 +8,7 @@ import { Button } from "../ui/button";
 import { Search, SquarePlus, LogIn } from "lucide-react";
 
 import styles from "@/styles/channel-forbidden.module.scss";
+import { joinChannel, JoinChannelRequest } from "@/lib/api";
 
 interface ChannelForbiddenProps {
   status: 401 | 403;
@@ -23,9 +24,15 @@ const ChannelForbidden: FunctionComponent<ChannelForbiddenProps> = ({
   const handleJoin = async () => {
     if (!publicChannelId) return;
     try {
-      //await joinChannel({ publicChannelId, password: "" });
+      const payload: JoinChannelRequest = { publicChannelId, password: "" };
+      await joinChannel(payload);
       router.refresh();
     } catch (e) {
+      if (e instanceof Response) {
+        if (e.status === 409) {
+          router.refresh();
+        }
+      }
       console.error("채널 참여 실패:", e);
     }
   };

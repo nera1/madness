@@ -73,6 +73,7 @@ export function joinChannel(
 ): Promise<JoinChannelResponse> {
   return fetcher<JoinChannelResponse>(`/channel/join`, {
     method: "post",
+    cache: "no-store",
     body: JSON.stringify(request),
     credentials: "include",
   });

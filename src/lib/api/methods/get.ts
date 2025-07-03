@@ -71,5 +71,6 @@ export function searchChannels(
 export function checkChannelJoin(channelId: string): Promise<void> {
   return fetcher<void>(`/channel/${channelId}/members`, {
     credentials: "include",
+    cache: "no-store",
   });
 }

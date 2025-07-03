@@ -37,8 +37,8 @@ const ChannelContent: FunctionComponent = () => {
     const verifyJoin = async () => {
       try {
         await checkChannelJoin(publicId);
-        setJoinError(null); // 정상 참여
-      } catch (err: any) {
+        setJoinError(null);
+      } catch (err) {
         if (err instanceof Response) {
           if (err.status === 401) {
             setJoinError(401);
