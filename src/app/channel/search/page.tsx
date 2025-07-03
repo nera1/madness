@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 
 import styles from "@/styles/channel-search.module.scss";
+import { Toaster } from "sonner";
 
 type OrderType = "desc" | "asc" | "participants";
 
@@ -174,6 +175,7 @@ export default function SearchChannel() {
           </ul>
         </div>
       </main>
+      <Toaster theme="dark" />
     </>
   );
 }

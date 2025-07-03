@@ -1,39 +1,38 @@
 "use client";
 
-import { FunctionComponent } from "react";
-import { useRouter } from "next/navigation";
+import { Dispatch, FunctionComponent, SetStateAction } from "react";
 import Link from "next/link";
 
 import { Button } from "../ui/button";
 import { Search, SquarePlus, LogIn } from "lucide-react";
 
-import styles from "@/styles/channel-forbidden.module.scss";
 import { joinChannel, JoinChannelRequest } from "@/lib/api";
+import { JoinError } from "../channel-content/channel-content";
+
+import styles from "@/styles/channel-forbidden.module.scss";
 
 interface ChannelForbiddenProps {
   status: 401 | 403;
   publicChannelId?: string;
+  setJoinError: Dispatch<SetStateAction<JoinError>>;
 }
 
 const ChannelForbidden: FunctionComponent<ChannelForbiddenProps> = ({
   status,
   publicChannelId,
+  setJoinError,
 }) => {
-  const router = useRouter();
-
   const handleJoin = async () => {
     if (!publicChannelId) return;
     try {
       const payload: JoinChannelRequest = { publicChannelId, password: "" };
       await joinChannel(payload);
-      router.refresh();
     } catch (e) {
       if (e instanceof Response) {
         if (e.status === 409) {
-          router.refresh();
+          setJoinError(409);
         }
       }
-      console.error("채널 참여 실패:", e);
     }
   };
 

@@ -14,10 +14,13 @@ import { Sticker } from "lucide-react";
 
 import { checkChannelJoin } from "@/lib/api";
 
-import styles from "@/styles/channel-content.module.scss";
 import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 
-type JoinError = 401 | 403 | null;
+import styles from "@/styles/channel-content.module.scss";
+
+export type JoinError = 401 | 403 | 409 | null;
+
+interface Channel {}
 
 const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
@@ -67,7 +70,13 @@ const ChannelContent: FunctionComponent = () => {
   }
 
   if (joinError === 401 || joinError === 403) {
-    return <ChannelForbidden status={joinError} publicChannelId={publicId} />;
+    return (
+      <ChannelForbidden
+        status={joinError}
+        publicChannelId={publicId}
+        setJoinError={setJoinError}
+      />
+    );
   }
 
   return (
