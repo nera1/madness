@@ -13,6 +13,8 @@ import { Button } from "../ui/button";
 
 import { ChevronLeft, Menu } from "lucide-react";
 
+import Spinner from "../ui/spinner";
+
 import styles from "@/styles/channel-header.module.scss";
 
 interface ChannelHeaderProps {
@@ -23,6 +25,7 @@ interface ChannelHeaderProps {
 
 const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
   setMenuOpen,
+  name,
 }) => {
   const router = useRouter();
 
@@ -32,7 +35,7 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
   };
 
   const goBack: MouseEventHandler<HTMLButtonElement> = () => {
-    router.back();
+    router.push("/channel/search");
   };
 
   return (
@@ -54,8 +57,10 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
           </Button>
         </div>
         <div className={`${styles["center"]} grow flex justify-center`}>
-          <div className={`${styles["name"]} text-lg font-semibold`}>
-            Channel name
+          <div
+            className={`${styles["name"]} text-lg font-semibold flex items-center`}
+          >
+            {name || <Spinner size={18} />}
           </div>
         </div>
         <div className={`${styles["right"]} grow flex justify-end bg-red`}>

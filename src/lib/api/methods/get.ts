@@ -18,12 +18,20 @@ export interface ChannelDto {
   createdAt: string;
 }
 
+export interface ChannelInfo {
+  publicId: string;
+  name: string;
+  creatorNickname: string;
+  createdAt: string;
+}
+
 export type SearchChannelsResponse = ApiResponse<ChannelDto[]>;
 export type CheckDuplicate = ApiResponse<CheckDuplicateData>;
 export type RefreshResponse = ApiResponse<null>;
 export type MeResponse = ApiResponse<MeResponseData>;
 export type SignoutRespone = ApiResponse<null>;
 export type AuthCheckRespone = ApiResponse<null>;
+export type ChannelInfoResponse = ApiResponse<ChannelInfo>;
 
 export function checkNicknameDuplicate(
   nickname: string
@@ -72,5 +80,13 @@ export function checkChannelJoin(channelId: string): Promise<void> {
   return fetcher<void>(`/channel/${channelId}/members`, {
     credentials: "include",
     cache: "no-store",
+  });
+}
+
+export function getChannelInfo(
+  channelId: string
+): Promise<ChannelInfoResponse> {
+  return fetcher<ChannelInfoResponse>(`/channel/${channelId}`, {
+    credentials: "include",
   });
 }

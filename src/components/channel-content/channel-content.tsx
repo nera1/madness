@@ -1,6 +1,9 @@
 "use client";
 
-import { FunctionComponent, useEffect, useState } from "react";
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
+
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { motion } from "framer-motion";
@@ -12,7 +15,12 @@ import Spinner from "../ui/spinner";
 import MadIcon from "../logo/MadIcon";
 import { Sticker } from "lucide-react";
 
-import { checkChannelJoin, refresh } from "@/lib/api";
+import {
+  ChannelInfo,
+  checkChannelJoin,
+  getChannelInfo,
+  refresh,
+} from "@/lib/api";
 
 import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 
@@ -24,9 +32,20 @@ const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
   const publicId = searchParams.get("c") ?? "";
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-
+  const [channelInfo, setChannelInfo] = useState<ChannelInfo>({
+    name: "",
+    createdAt: "",
+    creatorNickname: "",
+    publicId: "",
+  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [joinError, setJoinError] = useState<JoinError>(null);
+
+  const [messages, setMessages] = useState<any[]>([]);
+
+  const stompClient = useRef<Client | null>(null);
+
+  const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
     if (!publicId) {
@@ -67,7 +86,33 @@ const ChannelContent: FunctionComponent = () => {
 
   useEffect(() => {
     if (!isLoading && joinError === null) {
-      console.log("HERE");
+      getChannelInfo(publicId).then(({ data }) => {
+        setChannelInfo(data);
+      });
+      const socket = new SockJS("http://localhost:8080/ws/chat");
+      const client = new Client({
+        webSocketFactory: () => socket,
+        reconnectDelay: 5000,
+        debug: (msg) => console.log(msg),
+      });
+
+      client.onConnect = () => {
+        console.log("STOMP 연결 성공");
+        stompClient.current = client;
+
+        client.subscribe(`/sub/chat.${publicId}`, (msg) => {
+          const body = JSON.parse(msg.body);
+          console.log(body);
+          setMessages((prev) => [...prev, body]);
+        });
+      };
+
+      client.activate();
+
+      return () => {
+        client.deactivate();
+        stompClient.current = null;
+      };
     }
   }, [isLoading, joinError, publicId]);
 
@@ -89,9 +134,24 @@ const ChannelContent: FunctionComponent = () => {
     );
   }
 
+  const sendChat = () => {
+    console.log(">>> SEND", `/pub/chat.send.${publicId}`, inputValue);
+    if (!inputValue.trim() || !stompClient.current) return;
+    stompClient.current.publish({
+      destination: `/pub/chat.send.${publicId}`,
+      body: JSON.stringify({
+        type: "CHAT",
+        sender: "tester",
+        content: inputValue,
+        channelId: publicId,
+      }),
+    });
+    setInputValue("");
+  };
+
   return (
     <>
-      <ChannelHeader setMenuOpen={setMenuOpen} />
+      <ChannelHeader setMenuOpen={setMenuOpen} name={channelInfo.name} />
       <main
         className={`${styles["channel-content"]} flex justify-center`}
         onClick={() => setMenuOpen(false)}
@@ -108,7 +168,13 @@ const ChannelContent: FunctionComponent = () => {
             />
             <ul
               className={`${styles["chat-list"]} m-0 px-2 py-2 w-full h-full`}
-            ></ul>
+            >
+              {messages.map((msg, idx) => (
+                <li key={idx} className="py-1">
+                  <strong>{msg.sender}:</strong> {msg.content}
+                </li>
+              ))}
+            </ul>
           </div>
           <div className={`${styles["input-area"]} flex items-center gap-x-2`}>
             <Button
@@ -121,10 +187,13 @@ const ChannelContent: FunctionComponent = () => {
               id="chat-input"
               cols={0}
               className="w-full px-3 pt-1 pb-2 h-9 box-border rounded-md resize-none"
+              onChange={(e) => setInputValue(e.target.value)}
             />
             <Button
               size="icon"
               className={`${styles["submit-btn"]} size-9 [&_svg]:!h-6 [&_svg]:!w-6 cursor-pointer`}
+              onClick={sendChat}
+              value={inputValue}
             >
               <MadIcon fillColor="#000" bgColor="transparent" />
             </Button>
