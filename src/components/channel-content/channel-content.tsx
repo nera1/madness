@@ -170,7 +170,7 @@ const ChannelContent: FunctionComponent = () => {
               className={`${styles["chat-list"]} m-0 px-2 py-2 w-full h-full`}
             >
               {messages.map((msg, idx) => (
-                <li key={idx} className="py-1">
+                <li key={idx} className="py-1 text-white">
                   <strong>{msg.sender}:</strong> {msg.content}
                 </li>
               ))}
@@ -188,12 +188,12 @@ const ChannelContent: FunctionComponent = () => {
               cols={0}
               className="w-full px-3 pt-1 pb-2 h-9 box-border rounded-md resize-none"
               onChange={(e) => setInputValue(e.target.value)}
+              value={inputValue}
             />
             <Button
               size="icon"
               className={`${styles["submit-btn"]} size-9 [&_svg]:!h-6 [&_svg]:!w-6 cursor-pointer`}
               onClick={sendChat}
-              value={inputValue}
             >
               <MadIcon fillColor="#000" bgColor="transparent" />
             </Button>
