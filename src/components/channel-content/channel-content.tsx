@@ -4,7 +4,7 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
 import { FunctionComponent, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { motion } from "framer-motion";
 
@@ -44,6 +44,7 @@ const ChannelContent: FunctionComponent = () => {
   const [messages, setMessages] = useState<any[]>([]);
 
   const stompClient = useRef<Client | null>(null);
+  const router = useRouter();
 
   const [inputValue, setInputValue] = useState("");
 
@@ -115,6 +116,20 @@ const ChannelContent: FunctionComponent = () => {
       };
     }
   }, [isLoading, joinError, publicId]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      stompClient.current?.deactivate();
+      stompClient.current = null;
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      stompClient.current?.deactivate();
+      stompClient.current = null;
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   if (isLoading) {
     return (
