@@ -50,18 +50,21 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
             await joinChannel(payload);
             navigateToChannel();
           } catch (retryError) {
-            if (retryError instanceof Response && retryError.status === 401) {
-              //router.push("/login");
-              toast(
-                <div className="flex gap-x-2 items-center">
-                  <div className="grow">로그인이 필요합니다</div>
-                </div>,
-                {
-                  duration: 5000,
-                }
-              );
-            } else {
-              console.error("refresh 후 join 재시도 실패:", retryError);
+            if (retryError instanceof Response) {
+              if (retryError.status === 401) {
+                toast(
+                  <div className="flex gap-x-2 items-center">
+                    <div className="grow">로그인이 필요합니다</div>
+                  </div>,
+                  {
+                    duration: 5000,
+                  }
+                );
+              } else if (retryError.status === 409) {
+                navigateToChannel();
+              } else {
+                console.error("refresh 후 join 재시도 실패:", retryError);
+              }
             }
           }
         } else {

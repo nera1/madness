@@ -44,7 +44,6 @@ const ChannelContent: FunctionComponent = () => {
   const [messages, setMessages] = useState<any[]>([]);
 
   const stompClient = useRef<Client | null>(null);
-  const router = useRouter();
 
   const [inputValue, setInputValue] = useState("");
 
