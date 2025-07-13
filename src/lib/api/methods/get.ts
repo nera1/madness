@@ -16,6 +16,7 @@ export interface ChannelDto {
   publicId: string;
   name: string;
   createdAt: string;
+  participants: number;
 }
 
 export interface ChannelInfo {

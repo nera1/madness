@@ -3,16 +3,19 @@
 import { FunctionComponent, MouseEventHandler, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import millify from "millify";
 
 import { ChannelDto, refresh } from "@/lib/api";
 import { JoinChannelRequest, joinChannel } from "@/lib/api/methods/post";
 import { formatDotDateTime12Hour } from "../../../util";
 
+import { Badge } from "@/components/ui/badge";
+
+import { Radio } from "lucide-react";
+
 import styles from "@/styles/channel-search-list-item.module.scss";
-import { Button } from "../ui/button";
 
 interface ChannelSearchListItemProps extends ChannelDto {
-  participants?: number;
   disabled?: boolean;
 }
 
@@ -20,6 +23,7 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
   createdAt,
   name,
   publicId,
+  participants,
   disabled = false,
 }) => {
   const router = useRouter();
@@ -97,6 +101,15 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
         <div className={`${styles["top"]} text-sm font-bold`}>{name}</div>
         <div className={`${styles["middle"]} text-xs`}>
           {formatDotDateTime12Hour(createdAt)}
+        </div>
+        <div>
+          <Badge className="rounded-[3px] bg-transparent pl-0">
+            <Radio />
+            {`${millify(participants, {
+              units: [""],
+              precision: 0,
+            })}명`}
+          </Badge>
         </div>
       </div>
       <div className={`${styles["right"]}`}></div>
