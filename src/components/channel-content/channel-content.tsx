@@ -1,10 +1,10 @@
 "use client";
 
 import SockJS from "sockjs-client";
-import { Client } from "@stomp/stompjs";
+import { Client, StompSubscription } from "@stomp/stompjs";
 
 import { FunctionComponent, useEffect, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import { motion } from "framer-motion";
 
@@ -25,6 +25,7 @@ import {
 import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 
 import styles from "@/styles/channel-content.module.scss";
+import { secureRandomString } from "../../../util";
 
 export type JoinError = 401 | 403 | 409 | null;
 
@@ -46,6 +47,8 @@ const ChannelContent: FunctionComponent = () => {
   const stompClient = useRef<Client | null>(null);
 
   const [inputValue, setInputValue] = useState("");
+
+  const subscriptions = useRef<StompSubscription[]>([]);
 
   useEffect(() => {
     if (!publicId) {
@@ -99,17 +102,23 @@ const ChannelContent: FunctionComponent = () => {
       client.onConnect = () => {
         console.log("STOMP 연결 성공");
         stompClient.current = client;
-
-        client.subscribe(`/sub/chat.${publicId}`, (msg) => {
-          const body = JSON.parse(msg.body);
-          console.log(body);
-          setMessages((prev) => [...prev, body]);
-        });
+        const id = secureRandomString(6);
+        const sub: StompSubscription = client.subscribe(
+          `/sub/chat.${publicId}`,
+          (msg) => {
+            const body = JSON.parse(msg.body);
+            console.log(body);
+            setMessages((prev) => [...prev, body]);
+          },
+          { id: `sub-${publicId}-${id}` }
+        );
+        subscriptions.current.push(sub);
       };
 
       client.activate();
 
       return () => {
+        subscriptions.current.forEach((sub) => sub.unsubscribe());
         client.deactivate();
         stompClient.current = null;
       };
@@ -118,12 +127,14 @@ const ChannelContent: FunctionComponent = () => {
 
   useEffect(() => {
     const handleBeforeUnload = () => {
+      subscriptions.current.forEach((sub) => sub.unsubscribe());
       stompClient.current?.deactivate();
       stompClient.current = null;
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
+      subscriptions.current.forEach((sub) => sub.unsubscribe());
       stompClient.current?.deactivate();
       stompClient.current = null;
       window.removeEventListener("beforeunload", handleBeforeUnload);
