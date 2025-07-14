@@ -1,8 +1,5 @@
 "use client";
 
-import SockJS from "sockjs-client";
-import { Client, StompSubscription } from "@stomp/stompjs";
-
 import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -25,7 +22,7 @@ import {
 import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 
 import styles from "@/styles/channel-content.module.scss";
-import { secureRandomString } from "../../../util";
+import { useChatSocket } from "@/hooks/useChatSocket";
 
 export type JoinError = 401 | 403 | 409 | null;
 
@@ -41,14 +38,9 @@ const ChannelContent: FunctionComponent = () => {
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [joinError, setJoinError] = useState<JoinError>(null);
-
-  const [messages, setMessages] = useState<any[]>([]);
-
-  const stompClient = useRef<Client | null>(null);
-
   const [inputValue, setInputValue] = useState("");
 
-  const subscriptions = useRef<StompSubscription[]>([]);
+  const { messages, sendMessage, disconnect } = useChatSocket(publicId);
 
   useEffect(() => {
     if (!publicId) {
@@ -92,51 +84,17 @@ const ChannelContent: FunctionComponent = () => {
       getChannelInfo(publicId).then(({ data }) => {
         setChannelInfo(data);
       });
-      const socket = new SockJS("http://localhost:8080/ws/chat");
-      const client = new Client({
-        webSocketFactory: () => socket,
-        reconnectDelay: 5000,
-        debug: (msg) => console.log(msg),
-      });
-
-      client.onConnect = () => {
-        console.log("STOMP 연결 성공");
-        stompClient.current = client;
-        const id = secureRandomString(6);
-        const sub: StompSubscription = client.subscribe(
-          `/sub/chat.${publicId}`,
-          (msg) => {
-            const body = JSON.parse(msg.body);
-            console.log(body);
-            setMessages((prev) => [...prev, body]);
-          },
-          { id: `sub-${publicId}-${id}` }
-        );
-        subscriptions.current.push(sub);
-      };
-
-      client.activate();
-
-      return () => {
-        subscriptions.current.forEach((sub) => sub.unsubscribe());
-        client.deactivate();
-        stompClient.current = null;
-      };
     }
   }, [isLoading, joinError, publicId]);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      subscriptions.current.forEach((sub) => sub.unsubscribe());
-      stompClient.current?.deactivate();
-      stompClient.current = null;
+      disconnect();
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      subscriptions.current.forEach((sub) => sub.unsubscribe());
-      stompClient.current?.deactivate();
-      stompClient.current = null;
+      disconnect();
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
@@ -158,21 +116,6 @@ const ChannelContent: FunctionComponent = () => {
       />
     );
   }
-
-  const sendChat = () => {
-    console.log(">>> SEND", `/pub/chat.send.${publicId}`, inputValue);
-    if (!inputValue.trim() || !stompClient.current) return;
-    stompClient.current.publish({
-      destination: `/pub/chat.send.${publicId}`,
-      body: JSON.stringify({
-        type: "CHAT",
-        sender: "tester",
-        content: inputValue,
-        channelId: publicId,
-      }),
-    });
-    setInputValue("");
-  };
 
   return (
     <>
@@ -218,7 +161,10 @@ const ChannelContent: FunctionComponent = () => {
             <Button
               size="icon"
               className={`${styles["submit-btn"]} size-9 [&_svg]:!h-6 [&_svg]:!w-6 cursor-pointer`}
-              onClick={sendChat}
+              onClick={() => {
+                sendMessage(inputValue, "CHAT");
+                setInputValue("");
+              }}
             >
               <MadIcon fillColor="#000" bgColor="transparent" />
             </Button>

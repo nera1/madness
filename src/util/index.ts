@@ -7,7 +7,6 @@ export function formatDotDateTime12Hour(isoString: string): string {
 
   const pad = (n: number): string => n.toString().padStart(2, "0");
 
-  //const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
   const day = pad(date.getDate());
 

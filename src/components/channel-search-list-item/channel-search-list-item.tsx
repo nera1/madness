@@ -9,7 +9,6 @@ import millify from "millify";
 
 import { ChannelDto, refresh } from "@/lib/api";
 import { JoinChannelRequest, joinChannel } from "@/lib/api/methods/post";
-import { formatDotDateTime12Hour } from "../../../util";
 
 import styles from "@/styles/channel-search-list-item.module.scss";
 

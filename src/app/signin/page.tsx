@@ -68,7 +68,7 @@ export default function Signin() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signin(state);
+      const result = await signin(state);
       router.back();
     } catch (err) {
       console.error(err);
