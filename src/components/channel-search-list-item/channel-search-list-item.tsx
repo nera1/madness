@@ -3,17 +3,17 @@
 import { FunctionComponent, MouseEventHandler, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { format, register } from "timeago.js";
+import ko from "timeago.js/lib/lang/ko";
 import millify from "millify";
 
 import { ChannelDto, refresh } from "@/lib/api";
 import { JoinChannelRequest, joinChannel } from "@/lib/api/methods/post";
 import { formatDotDateTime12Hour } from "../../../util";
 
-import { Badge } from "@/components/ui/badge";
-
-import { Radio } from "lucide-react";
-
 import styles from "@/styles/channel-search-list-item.module.scss";
+
+register("ko", ko);
 
 interface ChannelSearchListItemProps extends ChannelDto {
   disabled?: boolean;
@@ -97,22 +97,18 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
       }`}
       onClick={onClick}
     >
-      <div className={`${styles["left"]} flex flex-col gap-y-1`}>
-        <div className={`${styles["top"]} text-sm font-bold`}>{name}</div>
-        <div className={`${styles["middle"]} text-xs`}>
-          {formatDotDateTime12Hour(createdAt)}
+      <div className={`${styles["left"]} flex flex-col gap-y-1 w-full`}>
+        <div className={`${styles["top"]} text-xs flex justify-between w-full`}>
+          <div className={`${styles["name"]} font-bold`}>{name}</div>
+          <div className={`${styles["date"]}`}>{format(createdAt, "ko")}</div>
         </div>
-        <div>
-          <Badge className="rounded-[3px] bg-transparent pl-0">
-            <Radio />
-            {`${millify(participants, {
-              units: [""],
-              precision: 0,
-            })}명`}
-          </Badge>
+        <div className={`text-xs font-medium ${styles["participants"]}`}>
+          {`${millify(participants, {
+            units: [""],
+            precision: 0,
+          })}명 참여 중`}
         </div>
       </div>
-      <div className={`${styles["right"]}`}></div>
     </li>
   );
 };

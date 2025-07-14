@@ -9,15 +9,20 @@
   & > .left {
     & > .top {
       color: vars.$color-100;
-      &:hover {
-        text-underline-offset: 3px;
-        text-decoration: underline;
+      & .name {
+        &:hover {
+          text-underline-offset: 3px;
+          text-decoration: underline;
+        }
       }
     }
     & > .middle {
       color: vars.$color-500;
     }
     & > .bottom {
+    }
+    & .participants {
+      color: vars.$color-300;
     }
   }
   & > .right {
