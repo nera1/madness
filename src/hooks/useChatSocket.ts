@@ -13,10 +13,15 @@ export interface ChatMessage {
   channelId: string;
 }
 
+const randId = secureRandomString(6);
+
 const subscribeTopic = (publicId: string) => `/sub/chat.${publicId}`;
 const subscribeId = (publicId: string, subId?: string) =>
-  `sub-${publicId}-${subId || secureRandomString(6)}`;
+  `sub-${publicId}-${subId || randId}`;
 const publishTopic = (publicId: string) => `/pub/chat.send.${publicId}`;
+const errorTopic = (publicId?: string) => `/user/chat/error`;
+const errorSubscribeId = (publicId: string, subId?: string) =>
+  `sub-error.${publicId}.${subId || randId}`;
 
 export function useChatSocket(publicId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -44,6 +49,16 @@ export function useChatSocket(publicId: string) {
         },
         { id: subscribeId(publicId) }
       );
+      const errorSub = client.subscribe(
+        errorTopic(),
+        (msg: IMessage) => {
+          const err = JSON.parse(msg.body) as { message: string };
+          console.error("STOMP Error ▶", err.message);
+        },
+        { id: errorSubscribeId(publicId) }
+      );
+      subsRef.current.push(errorSub);
+
       subsRef.current.push(sub);
     };
 
