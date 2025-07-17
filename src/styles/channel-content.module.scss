@@ -25,6 +25,11 @@
 
       & > .chat-list {
         padding: 0 vars.$padding-aside-container;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        &::-webkit-scrollbar {
+          display: none;
+        }
       }
     }
 

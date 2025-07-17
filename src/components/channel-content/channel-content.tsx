@@ -20,9 +20,9 @@ import {
 } from "@/lib/api";
 
 import ChannelForbidden from "../channel-forbidden/channel-forbidden";
+import { useChatSocket } from "@/hooks/useChatSocket";
 
 import styles from "@/styles/channel-content.module.scss";
-import { useChatSocket } from "@/hooks/useChatSocket";
 
 export type JoinError = 401 | 403 | 409 | null;
 
@@ -41,6 +41,15 @@ const ChannelContent: FunctionComponent = () => {
   const [inputValue, setInputValue] = useState("");
 
   const { messages, sendMessage, disconnect } = useChatSocket(publicId);
+
+  const chatListRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    const el = chatListRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (!publicId) {
@@ -136,6 +145,7 @@ const ChannelContent: FunctionComponent = () => {
             />
             <ul
               className={`${styles["chat-list"]} m-0 px-2 py-2 w-full h-full`}
+              ref={chatListRef}
             >
               {messages.map((msg, idx) => (
                 <li key={idx} className="py-1 text-white">

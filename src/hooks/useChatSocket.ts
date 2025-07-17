@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
 import { Client, StompSubscription, IMessage } from "@stomp/stompjs";
 import { secureRandomString } from "@/util/index";
+import { refresh } from "@/lib/api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://madn.es";
 const WS_URL = `${API_BASE.replace(/\/$/, "")}/ws/chat`;
@@ -15,27 +16,26 @@ export interface ChatMessage {
 
 const randId = secureRandomString(6);
 
+const MAX_WINDOW = 30;
+
 const subscribeTopic = (publicId: string) => `/sub/chat.${publicId}`;
 const subscribeId = (publicId: string, subId?: string) =>
   `sub-${publicId}-${subId || randId}`;
 const publishTopic = (publicId: string) => `/pub/chat.send.${publicId}`;
-const errorTopic = (publicId?: string) => `/user/chat/error`;
-const errorSubscribeId = (publicId: string, subId?: string) =>
-  `sub-error.${publicId}.${subId || randId}`;
 
 export function useChatSocket(publicId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [connected, setConnected] = useState(false);
   const clientRef = useRef<Client | null>(null);
   const subsRef = useRef<StompSubscription[]>([]);
+  const pendingRef = useRef<ChatMessage | null>(null);
 
   useEffect(() => {
     if (!publicId) return;
 
-    const socket = new SockJS(WS_URL);
     const client = new Client({
-      webSocketFactory: () => socket,
-      reconnectDelay: 5000,
+      webSocketFactory: () => new SockJS(WS_URL),
+      reconnectDelay: 0,
       debug: (str) => console.debug("[STOMP]", str),
     });
 
@@ -45,25 +45,44 @@ export function useChatSocket(publicId: string) {
         subscribeTopic(publicId),
         (msg: IMessage) => {
           const body = JSON.parse(msg.body) as ChatMessage;
-          setMessages((prev) => [...prev, body]);
+          setMessages((prev) => {
+            const next = [...prev, body];
+            if (next.length > MAX_WINDOW) {
+              return next.slice(-MAX_WINDOW);
+            }
+            return next;
+          });
         },
         { id: subscribeId(publicId) }
       );
-      const errorSub = client.subscribe(
-        errorTopic(),
-        (msg: IMessage) => {
-          const err = JSON.parse(msg.body) as { message: string };
-          console.error("STOMP Error ▶", err.message);
-        },
-        { id: errorSubscribeId(publicId) }
-      );
-      subsRef.current.push(errorSub);
 
       subsRef.current.push(sub);
+
+      if (pendingRef.current) {
+        client.publish({
+          destination: publishTopic(publicId),
+          body: JSON.stringify(pendingRef.current),
+        });
+        pendingRef.current = null;
+      }
     };
 
     client.onStompError = (frame) => {
       console.error("STOMP Error ▶", frame.headers["message"], frame.body);
+      if (frame.headers["message"] === "401") {
+        refresh().then(() => {
+          disconnect().then(() => {
+            pendingRef.current = {
+              // 재전송할 메시지 보관
+              type: "CHAT",
+              sender: "",
+              content: prevContentRef.current || "",
+              channelId: publicId,
+            };
+            disconnect().then(() => client.activate());
+          });
+        });
+      }
     };
 
     client.activate();
@@ -75,25 +94,32 @@ export function useChatSocket(publicId: string) {
     };
   }, [publicId]);
 
+  const prevContentRef = useRef<string>("");
+
   const sendMessage = (content: string, type: string = "CHAT") => {
-    if (!clientRef.current?.connected || !content.trim()) return;
     const payload: ChatMessage = {
       type,
       sender: "",
       content,
       channelId: publicId,
     };
-    clientRef.current.publish({
-      destination: publishTopic(publicId),
-      body: JSON.stringify(payload),
-    });
+    prevContentRef.current = content;
+
+    if (clientRef.current?.connected) {
+      clientRef.current.publish({
+        destination: publishTopic(publicId),
+        body: JSON.stringify(payload),
+      });
+    } else {
+      pendingRef.current = payload;
+      clientRef.current?.activate();
+    }
   };
 
   const disconnect = () => {
     subsRef.current.forEach((s) => s.unsubscribe());
     subsRef.current = [];
-    clientRef.current?.deactivate();
-    clientRef.current = null;
+    return Promise.all([clientRef.current?.deactivate()]);
   };
 
   return { messages, connected, sendMessage, disconnect };
