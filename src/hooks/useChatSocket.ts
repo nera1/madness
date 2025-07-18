@@ -34,7 +34,8 @@ export function useChatSocket(publicId: string) {
     if (!publicId) return;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(WS_URL),
+      webSocketFactory: () =>
+        new SockJS(WS_URL, undefined, { transports: ["websocket"] }),
       reconnectDelay: 0,
       debug: (str) => console.debug("[STOMP]", str),
     });
@@ -73,7 +74,6 @@ export function useChatSocket(publicId: string) {
         refresh().then(() => {
           disconnect().then(() => {
             pendingRef.current = {
-              // 재전송할 메시지 보관
               type: "CHAT",
               sender: "",
               content: prevContentRef.current || "",

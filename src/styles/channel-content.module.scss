@@ -24,9 +24,11 @@
       }
 
       & > .chat-list {
-        padding: 0 vars.$padding-aside-container;
         overflow-x: hidden;
         overflow-y: scroll;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
         &::-webkit-scrollbar {
           display: none;
         }

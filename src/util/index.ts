@@ -29,7 +29,6 @@ export function secureRandomString(length = 16) {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
-
 function fnv1aHash(str: string): number {
   let hash = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
@@ -39,11 +38,27 @@ function fnv1aHash(str: string): number {
   return hash;
 }
 
+// HSL → HEX 변환 헬퍼
+function hslToHex(h: number, s: number, l: number): string {
+  l /= 100;
+  const a = (s * Math.min(l, 1 - l)) / 100;
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
 export function generateHexColor(
   nicknameSeed: string,
   clientSeed: string
 ): string {
   const hash = fnv1aHash(nicknameSeed + clientSeed);
-  const colorNum = hash & 0xffffff;
-  return `#${colorNum.toString(16).padStart(6, "0")}`;
+  const hue = hash % 360;
+  const saturation = 100;
+  const lightness = 65;
+  return hslToHex(hue, saturation, lightness);
 }

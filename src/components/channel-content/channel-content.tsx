@@ -24,6 +24,8 @@ import { useChatSocket } from "@/hooks/useChatSocket";
 import { useClientSeed } from "@/hooks/useClientSeed";
 
 import styles from "@/styles/channel-content.module.scss";
+import MessageListItem from "../message-list-item/message-list-item";
+import { generateHexColor } from "@/util";
 
 export type JoinError = 401 | 403 | 409 | null;
 
@@ -47,9 +49,11 @@ const ChannelContent: FunctionComponent = () => {
   const clientSeed = useClientSeed();
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    const domEvt = e.nativeEvent as KeyboardEvent;
+
+    if (e.key === "Enter" && !e.shiftKey && !domEvt.isComposing) {
       e.preventDefault();
-      sendMessage(inputValue, "CHAT");
+      sendMessage(inputValue.trim(), "CHAT");
       setInputValue("");
     }
   };
@@ -154,13 +158,15 @@ const ChannelContent: FunctionComponent = () => {
               className={`${styles["chat-menu"]}`}
             />
             <ul
-              className={`${styles["chat-list"]} m-0 px-2 py-2 w-full h-full`}
+              className={`${styles["chat-list"]} m-0 py-2 w-full h-full`}
               ref={chatListRef}
             >
               {messages.map((msg, idx) => (
-                <li key={idx} className="py-1 text-white">
-                  <strong>{msg.sender}:</strong> {msg.content}
-                </li>
+                <MessageListItem
+                  {...msg}
+                  color={generateHexColor(msg.sender || "", clientSeed)}
+                  key={idx}
+                />
               ))}
             </ul>
           </div>
