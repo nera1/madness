@@ -15,9 +15,7 @@ export interface ChatMessage {
 }
 
 const randId = secureRandomString(6);
-
 const MAX_WINDOW = 30;
-
 const subscribeTopic = (publicId: string) => `/sub/chat.${publicId}`;
 const subscribeId = (publicId: string, subId?: string) =>
   `sub-${publicId}-${subId || randId}`;
@@ -29,6 +27,7 @@ export function useChatSocket(publicId: string) {
   const clientRef = useRef<Client | null>(null);
   const subsRef = useRef<StompSubscription[]>([]);
   const pendingRef = useRef<ChatMessage | null>(null);
+  const prevContentRef = useRef<string>("");
 
   useEffect(() => {
     if (!publicId) return;
@@ -37,6 +36,8 @@ export function useChatSocket(publicId: string) {
       webSocketFactory: () =>
         new SockJS(WS_URL, undefined, { transports: ["websocket"] }),
       reconnectDelay: 0,
+      heartbeatIncoming: 10_000,
+      heartbeatOutgoing: 10_000,
       debug: (str) => console.debug("[STOMP]", str),
     });
 
@@ -48,15 +49,11 @@ export function useChatSocket(publicId: string) {
           const body = JSON.parse(msg.body) as ChatMessage;
           setMessages((prev) => {
             const next = [...prev, body];
-            if (next.length > MAX_WINDOW) {
-              return next.slice(-MAX_WINDOW);
-            }
-            return next;
+            return next.length > MAX_WINDOW ? next.slice(-MAX_WINDOW) : next;
           });
         },
         { id: subscribeId(publicId) }
       );
-
       subsRef.current.push(sub);
 
       if (pendingRef.current) {
@@ -71,7 +68,7 @@ export function useChatSocket(publicId: string) {
     client.onStompError = (frame) => {
       console.error("STOMP Error ▶", frame.headers["message"], frame.body);
       if (frame.headers["message"] === "401") {
-        refresh().then(() => {
+        refresh().then(() =>
           disconnect().then(() => {
             pendingRef.current = {
               type: "CHAT",
@@ -79,22 +76,37 @@ export function useChatSocket(publicId: string) {
               content: prevContentRef.current || "",
               channelId: publicId,
             };
-            disconnect().then(() => client.activate());
-          });
-        });
+            client.activate();
+          })
+        );
       }
+    };
+
+    client.onWebSocketClose = (evt) => {
+      console.warn("WebSocket closed ▶", evt);
+      setConnected(false);
+    };
+    client.onWebSocketError = (evt) => {
+      console.error("WebSocket error ▶", evt);
+      setConnected(false);
     };
 
     client.activate();
     clientRef.current = client;
 
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && !client.connected) {
+        client.activate();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
       disconnect();
       setConnected(false);
     };
   }, [publicId]);
-
-  const prevContentRef = useRef<string>("");
 
   const sendMessage = (content: string, type: string = "CHAT") => {
     const payload: ChatMessage = {
