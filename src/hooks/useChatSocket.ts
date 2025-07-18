@@ -4,7 +4,7 @@ import { Client, StompSubscription, IMessage } from "@stomp/stompjs";
 import { secureRandomString } from "@/util/index";
 import { refresh } from "@/lib/api";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://madn.es";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://api.madn.es";
 const WS_URL = `${API_BASE.replace(/\/$/, "")}/ws/chat`;
 
 export interface ChatMessage {
