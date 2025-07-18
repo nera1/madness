@@ -21,6 +21,7 @@ import {
 
 import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 import { useChatSocket } from "@/hooks/useChatSocket";
+import { useClientSeed } from "@/hooks/useClientSeed";
 
 import styles from "@/styles/channel-content.module.scss";
 
@@ -43,6 +44,15 @@ const ChannelContent: FunctionComponent = () => {
   const { messages, sendMessage, disconnect } = useChatSocket(publicId);
 
   const chatListRef = useRef<HTMLUListElement>(null);
+  const clientSeed = useClientSeed();
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(inputValue, "CHAT");
+      setInputValue("");
+    }
+  };
 
   useEffect(() => {
     const el = chatListRef.current;
@@ -167,6 +177,7 @@ const ChannelContent: FunctionComponent = () => {
               className="w-full px-3 pt-1 pb-2 h-9 box-border rounded-md resize-none"
               onChange={(e) => setInputValue(e.target.value)}
               value={inputValue}
+              onKeyDown={handleKeyDown}
             />
             <Button
               size="icon"

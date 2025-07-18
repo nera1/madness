@@ -29,3 +29,21 @@ export function secureRandomString(length = 16) {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
+
+function fnv1aHash(str: string): number {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = (hash * 0x01000193) >>> 0;
+  }
+  return hash;
+}
+
+export function generateHexColor(
+  nicknameSeed: string,
+  clientSeed: string
+): string {
+  const hash = fnv1aHash(nicknameSeed + clientSeed);
+  const colorNum = hash & 0xffffff;
+  return `#${colorNum.toString(16).padStart(6, "0")}`;
+}
