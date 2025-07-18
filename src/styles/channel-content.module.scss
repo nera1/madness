@@ -14,6 +14,17 @@
         100dvh - vars.$height-channel-input-area - vars.$height-header
       );
 
+      &.shrink {
+        height: calc(
+          100vh - vars.$height-channel-input-area - vars.$height-header -
+            vars.$height-chat-textarea-height
+        );
+        height: calc(
+          100dvh - vars.$height-channel-input-area - vars.$height-header -
+            vars.$height-chat-textarea-height
+        );
+      }
+
       & > .chat-menu {
         position: absolute;
         background-color: vars.$color-900;
@@ -36,17 +47,30 @@
     }
 
     & > .input-area {
-      padding: 0 vars.$padding-aside-container;
+      padding-left: vars.$padding-aside-container;
+      padding-right: vars.$padding-aside-container;
       height: vars.$height-channel-input-area;
+      &.expanded {
+        height: calc(
+          vars.$height-channel-input-area + vars.$height-chat-textarea-height
+        );
+      }
       border-top: 0.5px solid vars.$color-800;
       box-sizing: border-box;
+      padding-bottom: 11px;
       & > textarea {
         background-color: vars.$color-900;
         color: vars.$color-100;
-        overflow-x: hidden;
-        overflow-y: hidden;
         &:focus {
           outline: none;
+        }
+        &::-webkit-scrollbar {
+          background-color: transparent;
+          width: 4px;
+        }
+        &::-webkit-scrollbar-thumb {
+          background-color: vars.$color-700;
+          border-radius: 9999px;
         }
       }
       & .sticker-btn {

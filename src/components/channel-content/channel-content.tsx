@@ -23,9 +23,10 @@ import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { useClientSeed } from "@/hooks/useClientSeed";
 
-import styles from "@/styles/channel-content.module.scss";
 import MessageListItem from "../message-list-item/message-list-item";
 import { generateHexColor } from "@/util";
+
+import styles from "@/styles/channel-content.module.scss";
 
 export type JoinError = 401 | 403 | 409 | null;
 
@@ -42,11 +43,23 @@ const ChannelContent: FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [joinError, setJoinError] = useState<JoinError>(null);
   const [inputValue, setInputValue] = useState("");
+  const [isExpandedInputArea, setIsExpandedInputArea] =
+    useState<boolean>(false);
 
   const { messages, sendMessage, disconnect } = useChatSocket(publicId);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatListRef = useRef<HTMLUListElement>(null);
   const clientSeed = useClientSeed();
+
+  const RESET_HEIGHT = "2.25rem";
+
+  const resetTextareaHeight = () => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = RESET_HEIGHT;
+    setIsExpandedInputArea(false);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const domEvt = e.nativeEvent as KeyboardEvent;
@@ -55,6 +68,24 @@ const ChannelContent: FunctionComponent = () => {
       e.preventDefault();
       sendMessage(inputValue.trim(), "CHAT");
       setInputValue("");
+      resetTextareaHeight();
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const el = textareaRef.current!;
+    const val = e.target.value;
+    setInputValue(val);
+
+    const lines = val.split("\n").length;
+
+    if (lines > 1) {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+      setIsExpandedInputArea(true);
+    } else {
+      el.style.height = "2.25rem";
+      setIsExpandedInputArea(false);
     }
   };
 
@@ -83,6 +114,7 @@ const ChannelContent: FunctionComponent = () => {
               await refresh();
               setJoinError(null);
             } catch (secondErr) {
+              console.error(secondErr);
               setJoinError(401);
             } finally {
               return;
@@ -148,7 +180,11 @@ const ChannelContent: FunctionComponent = () => {
         onClick={() => setMenuOpen(false)}
       >
         <div className={styles["container"]}>
-          <div className={styles["content"]}>
+          <div
+            className={`${styles["content"]} ${
+              isExpandedInputArea ? styles["shrink"] : ""
+            }`}
+          >
             <motion.div
               initial={{ clipPath: "inset(0 0 0 100%)" }}
               animate={{
@@ -170,7 +206,11 @@ const ChannelContent: FunctionComponent = () => {
               ))}
             </ul>
           </div>
-          <div className={`${styles["input-area"]} flex items-center gap-x-2`}>
+          <div
+            className={`${styles["input-area"]} ${
+              isExpandedInputArea ? styles["expanded"] : ""
+            } flex items-end gap-x-2`}
+          >
             <Button
               size="icon"
               className={`${styles["sticker-btn"]} hover:bg-neutral-800 size-9 cursor-pointer rounded-full [&_svg]:!h-5 [&_svg]:!w-5`}
@@ -178,10 +218,11 @@ const ChannelContent: FunctionComponent = () => {
               <Sticker />
             </Button>
             <textarea
+              ref={textareaRef}
               id="chat-input"
               cols={0}
-              className="w-full px-3 pt-1 pb-2 h-9 box-border rounded-md resize-none"
-              onChange={(e) => setInputValue(e.target.value)}
+              className="w-full px-3 box-border rounded-md resize-none leading-9 h-9 max-h-[4.5rem] overflow-y-auto"
+              onChange={handleChange}
               value={inputValue}
               onKeyDown={handleKeyDown}
             />
@@ -191,6 +232,7 @@ const ChannelContent: FunctionComponent = () => {
               onClick={() => {
                 sendMessage(inputValue, "CHAT");
                 setInputValue("");
+                resetTextareaHeight();
               }}
             >
               <MadIcon fillColor="#000" bgColor="transparent" />
