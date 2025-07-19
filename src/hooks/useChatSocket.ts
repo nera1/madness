@@ -115,6 +115,7 @@ export function useChatSocket(publicId: string) {
       const cli = clientRef.current;
       if (!cli) return;
       // deactivate → activate 로 강제 리셋
+      await refresh();
       await cli.deactivate();
       cli.activate();
     };
@@ -133,7 +134,7 @@ export function useChatSocket(publicId: string) {
     };
   }, [publicId]);
 
-  const sendMessage = (content: string, type = "CHAT") => {
+  const sendMessage = async (content: string, type = "CHAT") => {
     const payload: ChatMessage = {
       type,
       sender: "",
@@ -150,6 +151,7 @@ export function useChatSocket(publicId: string) {
       });
     } else {
       pendingRef.current = payload;
+      await refresh();
       cli?.activate();
     }
   };
