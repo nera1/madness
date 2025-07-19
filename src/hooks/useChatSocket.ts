@@ -29,6 +29,12 @@ export function useChatSocket(publicId: string) {
   const pendingRef = useRef<ChatMessage | null>(null);
   const prevContentRef = useRef<string>("");
 
+  const disconnect = () => {
+    subsRef.current.forEach((s) => s.unsubscribe());
+    subsRef.current = [];
+    return clientRef.current?.deactivate() ?? Promise.resolve();
+  };
+
   useEffect(() => {
     if (!publicId) return;
 
@@ -43,6 +49,7 @@ export function useChatSocket(publicId: string) {
 
     client.onConnect = () => {
       setConnected(true);
+
       const sub = client.subscribe(
         subscribeTopic(publicId),
         (msg: IMessage) => {
@@ -73,7 +80,7 @@ export function useChatSocket(publicId: string) {
             pendingRef.current = {
               type: "CHAT",
               sender: "",
-              content: prevContentRef.current || "",
+              content: prevContentRef.current,
               channelId: publicId,
             };
             client.activate();
@@ -82,12 +89,12 @@ export function useChatSocket(publicId: string) {
       }
     };
 
-    client.onWebSocketClose = (evt) => {
-      console.warn("WebSocket closed ▶", evt);
+    client.onWebSocketClose = () => {
+      console.warn("WebSocket closed");
       setConnected(false);
     };
-    client.onWebSocketError = (evt) => {
-      console.error("WebSocket error ▶", evt);
+    client.onWebSocketError = () => {
+      console.error("WebSocket error");
       setConnected(false);
     };
 
@@ -95,16 +102,21 @@ export function useChatSocket(publicId: string) {
     clientRef.current = client;
 
     const handleVisibility = () => {
-      if (document.visibilityState === "visible" && !client.connected) {
-        client.activate();
+      if (document.visibilityState === "visible") {
+        const cli = clientRef.current;
+        if (cli && !cli.connected) {
+          disconnect().then(() => {
+            console.log("탭 복귀 → WebSocket 재연결");
+            cli.activate();
+          });
+        }
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
-      disconnect();
-      setConnected(false);
+      disconnect().then(() => setConnected(false));
     };
   }, [publicId]);
 
@@ -126,12 +138,6 @@ export function useChatSocket(publicId: string) {
       pendingRef.current = payload;
       clientRef.current?.activate();
     }
-  };
-
-  const disconnect = () => {
-    subsRef.current.forEach((s) => s.unsubscribe());
-    subsRef.current = [];
-    return Promise.all([clientRef.current?.deactivate()]);
   };
 
   return { messages, connected, sendMessage, disconnect };
