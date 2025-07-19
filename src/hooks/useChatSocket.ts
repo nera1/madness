@@ -45,7 +45,7 @@ export function useChatSocket(publicId: string) {
     // 새 클라이언트 생성
     const client = new Client({
       webSocketFactory: () => new SockJS(WS_URL, { transports: ["websocket"] }),
-      reconnectDelay: 5000,
+      reconnectDelay: 0, // reconnect test
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       debug: (m) => console.debug("[STOMP]", m),
