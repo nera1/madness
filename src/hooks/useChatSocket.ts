@@ -29,10 +29,12 @@ export function useChatSocket(publicId: string) {
   const pendingRef = useRef<ChatMessage | null>(null);
   const prevContentRef = useRef<string>("");
 
-  const initClient = () => {
+  const initClient = async () => {
     subsRef.current.forEach((s) => s.unsubscribe());
     subsRef.current = [];
     clientRef.current?.deactivate();
+
+    await refresh();
 
     const client = new Client({
       webSocketFactory: () =>
