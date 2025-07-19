@@ -29,14 +29,10 @@ export function useChatSocket(publicId: string) {
   const pendingRef = useRef<ChatMessage | null>(null);
   const prevContentRef = useRef<string>("");
 
-  const disconnect = () => {
+  const initClient = () => {
     subsRef.current.forEach((s) => s.unsubscribe());
     subsRef.current = [];
-    return clientRef.current?.deactivate() ?? Promise.resolve();
-  };
-
-  useEffect(() => {
-    if (!publicId) return;
+    clientRef.current?.deactivate();
 
     const client = new Client({
       webSocketFactory: () =>
@@ -49,10 +45,9 @@ export function useChatSocket(publicId: string) {
 
     client.onConnect = () => {
       setConnected(true);
-
       const sub = client.subscribe(
         subscribeTopic(publicId),
-        (msg: IMessage) => {
+        (msg) => {
           const body = JSON.parse(msg.body) as ChatMessage;
           setMessages((prev) => {
             const next = [...prev, body];
@@ -73,54 +68,45 @@ export function useChatSocket(publicId: string) {
     };
 
     client.onStompError = (frame) => {
-      console.error("STOMP Error ▶", frame.headers["message"], frame.body);
       if (frame.headers["message"] === "401") {
-        refresh().then(() =>
-          disconnect().then(() => {
-            pendingRef.current = {
-              type: "CHAT",
-              sender: "",
-              content: prevContentRef.current,
-              channelId: publicId,
-            };
-            client.activate();
-          })
-        );
+        refresh().then(() => {
+          pendingRef.current = {
+            type: "CHAT",
+            sender: "",
+            content: prevContentRef.current,
+            channelId: publicId,
+          };
+          initClient();
+        });
       }
     };
 
-    client.onWebSocketClose = () => {
-      console.warn("WebSocket closed");
-      setConnected(false);
-    };
-    client.onWebSocketError = () => {
-      console.error("WebSocket error");
-      setConnected(false);
-    };
+    client.onWebSocketClose = () => setConnected(false);
+    client.onWebSocketError = () => setConnected(false);
 
     client.activate();
     clientRef.current = client;
+  };
+
+  useEffect(() => {
+    if (!publicId) return;
+    initClient();
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
-        const cli = clientRef.current;
-        if (cli && !cli.connected) {
-          disconnect().then(() => {
-            console.log("탭 복귀 → WebSocket 재연결");
-            cli.activate();
-          });
-        }
+        initClient();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
-      disconnect().then(() => setConnected(false));
+      subsRef.current.forEach((s) => s.unsubscribe());
+      clientRef.current?.deactivate();
     };
   }, [publicId]);
 
-  const sendMessage = (content: string, type: string = "CHAT") => {
+  const sendMessage = (content: string, type = "CHAT") => {
     const payload: ChatMessage = {
       type,
       sender: "",
@@ -136,8 +122,14 @@ export function useChatSocket(publicId: string) {
       });
     } else {
       pendingRef.current = payload;
-      clientRef.current?.activate();
+      initClient();
     }
+  };
+
+  const disconnect = () => {
+    subsRef.current.forEach((s) => s.unsubscribe());
+    subsRef.current = [];
+    return clientRef.current?.deactivate() ?? Promise.resolve();
   };
 
   return { messages, connected, sendMessage, disconnect };
