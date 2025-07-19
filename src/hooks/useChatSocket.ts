@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
-import { Client, StompSubscription } from "@stomp/stompjs";
+import { Client, StompSubscription, IMessage } from "@stomp/stompjs";
 import { secureRandomString } from "@/util/index";
 import { refresh } from "@/lib/api";
 
@@ -17,39 +17,39 @@ export interface ChatMessage {
 const randId = secureRandomString(6);
 const MAX_WINDOW = 30;
 const subscribeTopic = (publicId: string) => `/sub/chat.${publicId}`;
-const subscribeId = (publicId: string, subId?: string) =>
-  `sub-${publicId}-${subId || randId}`;
+const subscribeId = (publicId: string) => `sub-${publicId}-${randId}`;
 const publishTopic = (publicId: string) => `/pub/chat.send.${publicId}`;
 
 export function useChatSocket(publicId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [connected, setConnected] = useState(false);
+
   const clientRef = useRef<Client | null>(null);
   const subsRef = useRef<StompSubscription[]>([]);
   const pendingRef = useRef<ChatMessage | null>(null);
-  const prevContentRef = useRef<string>("");
+  const prevRef = useRef<string>("");
 
-  const initClient = async () => {
-    subsRef.current.forEach((s) => s.unsubscribe());
-    subsRef.current = [];
-    clientRef.current?.deactivate();
-
-    await refresh();
+  useEffect(() => {
+    if (!publicId) return;
 
     const client = new Client({
       webSocketFactory: () =>
         new SockJS(WS_URL, undefined, { transports: ["websocket"] }),
-      reconnectDelay: 0,
+      reconnectDelay: 5_000,
       heartbeatIncoming: 10_000,
       heartbeatOutgoing: 10_000,
-      debug: (str) => console.debug("[STOMP]", str),
+      debug: (msg) => console.debug("[STOMP]", msg),
     });
 
     client.onConnect = () => {
       setConnected(true);
+
+      subsRef.current.forEach((s) => s.unsubscribe());
+      subsRef.current = [];
+
       const sub = client.subscribe(
         subscribeTopic(publicId),
-        (msg) => {
+        (msg: IMessage) => {
           const body = JSON.parse(msg.body) as ChatMessage;
           setMessages((prev) => {
             const next = [...prev, body];
@@ -69,42 +69,29 @@ export function useChatSocket(publicId: string) {
       }
     };
 
-    client.onStompError = (frame) => {
+    client.onStompError = async (frame) => {
       if (frame.headers["message"] === "401") {
-        refresh().then(() => {
-          pendingRef.current = {
-            type: "CHAT",
-            sender: "",
-            content: prevContentRef.current,
-            channelId: publicId,
-          };
-          initClient();
-        });
+        await refresh();
+        client.deactivate();
+        client.activate();
       }
     };
 
-    client.onWebSocketClose = () => setConnected(false);
-    client.onWebSocketError = () => setConnected(false);
+    client.onWebSocketClose = () => {
+      console.warn("WebSocket closed");
+      setConnected(false);
+    };
+    client.onWebSocketError = () => {
+      console.error("WebSocket error");
+      setConnected(false);
+    };
 
     client.activate();
     clientRef.current = client;
-  };
-
-  useEffect(() => {
-    if (!publicId) return;
-    initClient();
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        initClient();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibility);
       subsRef.current.forEach((s) => s.unsubscribe());
-      clientRef.current?.deactivate();
+      client.deactivate();
     };
   }, [publicId]);
 
@@ -115,7 +102,7 @@ export function useChatSocket(publicId: string) {
       content,
       channelId: publicId,
     };
-    prevContentRef.current = content;
+    prevRef.current = content;
 
     if (clientRef.current?.connected) {
       clientRef.current.publish({
@@ -124,13 +111,12 @@ export function useChatSocket(publicId: string) {
       });
     } else {
       pendingRef.current = payload;
-      initClient();
+      clientRef.current?.activate();
     }
   };
 
   const disconnect = () => {
     subsRef.current.forEach((s) => s.unsubscribe());
-    subsRef.current = [];
     return clientRef.current?.deactivate() ?? Promise.resolve();
   };
 
