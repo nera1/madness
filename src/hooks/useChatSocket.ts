@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
-import { Client, StompSubscription, IMessage } from "@stomp/stompjs";
+import { Client, StompSubscription } from "@stomp/stompjs";
 import { secureRandomString } from "@/util/index";
 import { refresh } from "@/lib/api";
 
