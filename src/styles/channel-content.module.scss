@@ -27,7 +27,7 @@
 
       & > .chat-menu {
         position: absolute;
-        background-color: vars.$color-900;
+        background-color: vars.$color-950;
         height: 100%;
         width: vars.$width-channel-menu;
         z-index: 32;
@@ -39,7 +39,7 @@
         overflow-y: scroll;
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: 0px;
         &::-webkit-scrollbar {
           display: none;
         }

@@ -207,22 +207,9 @@ export function DropdownMenu() {
                   <span>채널 검색</span>
                 </Link>
               </CommandItem>
-              <CommandItem>
-                <MessageSquare />
-                <span>채널 목록</span>
-              </CommandItem>
               <CommandItem onSelect={handleNewChannel}>
                 <MessageSquarePlus />
                 <span>채널 생성</span>
-              </CommandItem>
-              <CommandItem className="data-[selected=true]:bg-neutral-700 data-[selected=true]:text-white">
-                <Link
-                  href="/channel?c=32221"
-                  className="flex gap-x-2 items-center"
-                >
-                  <MessageSquareMore />
-                  <span>채널 테스트</span>
-                </Link>
               </CommandItem>
             </CommandGroup>
             <CommandSeparator className={styles["seperator"]} />

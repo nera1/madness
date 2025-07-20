@@ -1,9 +1,8 @@
 @use "variables" as vars;
 
 .message-list-item {
-  font-size: 15px;
+  font-size: 15.5px;
   cursor: default;
-
   & .sender {
     padding: 0px 4px;
     border-radius: 4px;
@@ -15,7 +14,7 @@
   & > .content {
     color: vars.$color-300;
     font-weight: 100;
-    padding: 2px 9px;
+    padding: 4.5px 9px;
     border-radius: 4px;
     &:hover {
       background-color: vars.$color-900;
