@@ -7,23 +7,27 @@
 
 .container {
   width: vars.$width-container;
+  padding-top: vars.$padding-top-container;
 }
 
 @include vars.media-xs {
   .container {
-    padding: 0 vars.$padding-aside-container;
+    padding-left: vars.$padding-aside-container;
+    padding-right: vars.$padding-aside-container;
   }
 }
 
 @include vars.media-sm {
   .container {
-    padding: 0 vars.$padding-aside-container;
+    padding-left: vars.$padding-aside-container;
+    padding-right: vars.$padding-aside-container;
   }
 }
 
 @include vars.media-md {
   .container {
-    padding: 0 vars.$padding-aside-container;
+    padding-left: vars.$padding-aside-container;
+    padding-right: vars.$padding-aside-container;
   }
 }
 

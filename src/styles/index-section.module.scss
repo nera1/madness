@@ -1,0 +1,7 @@
+@use "variables" as vars;
+
+.index-section {
+  & > .title {
+    color: vars.$color-50;
+  }
+}

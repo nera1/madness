@@ -139,7 +139,6 @@ export default function SearchChannel() {
             </h3>
             <ChannelListOrder value={state.order} onChange={onOrderChange} />
           </div>
-
           <ul className="py-3 flex flex-col gap-y-2">
             {!isLoading && state.search && channels.length === 0 && (
               <li className="text-center text-muted-foreground text-sm py-10">

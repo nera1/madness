@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
 
@@ -42,8 +42,10 @@ export default function NewChannel() {
     e.preventDefault();
     setIsLoading(true);
     createChannel(form)
-      .then(() => {
+      .then((result) => {
+        console.log(result.data);
         setStatus(Status.success);
+        router.push(`/channel/?c=${result.data.publicId}`);
       })
       .catch(() => {
         refresh()
@@ -114,20 +116,6 @@ export default function NewChannel() {
               {isLoading ? <Spinner size={16} /> : sumbitButtonText(status)}
             </Button>
           </form>
-          {status === Status.success ? (
-            <Button
-              className="cursor-pointer border border-neutral-600 mt-2 text-neutral-100 hover:bg-neutral-600 hover:text-neutral-100 w-full"
-              variant="ghost"
-              onClick={() => {
-                router.push("/");
-              }}
-            >
-              <House />
-              <span>Home</span>
-            </Button>
-          ) : (
-            <></>
-          )}
         </div>
       </main>
     </>

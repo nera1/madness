@@ -27,12 +27,17 @@ export interface ChannelInfo {
 }
 
 export type SearchChannelsResponse = ApiResponse<ChannelDto[]>;
+export type TopNChannelsResponse = ApiResponse<ChannelDto[]>;
 export type CheckDuplicate = ApiResponse<CheckDuplicateData>;
 export type RefreshResponse = ApiResponse<null>;
 export type MeResponse = ApiResponse<MeResponseData>;
 export type SignoutRespone = ApiResponse<null>;
 export type AuthCheckRespone = ApiResponse<null>;
 export type ChannelInfoResponse = ApiResponse<ChannelInfo>;
+
+export function getTopNChannels(topN: number): Promise<TopNChannelsResponse> {
+  return fetcher<TopNChannelsResponse>(`/channel/top?size=${topN}`);
+}
 
 export function checkNicknameDuplicate(
   nickname: string

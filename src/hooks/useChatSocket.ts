@@ -26,26 +26,25 @@ export function useChatSocket(publicId: string) {
   const pendingRef = useRef<ChatMessage | null>(null);
   const prevRef = useRef<string>("");
 
-  // STOMP 클라이언트 초기화
   const setupClient = async () => {
-    // 기존 연결/구독 정리
     subsRef.current.forEach((s) => s.unsubscribe());
     subsRef.current = [];
     if (clientRef.current) {
       await clientRef.current.deactivate();
     }
 
-    // 토큰(쿠키) 갱신
     try {
       await refresh();
     } catch (e) {
       console.error("refresh failed", e);
     }
 
-    // 새 클라이언트 생성
     const client = new Client({
-      webSocketFactory: () => new SockJS(WS_URL, { transports: ["websocket"] }),
-      reconnectDelay: 0, // reconnect test
+      webSocketFactory: () =>
+        new SockJS(WS_URL, {
+          transports: ["websocket"],
+        }),
+      reconnectDelay: 0,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       debug: (m) => console.debug("[STOMP]", m),
@@ -54,11 +53,9 @@ export function useChatSocket(publicId: string) {
     client.onConnect = () => {
       setConnected(true);
 
-      // 중복 방지: 이전 구독 모두 해제
       subsRef.current.forEach((s) => s.unsubscribe());
       subsRef.current = [];
 
-      // 새 구독
       const sub = client.subscribe(
         subscribeTopic(publicId),
         (msg: IMessage) => {
@@ -72,7 +69,6 @@ export function useChatSocket(publicId: string) {
       );
       subsRef.current.push(sub);
 
-      // pending 전송
       if (pendingRef.current) {
         client.publish({
           destination: publishTopic(publicId),
@@ -84,7 +80,6 @@ export function useChatSocket(publicId: string) {
 
     client.onStompError = async (frame) => {
       if (frame.headers["message"] === "401") {
-        // 토큰 만료 → refresh → 재연결
         pendingRef.current = {
           type: "CHAT",
           sender: "",
@@ -110,11 +105,9 @@ export function useChatSocket(publicId: string) {
     if (!publicId) return;
     setupClient();
 
-    // “포그라운드 복귀” 시 강제 재연결 핸들러
     const reconnect = async () => {
       const cli = clientRef.current;
       if (!cli) return;
-      // deactivate → activate 로 강제 리셋
       await refresh();
       await cli.deactivate();
       cli.activate();
