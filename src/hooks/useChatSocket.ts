@@ -121,9 +121,8 @@ export function useChatSocket(publicId: string) {
     return () => {
       document.removeEventListener("visibilitychange", reconnect);
       window.removeEventListener("focus", reconnect);
-      subsRef.current.forEach((s) => s.unsubscribe());
-      clientRef.current?.deactivate();
-      setConnected(false);
+      disconnect();
+      console.log("HERE");
     };
   }, [publicId]);
 

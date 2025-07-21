@@ -22,9 +22,23 @@ export default function Home() {
         <div className={`${styles["container"]}`}>
           <IndexSection title="인기 채널">
             <ul className="py-3 flex flex-col gap-y-2">
-              {hotList.map((item, index) => (
-                <ChannelSearchListItem {...item} key={item.publicId + index} />
-              ))}
+              {hotList.length ? (
+                hotList.map((item, index) => (
+                  <ChannelSearchListItem
+                    {...item}
+                    className={styles["test-style"]}
+                    key={item.publicId + index}
+                  />
+                ))
+              ) : (
+                <ChannelSearchListItem
+                  isSkeleton
+                  publicId=""
+                  name=""
+                  createdAt=""
+                  participants={0}
+                />
+              )}
             </ul>
           </IndexSection>
         </div>

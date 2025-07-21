@@ -11,11 +11,14 @@ import { ChannelDto, refresh } from "@/lib/api";
 import { JoinChannelRequest, joinChannel } from "@/lib/api/methods/post";
 
 import styles from "@/styles/channel-search-list-item.module.scss";
+import { Skeleton } from "../ui/skeleton";
 
 register("ko", ko);
 
 interface ChannelSearchListItemProps extends ChannelDto {
   disabled?: boolean;
+  className?: string;
+  isSkeleton?: boolean;
 }
 
 const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
@@ -24,6 +27,8 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
   publicId,
   participants,
   disabled = false,
+  className,
+  isSkeleton = false,
 }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -91,21 +96,34 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
     <li
       className={`${
         styles["channel-search-list-item"]
-      } px-5 pb-3 pt-4 cursor-pointer flex rounded-sm ${
+      } px-5 pb-3 pt-4 cursor-pointer flex rounded-sm relative ${
         loading ? "opacity-50 pointer-events-none" : ""
+      } ${className || styles["default-style"]} ${
+        isSkeleton ? styles["skeleton"] : ""
       }`}
       onClick={onClick}
     >
+      {isSkeleton ? (
+        <Skeleton className="w-full h-full absolute left-0 top-0 bg-neutral-900" />
+      ) : (
+        <></>
+      )}
       <div className={`${styles["left"]} flex flex-col gap-y-1 w-full`}>
         <div className={`${styles["top"]} text-xs flex justify-between w-full`}>
-          <div className={`${styles["name"]} font-bold`}>{name}</div>
-          <div className={`${styles["date"]}`}>{format(createdAt, "ko")}</div>
+          <div className={`${styles["name"]} font-bold`}>
+            {isSkeleton ? "ㅤ" : name}
+          </div>
+          <div className={`${styles["date"]}`}>
+            {isSkeleton ? "ㅤ" : format(createdAt, "ko")}
+          </div>
         </div>
         <div className={`text-xs font-medium ${styles["participants"]}`}>
-          {`${millify(participants, {
-            units: [""],
-            precision: 0,
-          })}명 참여 중`}
+          {isSkeleton
+            ? "ㅤ"
+            : `${millify(participants, {
+                units: [""],
+                precision: 0,
+              })}명 참여 중`}
         </div>
       </div>
     </li>

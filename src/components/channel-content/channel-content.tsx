@@ -132,6 +132,10 @@ const ChannelContent: FunctionComponent = () => {
     };
 
     verifyJoin();
+
+    return () => {
+      disconnect();
+    };
   }, [publicId]);
 
   useEffect(() => {
@@ -149,7 +153,6 @@ const ChannelContent: FunctionComponent = () => {
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      disconnect();
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);

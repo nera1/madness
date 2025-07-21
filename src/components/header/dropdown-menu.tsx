@@ -23,12 +23,10 @@ import {
   Menu,
   MessageSquarePlus,
   Search,
-  MessageSquare,
   Github,
   Server,
   PanelTop,
   UserRoundX,
-  MessageSquareMore,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
