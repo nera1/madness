@@ -26,6 +26,14 @@ export function useChatSocket(publicId: string) {
   const pendingRef = useRef<ChatMessage | null>(null);
   const prevRef = useRef<string>("");
 
+  const reconnect = async () => {
+    const cli = clientRef.current;
+    if (!cli) return;
+    await refresh();
+    await cli.deactivate();
+    cli.activate();
+  };
+
   const setupClient = async () => {
     subsRef.current.forEach((s) => s.unsubscribe());
     subsRef.current = [];
@@ -65,7 +73,7 @@ export function useChatSocket(publicId: string) {
             return next.length > MAX_WINDOW ? next.slice(-MAX_WINDOW) : next;
           });
         },
-        { id: `sub-${publicId}-${Math.random().toString(36).slice(2, 8)}` }
+        { id: `sub-${publicId}:${Math.random().toString(36).slice(2, 8)}` }
       );
       subsRef.current.push(sub);
 
@@ -105,24 +113,21 @@ export function useChatSocket(publicId: string) {
     if (!publicId) return;
     setupClient();
 
-    const reconnect = async () => {
-      const cli = clientRef.current;
-      if (!cli) return;
-      await refresh();
-      await cli.deactivate();
-      cli.activate();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        if (!clientRef.current?.connected) {
+          reconnect();
+        }
+      }
     };
 
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") reconnect();
-    });
-    window.addEventListener("focus", reconnect);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleVisibilityChange);
 
     return () => {
-      document.removeEventListener("visibilitychange", reconnect);
-      window.removeEventListener("focus", reconnect);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleVisibilityChange);
       disconnect();
-      console.log("HERE");
     };
   }, [publicId]);
 

@@ -10,8 +10,28 @@
   padding-top: vars.$padding-top-container;
 }
 
-.test-style {
-  background-color: darkcyan;
+.top-n-channel-1 {
+  background: #ff512f;
+  background: -webkit-linear-gradient(to right, #dd2476, #ff512f);
+  background: linear-gradient(to right, #dd2476, #ff512f);
+}
+
+.top-n-channel-2 {
+  background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.top-n-channel-3 {
+  background-image: linear-gradient(15deg, #13547a 0%, #80d0c7 100%);
+}
+
+.top-n-channel-4 {
+  background-image: linear-gradient(60deg, #29323c 0%, #485563 100%);
+}
+
+.top-n-channel-5 {
+  background: #232526;
+  background: -webkit-linear-gradient(to right, #414345, #232526);
+  background: linear-gradient(to right, #414345, #232526);
 }
 
 @include vars.media-xs {

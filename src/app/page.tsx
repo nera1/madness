@@ -7,13 +7,16 @@ import IndexSection from "@/components/index-section/index-section";
 
 import { ChannelDto, getTopNChannels } from "@/lib/api";
 
-import styles from "@/styles/index.module.scss";
 import ChannelSearchListItem from "@/components/channel-search-list-item/channel-search-list-item";
+
+import styles from "@/styles/index.module.scss";
+
+const TOPNCHANNEL = 5;
 
 export default function Home() {
   const [hotList, setHotList] = useState<ChannelDto[]>([]);
   useEffect(() => {
-    getTopNChannels(5).then((result) => setHotList(result.data));
+    getTopNChannels(TOPNCHANNEL).then((result) => setHotList(result.data));
   }, []);
   return (
     <>
@@ -26,7 +29,9 @@ export default function Home() {
                 hotList.map((item, index) => (
                   <ChannelSearchListItem
                     {...item}
-                    className={styles["test-style"]}
+                    className={
+                      styles[`top-n-channel-${(index % TOPNCHANNEL) + 1}`]
+                    }
                     key={item.publicId + index}
                   />
                 ))
