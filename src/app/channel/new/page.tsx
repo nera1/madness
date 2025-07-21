@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
 
@@ -11,7 +11,7 @@ import { createChannel } from "@/lib/api/methods/post";
 import { useRouter } from "next/navigation";
 import { refresh } from "@/lib/api";
 
-import { Check, CircleX, House } from "lucide-react";
+import { Check, CircleX } from "lucide-react";
 
 import styles from "@/styles/new-channel.module.scss";
 
