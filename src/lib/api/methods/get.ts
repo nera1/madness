@@ -36,7 +36,9 @@ export type AuthCheckRespone = ApiResponse<null>;
 export type ChannelInfoResponse = ApiResponse<ChannelInfo>;
 
 export function getTopNChannels(topN: number): Promise<TopNChannelsResponse> {
-  return fetcher<TopNChannelsResponse>(`/channel/top?size=${topN}`);
+  return fetcher<TopNChannelsResponse>(
+    `/channel/top/participants?size=${topN}`
+  );
 }
 
 export function checkNicknameDuplicate(

@@ -43,7 +43,6 @@ export default function NewChannel() {
     setIsLoading(true);
     createChannel(form)
       .then((result) => {
-        console.log(result.data);
         setStatus(Status.success);
         router.push(`/channel/?c=${result.data.publicId}`);
       })
