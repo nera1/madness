@@ -16,6 +16,7 @@ export interface ChatMessage {
 
 const subscribeTopic = (publicId: string) => `/sub/chat.${publicId}`;
 const publishTopic = (publicId: string) => `/pub/chat.send.${publicId}`;
+const subscribeRandomId = () => Math.random().toString(36).slice(2, 8);
 
 export function useChatSocket(publicId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -25,6 +26,7 @@ export function useChatSocket(publicId: string) {
   const subsRef = useRef<StompSubscription[]>([]);
   const pendingRef = useRef<ChatMessage | null>(null);
   const prevRef = useRef<string>("");
+  const subscriptionRandomId = useRef<string>(subscribeRandomId());
 
   const reconnect = async () => {
     const cli = clientRef.current;
@@ -73,7 +75,7 @@ export function useChatSocket(publicId: string) {
             return next.length > MAX_WINDOW ? next.slice(-MAX_WINDOW) : next;
           });
         },
-        { id: `sub-${publicId}:${Math.random().toString(36).slice(2, 8)}` }
+        { id: `sub-${publicId}:${subscriptionRandomId.current}` }
       );
       subsRef.current.push(sub);
 
