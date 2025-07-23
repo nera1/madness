@@ -44,6 +44,10 @@ export default function Home() {
       });
   }, []);
 
+  useEffect(() => {
+    console.log("famousList length", famousList.length, famousList);
+  }, [famousList]);
+
   const skeletonItems = Array.from({ length: TOPNCHANNEL }, (_, idx) => (
     <ChannelSearchListItem
       isSkeleton
