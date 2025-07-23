@@ -46,15 +46,10 @@ export function getTopNChannels(topN: number): Promise<TopNChannelsResponse> {
   );
 }
 
-export function getTopNJoinedChannels(
-  topN: number
-): Promise<TopNJoinedChannelsResponse> {
-  return fetcher<TopNJoinedChannelsResponse>(
-    `/channel/top/members?size=${topN ? 10 : 10}`,
-    {
-      cache: "no-store",
-    }
-  );
+export function getTopNJoinedChannels(): Promise<TopNJoinedChannelsResponse> {
+  return fetcher<TopNJoinedChannelsResponse>(`/channel/top/members?size=10`, {
+    cache: "no-store",
+  });
 }
 
 export function checkNicknameDuplicate(

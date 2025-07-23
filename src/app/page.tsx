@@ -33,7 +33,7 @@ export default function Home() {
         setIsHotListLoading(false);
       });
 
-    getTopNJoinedChannels(TOPNCHANNEL)
+    getTopNJoinedChannels()
       .then((result) => setFamousList(result.data))
       .catch((err) => {
         console.error("인기 채널 로드 실패", err);
@@ -43,10 +43,6 @@ export default function Home() {
         setIsFamousListLoading(false);
       });
   }, []);
-
-  useEffect(() => {
-    console.log("famousList length", famousList.length, famousList);
-  }, [famousList]);
 
   const skeletonItems = Array.from({ length: TOPNCHANNEL }, (_, idx) => (
     <ChannelSearchListItem
