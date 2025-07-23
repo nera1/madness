@@ -1,6 +1,8 @@
 @use "variables" as vars;
 
 .channel-search-list-item {
+  border-radius: calc(0.625rem - 4px);
+
   &.default-style:not(.skeleton) {
     background-color: vars.$color-950;
     &:hover {

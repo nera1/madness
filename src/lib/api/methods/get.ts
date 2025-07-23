@@ -16,7 +16,8 @@ export interface ChannelDto {
   publicId: string;
   name: string;
   createdAt: string;
-  participants: number;
+  participants: number | string;
+  memberCount?: number | string;
 }
 
 export interface ChannelInfo {
@@ -28,6 +29,7 @@ export interface ChannelInfo {
 
 export type SearchChannelsResponse = ApiResponse<ChannelDto[]>;
 export type TopNChannelsResponse = ApiResponse<ChannelDto[]>;
+export type TopNJoinedChannelsResponse = ApiResponse<ChannelDto[]>;
 export type CheckDuplicate = ApiResponse<CheckDuplicateData>;
 export type RefreshResponse = ApiResponse<null>;
 export type MeResponse = ApiResponse<MeResponseData>;
@@ -38,6 +40,17 @@ export type ChannelInfoResponse = ApiResponse<ChannelInfo>;
 export function getTopNChannels(topN: number): Promise<TopNChannelsResponse> {
   return fetcher<TopNChannelsResponse>(
     `/channel/top/participants?size=${topN}`
+  );
+}
+
+export function getTopNJoinedChannels(
+  topN: number
+): Promise<TopNJoinedChannelsResponse> {
+  return fetcher<TopNJoinedChannelsResponse>(
+    `/channel/top/members?size=${topN}`,
+    {
+      credentials: "include",
+    }
   );
 }
 

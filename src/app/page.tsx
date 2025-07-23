@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 
+import { Toaster } from "sonner";
+import millify from "millify";
+
 import Header from "@/components/header/header";
 import IndexSection from "@/components/index-section/index-section";
 
-import { ChannelDto, getTopNChannels } from "@/lib/api";
+import { ChannelDto, getTopNChannels, getTopNJoinedChannels } from "@/lib/api";
 
 import ChannelSearchListItem from "@/components/channel-search-list-item/channel-search-list-item";
 
@@ -15,21 +18,32 @@ const TOPNCHANNEL = 5;
 
 export default function Home() {
   const [hotList, setHotList] = useState<ChannelDto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [famousList, setFamousList] = useState<ChannelDto[]>([]);
+  const [isHotListLoading, setIsHotListLoading] = useState(true);
+  const [isFamousListLoading, setIsFamousListLoading] = useState(true);
 
   useEffect(() => {
     getTopNChannels(TOPNCHANNEL)
       .then((result) => setHotList(result.data))
       .catch((err) => {
-        console.error("인기 채널 로드 실패", err);
+        console.error("실시간 인기 채널 로드 실패", err);
         setHotList([]);
       })
       .finally(() => {
-        setIsLoading(false);
+        setIsHotListLoading(false);
+      });
+
+    getTopNJoinedChannels(TOPNCHANNEL)
+      .then((result) => setFamousList(result.data))
+      .catch((err) => {
+        console.error("인기 채널 로드 실패", err);
+        setFamousList([]);
+      })
+      .finally(() => {
+        setIsFamousListLoading(false);
       });
   }, []);
 
-  // Skeleton 아이템 배열 미리 생성
   const skeletonItems = Array.from({ length: TOPNCHANNEL }, (_, idx) => (
     <ChannelSearchListItem
       isSkeleton
@@ -41,11 +55,26 @@ export default function Home() {
     />
   ));
 
-  // 실제 채널 리스트
-  const channelItems = hotList.map((item, index) => (
+  const topParticipantChannelItems = hotList.map((item) => (
     <ChannelSearchListItem
       {...item}
-      className={styles[`top-n-channel-${(index % TOPNCHANNEL) + 1}`]}
+      participants={`${millify(item.participants as number, {
+        units: [""],
+        precision: 0,
+      })}명 접속 중`}
+      className={styles[`top-n-participants-channel`]}
+      key={item.publicId}
+    />
+  ));
+
+  const topJoinedChannelItems = famousList.map((item) => (
+    <ChannelSearchListItem
+      {...item}
+      participants={`참여자 ${millify(item.memberCount as number, {
+        units: [""],
+        precision: 0,
+      })}명`}
+      className={styles[`top-n-joined-channel`]}
       key={item.publicId}
     />
   ));
@@ -54,20 +83,37 @@ export default function Home() {
     <>
       <Header fixed border menu />
       <main className={`${styles["index"]} flex justify-center`}>
-        <div className={`${styles["container"]}`}>
-          <IndexSection title="인기 채널">
+        <div className={`${styles["container"]} flex flex-col gap-y-6`}>
+          <IndexSection title="실시간 인기 채널">
             <ul className="py-3 flex flex-col gap-y-2">
-              {isLoading && skeletonItems}
-              {!isLoading && channelItems.length > 0 && channelItems}
-              {!isLoading && channelItems.length === 0 && (
+              {isFamousListLoading && skeletonItems}
+              {!isFamousListLoading &&
+                topParticipantChannelItems.length > 0 &&
+                topParticipantChannelItems}
+              {!isFamousListLoading &&
+                topParticipantChannelItems.length === 0 && (
+                  <li className="py-5 flex justify-center items-center text-muted-foreground text-sm">
+                    인기 채널이 없습니다
+                  </li>
+                )}
+            </ul>
+          </IndexSection>
+          <IndexSection title="참여자 많은 채널">
+            <ul className="py-3 flex flex-col gap-y-2">
+              {isFamousListLoading && skeletonItems}
+              {!isFamousListLoading &&
+                topJoinedChannelItems.length > 0 &&
+                topJoinedChannelItems}
+              {!isFamousListLoading && topJoinedChannelItems.length === 0 && (
                 <li className="py-5 flex justify-center items-center text-muted-foreground text-sm">
-                  인기 채널이 없습니다
+                  채널이 없습니다
                 </li>
               )}
             </ul>
           </IndexSection>
         </div>
       </main>
+      <Toaster theme="dark" />
     </>
   );
 }

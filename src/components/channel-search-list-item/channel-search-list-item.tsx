@@ -10,8 +10,9 @@ import millify from "millify";
 import { ChannelDto, refresh } from "@/lib/api";
 import { JoinChannelRequest, joinChannel } from "@/lib/api/methods/post";
 
-import styles from "@/styles/channel-search-list-item.module.scss";
 import { Skeleton } from "../ui/skeleton";
+
+import styles from "@/styles/channel-search-list-item.module.scss";
 
 register("ko", ko);
 
@@ -96,7 +97,7 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
     <li
       className={`${
         styles["channel-search-list-item"]
-      } px-5 pb-3 pt-4 cursor-pointer flex rounded-sm relative ${
+      } px-5 pb-3 pt-4 cursor-pointer flex relative ${
         loading ? "opacity-50 pointer-events-none" : ""
       } ${className || styles["default-style"]} ${
         isSkeleton ? styles["skeleton"] : ""
@@ -118,12 +119,7 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
           </div>
         </div>
         <div className={`text-xs font-medium ${styles["participants"]}`}>
-          {isSkeleton
-            ? "ㅤ"
-            : `${millify(participants, {
-                units: [""],
-                precision: 0,
-              })}명 참여 중`}
+          {isSkeleton ? "ㅤ" : participants}
         </div>
       </div>
     </li>
