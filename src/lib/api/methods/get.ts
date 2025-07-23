@@ -50,7 +50,7 @@ export function getTopNJoinedChannels(
   topN: number
 ): Promise<TopNJoinedChannelsResponse> {
   return fetcher<TopNJoinedChannelsResponse>(
-    `/channel/top/members?size=${topN}`,
+    `/channel/top/members?size=${topN ? 10 : 10}`,
     {
       cache: "no-store",
     }
