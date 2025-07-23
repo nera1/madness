@@ -33,6 +33,9 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  const toUTCDate = (s: string) =>
+    new Date(/[Zz]|[+-]\d{2}:\d{2}$/.test(s) ? s : `${s}Z`);
+
   const navigateToChannel = () => {
     router.push(`/channel/?c=${publicId}`);
   };
@@ -114,7 +117,7 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
             {isSkeleton ? "ㅤ" : name}
           </div>
           <div className={`${styles["date"]}`}>
-            {isSkeleton ? "ㅤ" : format(createdAt, "ko")}
+            {isSkeleton ? "ㅤ" : format(toUTCDate(createdAt), "ko")}
           </div>
         </div>
         <div className={`text-xs font-medium ${styles["participants"]}`}>
