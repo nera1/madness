@@ -39,7 +39,10 @@ export type ChannelInfoResponse = ApiResponse<ChannelInfo>;
 
 export function getTopNChannels(topN: number): Promise<TopNChannelsResponse> {
   return fetcher<TopNChannelsResponse>(
-    `/channel/top/participants?size=${topN}`
+    `/channel/top/participants?size=${topN}`,
+    {
+      cache: "no-store",
+    }
   );
 }
 
@@ -49,7 +52,7 @@ export function getTopNJoinedChannels(
   return fetcher<TopNJoinedChannelsResponse>(
     `/channel/top/members?size=${topN}`,
     {
-      credentials: "include",
+      cache: "no-store",
     }
   );
 }
