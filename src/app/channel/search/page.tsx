@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 
 import styles from "@/styles/channel-search.module.scss";
+import millify from "millify";
 
 type OrderType = "desc" | "asc" | "participants";
 
@@ -130,9 +131,11 @@ export default function SearchChannel() {
           </form>
 
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold grow">
+            <h3 className="text-lg font-semibold grow bg-red">
               {isLoading ? (
-                <Spinner size={28} />
+                <div className="flex justify-center items-center">
+                  <Spinner size={28} />
+                </div>
               ) : state.search ? (
                 `"${state.search}" 검색결과`
               ) : null}
@@ -149,6 +152,10 @@ export default function SearchChannel() {
               <ChannelSearchListItem
                 key={ch.publicId}
                 {...ch}
+                participants={`${millify(ch.participants as number, {
+                  units: [""],
+                  precision: 0,
+                })}명 접속 중`}
                 disabled={isLoading}
               />
             ))}

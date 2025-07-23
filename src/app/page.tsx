@@ -51,7 +51,7 @@ export default function Home() {
       name=""
       createdAt=""
       participants={0}
-      key={`skeleton-${idx}`}
+      key={`skeleton-${idx}-${_}`}
     />
   ));
 
@@ -86,16 +86,15 @@ export default function Home() {
         <div className={`${styles["container"]} flex flex-col gap-y-6`}>
           <IndexSection title="실시간 인기 채널">
             <ul className="py-3 flex flex-col gap-y-2">
-              {isFamousListLoading && skeletonItems}
-              {!isFamousListLoading &&
+              {isHotListLoading && skeletonItems}
+              {!isHotListLoading &&
                 topParticipantChannelItems.length > 0 &&
                 topParticipantChannelItems}
-              {!isFamousListLoading &&
-                topParticipantChannelItems.length === 0 && (
-                  <li className="py-5 flex justify-center items-center text-muted-foreground text-sm">
-                    인기 채널이 없습니다
-                  </li>
-                )}
+              {!isHotListLoading && topParticipantChannelItems.length === 0 && (
+                <li className="py-5 flex justify-center items-center text-muted-foreground text-sm">
+                  인기 채널이 없습니다
+                </li>
+              )}
             </ul>
           </IndexSection>
           <IndexSection title="참여자 많은 채널">

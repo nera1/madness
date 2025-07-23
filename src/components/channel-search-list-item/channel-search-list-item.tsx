@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { format, register } from "timeago.js";
 import ko from "timeago.js/lib/lang/ko";
-import millify from "millify";
 
 import { ChannelDto, refresh } from "@/lib/api";
 import { JoinChannelRequest, joinChannel } from "@/lib/api/methods/post";
