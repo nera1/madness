@@ -16,7 +16,14 @@ export interface ChatMessage {
 
 const subscribeTopic = (publicId: string) => `/sub/chat.${publicId}`;
 const publishTopic = (publicId: string) => `/pub/chat.send.${publicId}`;
-const subscribeRandomId = () => Math.random().toString(36).slice(2, 8);
+const subscribeRandomId = () => {
+  let rand = sessionStorage.getItem("subscriptionRandomId");
+  if (!rand) {
+    rand = Math.random().toString(36).slice(2, 8);
+    sessionStorage.setItem("subscriptionRandomId", rand);
+  }
+  return rand;
+};
 
 export function useChatSocket(publicId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -129,6 +136,7 @@ export function useChatSocket(publicId: string) {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("focus", handleVisibilityChange);
+      sessionStorage.clear();
       disconnect();
     };
   }, [publicId]);
