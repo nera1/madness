@@ -152,14 +152,17 @@ export function useChatSocket(publicId: string) {
 
     const cli = clientRef.current;
     if (cli?.connected) {
-      cli.publish({
-        destination: publishTopic(publicId),
-        body: JSON.stringify(payload),
-      });
+      try {
+        cli.publish({
+          destination: publishTopic(publicId),
+          body: JSON.stringify(payload),
+        });
+      } catch (err) {
+        await reconnect();
+      }
     } else {
       pendingRef.current = payload;
-      await refresh();
-      cli?.activate();
+      reconnect();
     }
   };
 
