@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import SockJS from "sockjs-client";
+import { throttle } from "lodash";
 import { Client, StompSubscription, IMessage } from "@stomp/stompjs";
 import { refresh } from "@/lib/api";
 
@@ -42,6 +43,11 @@ export function useChatSocket(publicId: string) {
     await cli.deactivate();
     cli.activate();
   };
+
+  const throttledReconnect = useMemo(
+    () => throttle(() => reconnect(), 5000, { leading: true, trailing: false }),
+    [reconnect]
+  );
 
   const setupClient = async () => {
     subsRef.current.forEach((s) => s.unsubscribe());
@@ -124,7 +130,7 @@ export function useChatSocket(publicId: string) {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        reconnect();
+        throttledReconnect();
       }
     };
 
