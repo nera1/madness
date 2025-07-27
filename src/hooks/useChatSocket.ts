@@ -124,9 +124,7 @@ export function useChatSocket(publicId: string) {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        if (!clientRef.current?.connected) {
-          reconnect();
-        }
+        reconnect();
       }
     };
 
