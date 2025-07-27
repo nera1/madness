@@ -156,6 +156,7 @@ export function useChatSocket(publicId: string) {
           body: JSON.stringify(payload),
         });
       } catch (err) {
+        console.error(err);
         await reconnect();
       }
     } else {
