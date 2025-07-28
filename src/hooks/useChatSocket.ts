@@ -17,24 +17,35 @@ export interface ChatMessage {
 
 const subscribeTopic = (publicId: string) => `/sub/chat.${publicId}`;
 const publishTopic = (publicId: string) => `/pub/chat.send.${publicId}`;
-const subscribeRandomId = () => {
-  let rand = sessionStorage.getItem("subscriptionRandomId");
+const subscribeRandomId = (publicId: string) => {
+  let rand = localStorage.getItem(subscriptionRandomIdKey(publicId));
   if (!rand) {
     rand = Math.random().toString(36).slice(2, 8);
-    sessionStorage.setItem("subscriptionRandomId", rand);
+    localStorage.setItem(subscriptionRandomIdKey(publicId), rand);
   }
   return rand;
 };
 
+const subscriptionRandomIdKey = (publicId: string) =>
+  `subscriptionRandomId-${publicId}`;
+const messagesKey = (publicId: string) => `messages-${publicId}`;
+
 export function useChatSocket(publicId: string) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const raw = localStorage.getItem(messagesKey(publicId));
+      return raw ? (JSON.parse(raw) as ChatMessage[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [connected, setConnected] = useState(false);
 
   const clientRef = useRef<Client | null>(null);
   const subsRef = useRef<StompSubscription[]>([]);
   const pendingRef = useRef<ChatMessage | null>(null);
   const prevRef = useRef<string>("");
-  const subscriptionRandomId = useRef<string>(subscribeRandomId());
+  const subscriptionRandomId = useRef<string>(subscribeRandomId(publicId));
 
   const reconnect = async () => {
     const cli = clientRef.current;
@@ -140,10 +151,19 @@ export function useChatSocket(publicId: string) {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("focus", handleVisibilityChange);
-      sessionStorage.clear();
+      localStorage.removeItem(subscriptionRandomIdKey(publicId));
+      localStorage.removeItem(messagesKey(publicId));
       disconnect();
     };
   }, [publicId]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(messagesKey(publicId), JSON.stringify(messages));
+    } catch (e) {
+      console.error("채팅 기록 저장 실패:", e);
+    }
+  }, [messages]);
 
   const sendMessage = async (content: string, type = "CHAT") => {
     const payload: ChatMessage = {
