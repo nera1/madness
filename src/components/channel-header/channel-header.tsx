@@ -15,7 +15,7 @@ import { ChevronLeft, Menu } from "lucide-react";
 
 import Spinner from "../ui/spinner";
 
-import { truncateWithEllipsis } from "@/util";
+//import { truncateWithEllipsis } from "@/util";
 
 import styles from "@/styles/channel-header.module.scss";
 
