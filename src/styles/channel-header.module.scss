@@ -10,7 +10,15 @@
     & > .left {
     }
     & > .center {
+      background-color: darkgoldenrod;
+      width: 100%;
       & > .name {
+        background-color: darkcyan;
+        width: 60%;
+        display: inline-block;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
         color: vars.$color-50;
       }
     }

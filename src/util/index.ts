@@ -62,3 +62,13 @@ export function generateHexColor(
   const lightness = 65;
   return hslToHex(hue, saturation, lightness);
 }
+
+export function truncateWithEllipsis(
+  text: string = "",
+  maxLength: number
+): string {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.slice(0, maxLength) + "...";
+}

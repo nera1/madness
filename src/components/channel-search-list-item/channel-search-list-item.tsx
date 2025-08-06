@@ -113,7 +113,7 @@ const ChannelSearchListItem: FunctionComponent<ChannelSearchListItemProps> = ({
       )}
       <div className={`${styles["left"]} flex flex-col gap-y-1 w-full`}>
         <div className={`${styles["top"]} text-xs flex justify-between w-full`}>
-          <div className={`${styles["name"]} font-bold`}>
+          <div className={`${styles["name"]} font-bold truncate w-4/5`}>
             {isSkeleton ? "ㅤ" : name}
           </div>
           <div className={`${styles["date"]}`}>

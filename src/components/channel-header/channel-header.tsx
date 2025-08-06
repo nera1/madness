@@ -15,6 +15,8 @@ import { ChevronLeft, Menu } from "lucide-react";
 
 import Spinner from "../ui/spinner";
 
+import { truncateWithEllipsis } from "@/util";
+
 import styles from "@/styles/channel-header.module.scss";
 
 interface ChannelHeaderProps {
@@ -45,8 +47,11 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
         setMenuOpen(false);
       }}
     >
-      <div className={`${styles["container"]} h-full flex items-center`}>
-        <div className={`${styles["left"]} grow`}>
+      <div
+        className={`${styles["container"]} h-full flex items-center justify-between
+`}
+      >
+        <div className={`${styles["left"]}`}>
           <Button
             className={`hover:bg-transparent cursor-pointer`}
             size={"icon"}
@@ -56,14 +61,14 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
             <ChevronLeft color="white" />
           </Button>
         </div>
-        <div className={`${styles["center"]} grow flex justify-center`}>
+        <div className={`${styles["center"]} flex justify-center`}>
           <div
             className={`${styles["name"]} text-lg font-semibold flex items-center`}
           >
             {name || <Spinner size={18} />}
           </div>
         </div>
-        <div className={`${styles["right"]} grow flex justify-end bg-red`}>
+        <div className={`${styles["right"]} flex justify-end`}>
           <Button
             className={`hover:bg-neutral-800 cursor-pointer`}
             size={"icon"}
