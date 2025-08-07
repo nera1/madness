@@ -7,7 +7,8 @@
 }
 
 .container {
-  width: vars.$width-container;
+  width: 100%;
+  max-width: vars.$width-container-signup;
   padding-top: vars.$padding-top-container;
 }
 

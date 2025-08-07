@@ -34,7 +34,7 @@ export default function Home() {
       });
 
     getTopNJoinedChannels()
-      .then((result) => setFamousList(result.data))
+      .then((result) => setFamousList(result.data.slice(0, 5)))
       .catch((err) => {
         console.error("인기 채널 로드 실패", err);
         setFamousList([]);

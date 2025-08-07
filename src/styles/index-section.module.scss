@@ -1,6 +1,7 @@
 @use "variables" as vars;
 
 .index-section {
+  max-width: 100%;
   & > .title {
     color: vars.$color-50;
   }
