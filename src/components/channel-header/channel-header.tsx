@@ -112,7 +112,9 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
                 )}
               </>
             ) : (
-              <Spinner size={18} />
+              <span className="w-full flex justify-center">
+                <Spinner size={18} />
+              </span>
             )}
           </div>
         </div>
