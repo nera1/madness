@@ -93,7 +93,7 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
         >
           <div
             ref={titleRef}
-            className={`${styles["name"]} flex-1 text-lg font-semibold flex items-center min-w-0 relative`}
+            className={`${styles["name"]} flex-1 text-lg font-semibold flex items-center min-w-0 relative text-center`}
           >
             {name ? (
               <>
