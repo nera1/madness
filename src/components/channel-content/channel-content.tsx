@@ -23,7 +23,9 @@ import ChannelForbidden from "../channel-forbidden/channel-forbidden";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { useClientSeed } from "@/hooks/useClientSeed";
 
+import ChatMenu from "../chat-menu/chat-menu";
 import MessageListItem from "../message-list-item/message-list-item";
+
 import { generateHexColor } from "@/util";
 
 import styles from "@/styles/channel-content.module.scss";
@@ -34,6 +36,7 @@ const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
   const publicId = searchParams.get("c") ?? "";
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+
   const [channelInfo, setChannelInfo] = useState<ChannelInfo>({
     name: "",
     createdAt: "",
@@ -50,6 +53,8 @@ const ChannelContent: FunctionComponent = () => {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatListRef = useRef<HTMLUListElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const toggleBtnRef = useRef<HTMLButtonElement>(null);
   const clientSeed = useClientSeed();
 
   const RESET_HEIGHT = "2.25rem";
@@ -150,10 +155,24 @@ const ChannelContent: FunctionComponent = () => {
     const handleBeforeUnload = () => {
       disconnect();
     };
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const menuEl = menuRef.current;
+      const toggleEl = toggleBtnRef.current;
 
+      if (
+        (menuEl && menuEl.contains(target)) ||
+        (toggleEl && toggleEl.contains(target))
+      ) {
+        return;
+      }
+      setMenuOpen(false);
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -177,10 +196,14 @@ const ChannelContent: FunctionComponent = () => {
 
   return (
     <>
-      <ChannelHeader setMenuOpen={setMenuOpen} name={channelInfo.name} />
+      <ChannelHeader
+        toggleButtonRef={toggleBtnRef}
+        setMenuOpen={setMenuOpen}
+        name={channelInfo.name}
+      />
       <main
         className={`${styles["channel-content"]} flex justify-center`}
-        onClick={() => setMenuOpen(false)}
+        onClick={() => {}}
       >
         <div className={styles["container"]}>
           <div
@@ -189,13 +212,16 @@ const ChannelContent: FunctionComponent = () => {
             }`}
           >
             <motion.div
+              ref={menuRef}
               initial={{ clipPath: "inset(0 0 0 100%)" }}
               animate={{
                 clipPath: menuOpen ? "inset(0 0 0 0)" : "inset(0 0 0 100%)",
               }}
               transition={{ duration: 0.2 }}
               className={`${styles["chat-menu"]}`}
-            />
+            >
+              <ChatMenu />
+            </motion.div>
             <ul
               className={`${styles["chat-list"]} m-0 py-2 w-full h-full`}
               ref={chatListRef}

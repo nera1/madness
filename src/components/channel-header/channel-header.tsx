@@ -8,6 +8,7 @@ import {
   useState,
   useRef,
   useEffect,
+  RefObject,
 } from "react";
 
 import { useRouter } from "next/navigation";
@@ -24,11 +25,13 @@ interface ChannelHeaderProps {
   name?: string;
   creator?: string;
   setMenuOpen: Dispatch<SetStateAction<boolean>>;
+  toggleButtonRef: RefObject<HTMLButtonElement | null>;
 }
 
 const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
   setMenuOpen,
   name,
+  toggleButtonRef,
 }) => {
   const router = useRouter();
   const [isTitleHovered, setIsTitleHovered] = useState<boolean>(false);
@@ -70,9 +73,6 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
   return (
     <header
       className={`${styles["channel-header"]} box-border flex justify-center`}
-      onClick={() => {
-        setMenuOpen(false);
-      }}
     >
       <div
         className={`${styles["container"]} h-full flex items-center justify-between`}
@@ -124,6 +124,7 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
             className="hover:bg-neutral-800 cursor-pointer"
             size={"icon"}
             variant={"ghost"}
+            ref={toggleButtonRef}
             onClick={toggleChatMenu}
           >
             <Menu color="white" />

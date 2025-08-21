@@ -1,0 +1,47 @@
+@use "variables" as vars;
+
+.chat-menu {
+  background-color: vars.$color-primary;
+  border: 0.5px solid vars.$color-accent;
+  & .seperator {
+    background-color: vars.$color-accent;
+  }
+  & .chat-menu-item {
+    background-color: transparent;
+    & span {
+      color: vars.$color-200;
+    }
+  }
+}
+
+.list {
+  max-height: fit-content;
+}
+
+.list > div > div {
+  color: vars.$color-200;
+
+  & svg {
+    color: vars.$color-400;
+  }
+  & > div {
+    & > a {
+      cursor: pointer;
+    }
+  }
+  & > div > div {
+    cursor: pointer;
+
+    &[data-selected="true"] {
+      background-color: vars.$color-700;
+      color: vars.$color-300;
+    }
+  }
+}
+
+.menu-btn {
+  border: 0.5px solid vars.$color-accent;
+  &:hover {
+    background-color: vars.$color-accent;
+  }
+}
