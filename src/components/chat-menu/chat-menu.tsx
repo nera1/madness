@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/command";
 import { Command } from "../ui/command";
 
-import { MessageSquarePlus } from "lucide-react";
+import { DoorOpen } from "lucide-react";
 
 import styles from "@/styles/chat-menu.module.scss";
 
@@ -16,12 +16,8 @@ const ChatMenu = () => {
       <CommandList>
         <CommandGroup>
           <CommandItem className={`${styles["chat-menu-item"]}`}>
-            <MessageSquarePlus />
-            <span>채널 검색</span>
-          </CommandItem>
-          <CommandItem className={`${styles["chat-menu-item"]}`}>
-            <MessageSquarePlus />
-            <span>채널 검색</span>
+            <DoorOpen />
+            <span>채널 나가기</span>
           </CommandItem>
         </CommandGroup>
         <CommandSeparator className={styles["seperator"]} />
