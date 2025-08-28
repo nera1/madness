@@ -104,10 +104,12 @@ const ChannelHeader: FunctionComponent<ChannelHeaderProps> = ({
                   {name}
                 </span>
                 {isTitleHovered && (
-                  <span
-                    className={`${styles["entire-title"]} text-sm rounded-sm absolute left-0 top-[36px] z-99999 bg-neutral-900 whitespace-pre-wrap py-2 px-3`}
-                  >
-                    {name}
+                  <span className={`absolute w-full left-0 top-[45px] z-99999`}>
+                    <div
+                      className={`${styles["entire-title"]} bg-neutral-900 text-sm whitespace-pre-wrap py-2 px-3 rounded-sm`}
+                    >
+                      {name}
+                    </div>
                   </span>
                 )}
               </>
