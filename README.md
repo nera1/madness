@@ -23,7 +23,7 @@
 ## 기술 스택
 
 - **Frontend Framework & Language**
-  - Next.js 15.2.2 (App Router)
+  - Next.js 15.2.2
   - React 19.0.0, TypeScript
 - **스타일 & UI 컴포넌트**
   - Tailwind CSS 4.x, Tailwind CSS Animate
