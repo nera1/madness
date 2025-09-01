@@ -1,7 +1,13 @@
 "use client";
 
-import { FunctionComponent, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import {
+  FunctionComponent,
+  MouseEventHandler,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { motion } from "framer-motion";
 
@@ -17,6 +23,7 @@ import {
   checkChannelJoin,
   getChannelInfo,
   refresh,
+  leaveChannel,
 } from "@/lib/api";
 
 import ChannelForbidden from "../channel-forbidden/channel-forbidden";
@@ -28,15 +35,39 @@ import MessageListItem from "../message-list-item/message-list-item";
 
 import { generateHexColor } from "@/util";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 import styles from "@/styles/channel-content.module.scss";
 
 export type JoinError = 401 | 403 | 409 | null;
+export type Alert = {
+  open: boolean;
+  title: string;
+  description: string;
+  submitBtnLabel: string;
+  onSubmit: MouseEventHandler<HTMLButtonElement>;
+};
 
 const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
   const publicId = searchParams.get("c") ?? "";
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-
+  const [alertState, setAlertState] = useState<Alert>({
+    open: false,
+    title: "",
+    description: "",
+    submitBtnLabel: "",
+    onSubmit: () => {},
+  });
   const [channelInfo, setChannelInfo] = useState<ChannelInfo>({
     name: "",
     createdAt: "",
@@ -55,9 +86,45 @@ const ChannelContent: FunctionComponent = () => {
   const chatListRef = useRef<HTMLUListElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
+  const alertRef = useRef<HTMLDivElement>(null);
   const clientSeed = useClientSeed();
+  const router = useRouter();
 
   const RESET_HEIGHT = "2.25rem";
+
+  const clearAlert = () => {
+    setAlertState(() => ({
+      open: false,
+      title: "",
+      description: "",
+      submitBtnLabel: "",
+      onSubmit: () => {},
+    }));
+  };
+
+  const onClickLeaveChannel = () => {
+    setAlertState((prev) => ({
+      ...prev,
+      title: "채널 나가기",
+      description: "채널을 나가시겠습니까?",
+      submitBtnLabel: "나가기",
+      onSubmit: () => {
+        leaveChannel(publicId).then(() => {
+          clearAlert();
+          disconnect();
+          setTimeout(() => {
+            router.push("/channel/search");
+          }, 10);
+        });
+      },
+    }));
+    setTimeout(() => {
+      setAlertState((prev) => ({
+        ...prev,
+        open: true,
+      }));
+    }, 10);
+  };
 
   const resetTextareaHeight = () => {
     const el = textareaRef.current;
@@ -159,13 +226,18 @@ const ChannelContent: FunctionComponent = () => {
       const target = e.target as Node;
       const menuEl = menuRef.current;
       const toggleEl = toggleBtnRef.current;
+      const alertEl = alertRef.current;
 
       if (
         (menuEl && menuEl.contains(target)) ||
-        (toggleEl && toggleEl.contains(target))
+        (toggleEl && toggleEl.contains(target)) ||
+        (alertEl && alertEl.contains(target))
       ) {
         return;
       }
+
+      setAlertState((prev) => ({ ...prev, open: false }));
+
       setMenuOpen(false);
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -220,7 +292,7 @@ const ChannelContent: FunctionComponent = () => {
               transition={{ duration: 0.2 }}
               className={`${styles["chat-menu"]}`}
             >
-              <ChatMenu />
+              <ChatMenu onClickLeaveChannel={onClickLeaveChannel} />
             </motion.div>
             <ul
               className={`${styles["chat-list"]} m-0 py-2 w-full h-full`}
@@ -267,6 +339,40 @@ const ChannelContent: FunctionComponent = () => {
               <MadIcon fillColor="#000" bgColor="transparent" />
             </Button>
           </div>
+          <AlertDialog open={alertState.open}>
+            <AlertDialogContent
+              ref={alertRef}
+              className={`${styles["alert"]} dark`}
+              onClick={(event) => {
+                event.preventDefault();
+              }}
+            >
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-neutral-50">
+                  {alertState.title}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {alertState.description}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  className="text-neutral-50 cursor-pointer"
+                  onClick={() =>
+                    setAlertState((prev) => ({ ...prev, open: false }))
+                  }
+                >
+                  취소
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="cursor-pointer"
+                  onClick={alertState.onSubmit}
+                >
+                  {alertState.submitBtnLabel}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </main>
     </>

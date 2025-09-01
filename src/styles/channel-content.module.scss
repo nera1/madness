@@ -88,6 +88,10 @@
   }
 }
 
+.alert {
+  width: calc(vars.$width-container - 2 * vars.$padding-aside-container);
+}
+
 @include vars.media-xs {
 }
 
