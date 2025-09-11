@@ -85,7 +85,6 @@ export function useChatSocket(publicId: string) {
 
     const client = new Client({
       webSocketFactory: () =>
-        // NOTE: 두 번째 인자는 프로토콜(reserved), 세 번째가 옵션입니다.
         new SockJS(WS_URL, undefined, {
           transports: ["websocket"],
         }),
