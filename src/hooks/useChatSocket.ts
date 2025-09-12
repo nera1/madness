@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
 import { Client, StompSubscription, IMessage, IFrame } from "@stomp/stompjs";
 import { refresh } from "@/lib/api";
@@ -29,17 +29,14 @@ export function useChatSocket(publicId: string) {
 
   const clientRef = useRef<Client | null>(null);
   const subsRef = useRef<StompSubscription[]>([]);
-  const sendQueueRef = useRef<ChatMessage[]>([]); // ✅ 다건 큐
+  const sendQueueRef = useRef<ChatMessage[]>([]);
   const prevRef = useRef<string>("");
 
-  // 재연결 제어
   const reconnectingRef = useRef(false);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 탭/채널 식별자 (목표에 맞게 localStorage 또는 sessionStorage 선택)
   const subscriptionRandomId = useRef<string>("");
 
-  // === 초기 로드 ===
   useEffect(() => {
     if (!publicId || !isBrowser()) return;
 
@@ -49,8 +46,6 @@ export function useChatSocket(publicId: string) {
     } catch {}
 
     try {
-      // 한 사람이 여러 탭이어도 1명으로 집계하고 싶으면 localStorage 유지
-      // 탭마다 구분하고 싶으면 sessionStorage로 바꾸세요.
       const key = subscriptionRandomIdKey(publicId);
       let rid = localStorage.getItem(key);
       if (!rid) {
@@ -63,7 +58,6 @@ export function useChatSocket(publicId: string) {
     }
   }, [publicId]);
 
-  // === 백오프 + 지터 ===
   const nextBackoff = useRef(0);
   const backoffDelay = () => {
     const base = Math.min(30000, 2 ** nextBackoff.current++ * 1000);
@@ -80,23 +74,20 @@ export function useChatSocket(publicId: string) {
     reconnectTimerRef.current = setTimeout(async () => {
       reconnectTimerRef.current = null;
       if (clientRef.current && !clientRef.current.active) {
-        await activateClient(); // 아래 정의
+        await activateClient();
       }
     }, delay);
   }, []);
 
-  // === 클라이언트 생성 & 활성화 (single-flight) ===
   const activateClient = useCallback(async () => {
     if (!isBrowser() || !publicId) return;
     if (reconnectingRef.current) return;
     reconnectingRef.current = true;
 
     try {
-      // 중복 구독 제거
       subsRef.current.forEach((s) => s.unsubscribe());
       subsRef.current = [];
 
-      // 기존 클라 정리
       if (clientRef.current) {
         try {
           await clientRef.current.deactivate();
@@ -104,31 +95,26 @@ export function useChatSocket(publicId: string) {
       }
 
       try {
-        await refresh(); // 최초/재연결 직전 토큰 갱신
+        await refresh();
       } catch (e) {
         console.error("refresh failed", e);
       }
 
       const client = new Client({
-        // 가능하면 SockJS 대신 순수 WebSocket(brokerURL) 권장.
-        // brokerURL: `${API_BASE.replace(/^http/, "ws")}/ws/chat`,
-        // 웹서버가 SockJS 엔드포인트만 열려 있으면 아래 유지:
         webSocketFactory: () =>
           new SockJS(WS_URL, undefined, {
-            transports: ["websocket"], // 폴백 비활성(환경 맞게 조정)
+            transports: ["websocket"],
           }),
-        reconnectDelay: 0, // 직접 재연결 제어
-        heartbeatIncoming: 25000, // ✅ 서버→클라
-        heartbeatOutgoing: 0, // ✅ 클라→서버(백그라운드 스로틀 회피)
-        debug: () => {}, // 필요 시 로깅
-        // connectHeaders: { Authorization: `Bearer ${accessToken}` } // 필요 시
+        reconnectDelay: 0,
+        heartbeatIncoming: 25000,
+        heartbeatOutgoing: 0,
+        debug: () => {},
       });
 
       client.onConnect = () => {
         setConnected(true);
         resetBackoff();
 
-        // 안전 재구독
         const sub = client.subscribe(
           subscribeTopic(publicId),
           (msg: IMessage) => {
@@ -142,7 +128,6 @@ export function useChatSocket(publicId: string) {
         );
         subsRef.current.push(sub);
 
-        // 큐 비우기
         while (sendQueueRef.current.length) {
           const m = sendQueueRef.current.shift()!;
           client.publish({
@@ -153,7 +138,6 @@ export function useChatSocket(publicId: string) {
       };
 
       client.onStompError = async (frame: IFrame) => {
-        // 401 등 인증 이슈는 한 번만 정리해서 재시도
         if (frame.headers["message"] === "401") {
           try {
             await refresh();
@@ -183,13 +167,11 @@ export function useChatSocket(publicId: string) {
     }
   }, [publicId, scheduleReconnect]);
 
-  // === 최초 활성화 + 환경 이벤트 ===
   useEffect(() => {
     if (!publicId) return;
     activateClient();
 
     const onVisibilityOrFocus = () => {
-      // 보이는 상태 & 끊겨 있을 때만
       if (
         document.visibilityState === "visible" &&
         clientRef.current &&
@@ -223,9 +205,6 @@ export function useChatSocket(publicId: string) {
         window.removeEventListener("focus", onVisibilityOrFocus);
         window.removeEventListener("online", onOnline);
         window.removeEventListener("offline", onOffline);
-        // 메시지 캐시는 남기고, 식별자는 목표에 맞게 유지/삭제 선택
-        // localStorage.removeItem(subscriptionRandomIdKey(publicId));
-        // localStorage.removeItem(messagesKey(publicId));
       }
       subsRef.current.forEach((s) => s.unsubscribe());
       clientRef.current?.deactivate();
@@ -236,7 +215,6 @@ export function useChatSocket(publicId: string) {
     };
   }, [publicId, activateClient, scheduleReconnect]);
 
-  // 메시지 캐시 저장
   useEffect(() => {
     if (!publicId || !isBrowser()) return;
     try {
@@ -246,7 +224,6 @@ export function useChatSocket(publicId: string) {
     }
   }, [messages, publicId]);
 
-  // === 발신 ===
   const sendMessage = useCallback(
     async (content: string, type = "CHAT") => {
       const payload: ChatMessage = {
