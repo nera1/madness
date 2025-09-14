@@ -7,6 +7,9 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://api.madn.es";
 const WS_URL = `${API_BASE.replace(/\/$/, "")}/ws/chat`;
 const MAX_WINDOW = 30;
 
+// iOS Safari 슬립 후 복귀 판단 임계값(필요시 30s~120s로 조정)
+const SLEEP_THRESHOLD_MS = 60_000;
+
 export interface ChatMessage {
   type: string;
   sender?: string;
@@ -30,13 +33,15 @@ export function useChatSocket(publicId: string) {
   const clientRef = useRef<Client | null>(null);
   const subsRef = useRef<StompSubscription[]>([]);
   const sendQueueRef = useRef<ChatMessage[]>([]);
-  const prevRef = useRef<string>("");
-
-  const reconnectingRef = useRef(false);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const subscriptionRandomId = useRef<string>("");
+  const hiddenAtRef = useRef<number | null>(null);
 
+  // 재연결 제어
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activatingRef = useRef(false);
+  const backoffStepRef = useRef(0);
+
+  // 초기 로드: 메시지/구독 식별자
   useEffect(() => {
     if (!publicId || !isBrowser()) return;
 
@@ -58,63 +63,69 @@ export function useChatSocket(publicId: string) {
     }
   }, [publicId]);
 
-  const nextBackoff = useRef(0);
-  const backoffDelay = () => {
-    const base = Math.min(30000, 2 ** nextBackoff.current++ * 1000);
+  // 백오프 + 지터
+  const resetBackoff = () => (backoffStepRef.current = 0);
+  const nextBackoff = () => {
+    const step = backoffStepRef.current++;
+    const base = Math.min(30_000, Math.max(1_000, 2 ** step * 1000));
     const jitter = base * (0.7 + Math.random() * 0.6);
-    return Math.min(30000, Math.max(750, jitter));
+    return Math.min(30_000, Math.max(750, jitter));
   };
-  const resetBackoff = () => (nextBackoff.current = 0);
 
   const scheduleReconnect = useCallback(() => {
-    if (reconnectingRef.current) return;
     if (reconnectTimerRef.current) return;
-
-    const delay = backoffDelay();
-    reconnectTimerRef.current = setTimeout(async () => {
+    const delay = nextBackoff();
+    reconnectTimerRef.current = setTimeout(() => {
       reconnectTimerRef.current = null;
       if (clientRef.current && !clientRef.current.active) {
-        await activateClient();
+        void activateClient();
       }
     }, delay);
   }, []);
 
+  const teardownClient = useCallback(async () => {
+    subsRef.current.forEach((s) => s.unsubscribe());
+    subsRef.current = [];
+    if (clientRef.current) {
+      try {
+        await clientRef.current.deactivate();
+      } catch {}
+    }
+  }, []);
+
+  // 클라이언트 생성 & 활성화 (single-flight)
   const activateClient = useCallback(async () => {
     if (!isBrowser() || !publicId) return;
-    if (reconnectingRef.current) return;
-    reconnectingRef.current = true;
+    if (activatingRef.current) return;
+    activatingRef.current = true;
 
     try {
-      subsRef.current.forEach((s) => s.unsubscribe());
-      subsRef.current = [];
-
-      if (clientRef.current) {
-        try {
-          await clientRef.current.deactivate();
-        } catch {}
-      }
-
+      await teardownClient();
       try {
-        await refresh();
+        await refresh(); // 재연결 직전 토큰 갱신(필요시)
       } catch (e) {
-        console.error("refresh failed", e);
+        // 토큰 갱신 실패해도 일단 시도
+        console.warn("refresh failed", e);
       }
 
       const client = new Client({
+        // 가능하면 순수 WebSocket(brokerURL) 사용 권장.
+        // brokerURL: `${API_BASE.replace(/^http/, "ws")}/ws/chat`,
         webSocketFactory: () =>
           new SockJS(WS_URL, undefined, {
-            transports: ["websocket"],
+            transports: ["websocket"], // 폴백 비활성(환경 맞게 조정)
           }),
-        reconnectDelay: 0,
-        heartbeatIncoming: 25000,
-        heartbeatOutgoing: 0,
-        debug: () => {},
+        reconnectDelay: 0, // 자동 재연결 off (직접 제어)
+        heartbeatIncoming: 25_000, // 서버 → 클라
+        heartbeatOutgoing: 0, // 클라 → 서버 (백그라운드 스로틀 회피)
+        debug: () => {}, // 필요시 로깅
       });
 
       client.onConnect = () => {
         setConnected(true);
         resetBackoff();
 
+        // 안전 재구독
         const sub = client.subscribe(
           subscribeTopic(publicId),
           (msg: IMessage) => {
@@ -128,6 +139,7 @@ export function useChatSocket(publicId: string) {
         );
         subsRef.current.push(sub);
 
+        // 큐 비우기
         while (sendQueueRef.current.length) {
           const m = sendQueueRef.current.shift()!;
           client.publish({
@@ -135,6 +147,15 @@ export function useChatSocket(publicId: string) {
             body: JSON.stringify(m),
           });
         }
+      };
+
+      client.onWebSocketClose = () => {
+        setConnected(false);
+        scheduleReconnect();
+      };
+      client.onWebSocketError = () => {
+        setConnected(false);
+        scheduleReconnect();
       };
 
       client.onStompError = async (frame: IFrame) => {
@@ -151,63 +172,75 @@ export function useChatSocket(publicId: string) {
         }
       };
 
-      client.onWebSocketClose = () => {
-        setConnected(false);
-        scheduleReconnect();
-      };
-      client.onWebSocketError = () => {
-        setConnected(false);
-        scheduleReconnect();
-      };
-
       client.activate();
       clientRef.current = client;
     } finally {
-      reconnectingRef.current = false;
+      activatingRef.current = false;
     }
-  }, [publicId, scheduleReconnect]);
+  }, [publicId, scheduleReconnect, teardownClient]);
 
+  // mount: 최초 활성화 + 페이지/네트워크 이벤트
   useEffect(() => {
     if (!publicId) return;
-    activateClient();
+    void activateClient();
 
-    const onVisibilityOrFocus = () => {
-      if (
-        document.visibilityState === "visible" &&
-        clientRef.current &&
-        !clientRef.current.connected
-      ) {
-        scheduleReconnect();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        hiddenAtRef.current = Date.now();
+        return;
+      }
+      // visible
+      const hiddenFor = hiddenAtRef.current
+        ? Date.now() - hiddenAtRef.current
+        : 0;
+      hiddenAtRef.current = null;
+
+      const cli = clientRef.current;
+      const looksDead = !cli?.connected || hiddenFor > SLEEP_THRESHOLD_MS;
+
+      if (looksDead) {
+        // 강제 재연결 (단일 비행)
+        void (async () => {
+          try {
+            await cli?.deactivate();
+          } catch {}
+          scheduleReconnect();
+        })();
+      }
+    };
+
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        const cli = clientRef.current;
+        void (async () => {
+          try {
+            await cli?.deactivate();
+          } catch {}
+          scheduleReconnect();
+        })();
       }
     };
 
     const onOnline = () => {
-      if (clientRef.current && !clientRef.current.connected) {
-        scheduleReconnect();
-      }
+      const cli = clientRef.current;
+      if (!cli?.connected) scheduleReconnect();
     };
     const onOffline = () => {
-      try {
-        clientRef.current?.deactivate();
-      } catch {}
+      void clientRef.current?.deactivate();
     };
 
-    if (isBrowser()) {
-      document.addEventListener("visibilitychange", onVisibilityOrFocus);
-      window.addEventListener("focus", onVisibilityOrFocus);
-      window.addEventListener("online", onOnline);
-      window.addEventListener("offline", onOffline);
-    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pageshow", onPageShow as any);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
 
     return () => {
-      if (isBrowser()) {
-        document.removeEventListener("visibilitychange", onVisibilityOrFocus);
-        window.removeEventListener("focus", onVisibilityOrFocus);
-        window.removeEventListener("online", onOnline);
-        window.removeEventListener("offline", onOffline);
-      }
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pageshow", onPageShow as any);
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
       subsRef.current.forEach((s) => s.unsubscribe());
-      clientRef.current?.deactivate();
+      void clientRef.current?.deactivate();
       if (reconnectTimerRef.current) {
         clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
@@ -215,6 +248,7 @@ export function useChatSocket(publicId: string) {
     };
   }, [publicId, activateClient, scheduleReconnect]);
 
+  // 메시지 캐시 저장
   useEffect(() => {
     if (!publicId || !isBrowser()) return;
     try {
@@ -224,6 +258,7 @@ export function useChatSocket(publicId: string) {
     }
   }, [messages, publicId]);
 
+  // 발신
   const sendMessage = useCallback(
     async (content: string, type = "CHAT") => {
       const payload: ChatMessage = {
@@ -232,7 +267,6 @@ export function useChatSocket(publicId: string) {
         content,
         channelId: publicId,
       };
-      prevRef.current = content;
 
       const cli = clientRef.current;
       if (cli?.connected) {
