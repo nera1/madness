@@ -1,6 +1,11 @@
 "use client";
 
-import { ChangeEventHandler, FormEvent, useState } from "react";
+import {
+  ChangeEventHandler,
+  FormEvent,
+  useState,
+  FocusEventHandler,
+} from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
@@ -22,46 +27,44 @@ type ValidState = {
 
 export default function Signin() {
   const router = useRouter();
-  const [state, setState] = useState<SigninState>({
-    email: "",
-    password: "",
-  });
-
+  const [state, setState] = useState<SigninState>({ email: "", password: "" });
   const [errors, setErrors] = useState<SigninState>({
     email: "",
     password: "",
   });
-
   const [valid, setValid] = useState<ValidState>({
     email: false,
     password: false,
   });
-
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const { id, value } = e.target;
     setState((prev) => ({ ...prev, [id]: value }));
 
-    setErrors((prev) => ({ ...prev, [id]: "" }));
-
     if (id === "email") {
       const isValidEmail = value.includes("@");
       setValid((prev) => ({ ...prev, email: isValidEmail }));
-      if (!isValidEmail) {
-        setErrors((prev) => ({ ...prev, email: "Invalid email address" }));
-      }
+      setErrors((prev) => ({
+        ...prev,
+        email: isValidEmail ? "" : "Invalid email address",
+      }));
     }
     if (id === "password") {
       const isValidPassword = value.length >= 6;
       setValid((prev) => ({ ...prev, password: isValidPassword }));
-      if (!isValidPassword) {
-        setErrors((prev) => ({
-          ...prev,
-          password: "Password must be at least 6 characters",
-        }));
-      }
+      setErrors((prev) => ({
+        ...prev,
+        password: isValidPassword
+          ? ""
+          : "Password must be at least 6 characters",
+      }));
     }
+  };
+
+  const handleFocus: FocusEventHandler<HTMLInputElement> = () => {
+    setValid({ email: true, password: true });
+    setErrors({ email: "", password: "" });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -102,6 +105,7 @@ export default function Signin() {
               placeholder="Email"
               value={state.email}
               onChange={handleChange}
+              onFocus={handleFocus}
               maxLength={254}
               error={errors.email}
               isValid={valid.email}
@@ -113,6 +117,7 @@ export default function Signin() {
               placeholder="Password"
               value={state.password}
               onChange={handleChange}
+              onFocus={handleFocus}
               error={errors.password}
               isValid={valid.password}
             />

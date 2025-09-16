@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEventHandler } from "react";
+import { ChangeEventHandler, FocusEventHandler } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CircleCheck, CircleAlert } from "lucide-react";
@@ -8,6 +8,7 @@ import styles from "@/styles/signup.module.scss";
 
 type InputFieldProps = {
   id: string;
+  name?: string;
   label: string;
   type?: string;
   placeholder?: string;
@@ -16,10 +17,12 @@ type InputFieldProps = {
   error?: string;
   isValid: boolean;
   maxLength?: number;
+  onFocus?: FocusEventHandler<HTMLInputElement>;
 };
 
 export default function InputField({
   id,
+  name,
   label,
   type = "text",
   placeholder = "",
@@ -28,8 +31,10 @@ export default function InputField({
   error = "",
   isValid,
   maxLength,
+  onFocus,
 }: InputFieldProps) {
   const showIcon = value.length > 0;
+
   return (
     <div
       className={`flex flex-col gap-2 ${
@@ -39,12 +44,14 @@ export default function InputField({
       <Label htmlFor={id}>{label}</Label>
       <div className="flex items-center relative">
         <Input
-          type={type}
           id={id}
+          name={name ?? id}
+          type={type}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
           maxLength={maxLength}
+          onFocus={onFocus}
         />
         {showIcon &&
           (isValid ? (
