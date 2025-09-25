@@ -48,7 +48,7 @@ const ChannelListOrder: FunctionComponent<ChannelListOrderProps> = ({
             <ClockArrowUpIcon />
             Oldest
           </SelectItem>
-          <SelectItem value="participants" disabled>
+          <SelectItem value="participants">
             <UsersRound />
             Participants
           </SelectItem>
