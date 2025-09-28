@@ -82,13 +82,19 @@ export function searchChannels(
   keyword: string,
   cursor?: string,
   size: number = 10,
-  order: "asc" | "desc" | "participants" = "desc"
+  order: "asc" | "desc" | "participants" = "desc",
+  count: number = -1,
+  snapAt?: string
 ): Promise<SearchChannelsResponse> {
   const params = new URLSearchParams();
   params.append("keyword", keyword);
   if (cursor) params.append("cursor", cursor);
   params.append("size", size.toString());
   params.append("order", order);
+
+  if (order === "participants") {
+    params.append("snapAt", new Date().toISOString());
+  }
 
   return fetcher<SearchChannelsResponse>(
     `/channel/search?${params.toString()}`
