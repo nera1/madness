@@ -18,6 +18,7 @@ export interface ChannelDto {
   createdAt: string;
   participants: number | string;
   memberCount?: number | string;
+  snapAt?: string;
 }
 
 export interface ChannelInfo {
@@ -25,6 +26,15 @@ export interface ChannelInfo {
   name: string;
   creatorNickname: string;
   createdAt: string;
+}
+
+export interface CahnnelSearchParams {
+  keyword: string;
+  cursor?: string;
+  size: number;
+  order: "asc" | "desc" | "participants";
+  count?: number;
+  snapAt?: string;
 }
 
 export type SearchChannelsResponse = ApiResponse<ChannelDto[]>;
@@ -79,13 +89,12 @@ export function authCheck(): Promise<AuthCheckRespone> {
 }
 
 export function searchChannels(
-  keyword: string,
-  cursor?: string,
-  size: number = 10,
-  order: "asc" | "desc" | "participants" = "desc",
-  count: number = -1,
-  snapAt?: string
+  param: CahnnelSearchParams
 ): Promise<SearchChannelsResponse> {
+  const { keyword, cursor, size, order, count, snapAt } = param;
+
+  console.log(param);
+
   const params = new URLSearchParams();
   params.append("keyword", keyword);
   if (cursor) params.append("cursor", cursor);
@@ -93,7 +102,12 @@ export function searchChannels(
   params.append("order", order);
 
   if (order === "participants") {
-    params.append("snapAt", new Date().toISOString());
+    console.log("snapAt");
+    console.log(snapAt);
+    if (snapAt) {
+      params.append("count", count?.toString() || "0");
+      params.append("snapAt", snapAt);
+    }
   }
 
   return fetcher<SearchChannelsResponse>(
