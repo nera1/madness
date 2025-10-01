@@ -28,7 +28,7 @@ export interface ChannelInfo {
   createdAt: string;
 }
 
-export interface CahnnelSearchParams {
+export interface SearchChannelParams {
   keyword: string;
   cursor?: string;
   size: number;
@@ -89,13 +89,10 @@ export function authCheck(): Promise<AuthCheckRespone> {
 }
 
 export function searchChannels(
-  param: CahnnelSearchParams
+  channelSerachParam: SearchChannelParams
 ): Promise<SearchChannelsResponse> {
-  const { keyword, cursor, size, order, count, snapAt } = param;
-
-  console.log(param);
-
   const params = new URLSearchParams();
+  const { keyword, cursor, size, order, snapAt, count } = channelSerachParam;
   params.append("keyword", keyword);
   if (cursor) params.append("cursor", cursor);
   params.append("size", size.toString());

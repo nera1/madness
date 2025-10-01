@@ -15,7 +15,7 @@ import Header from "@/components/header/header";
 import InputField from "@/components/signup-field/input-field";
 import ChannelListOrder from "@/components/channel-order/channel-order";
 import ChannelSearchListItem from "@/components/channel-search-list-item/channel-search-list-item";
-import { searchChannels, ChannelDto, CahnnelSearchParams } from "@/lib/api";
+import { searchChannels, ChannelDto, SearchChannelParams } from "@/lib/api";
 import Spinner from "@/components/ui/spinner";
 
 import { Button } from "@/components/ui/button";
@@ -57,14 +57,14 @@ export default function SearchChannel() {
       }
       setIsLoading(true);
 
-      const params: CahnnelSearchParams = {
+      const searchChannelParams: SearchChannelParams = {
         keyword,
         cursor: undefined,
         size: FETCH_SIZE,
         order,
       };
 
-      searchChannels(params)
+      searchChannels(searchChannelParams)
         .then((res) => {
           if (res.code === 0) {
             const data = res.data;
@@ -102,7 +102,7 @@ export default function SearchChannel() {
     setLoadingMore(true);
     setIsLoading(true);
 
-    const params: CahnnelSearchParams = {
+    const searchChannelParams: SearchChannelParams = {
       keyword: state.search,
       cursor,
       size: FETCH_SIZE,
@@ -111,11 +111,11 @@ export default function SearchChannel() {
 
     if (state.order === "participants") {
       const lastItem = channels[channels.length - 1];
-      params.count = Number(lastItem.memberCount);
-      params.snapAt = lastItem.snapAt;
+      searchChannelParams.count = Number(lastItem.memberCount);
+      searchChannelParams.snapAt = lastItem.snapAt;
     }
 
-    searchChannels(params)
+    searchChannels(searchChannelParams)
       .then((res) => {
         if (res.code === 0) {
           const data = res.data;
