@@ -71,8 +71,6 @@ export default function SearchChannel() {
             const more = data.length > PAGE_SIZE;
             const items = data.slice(0, PAGE_SIZE);
 
-            console.log(items);
-
             setChannels(items);
             setCursor(
               items.length > 0 ? items[items.length - 1].publicId : undefined
@@ -123,8 +121,6 @@ export default function SearchChannel() {
           const data = res.data;
           const more = data.length > PAGE_SIZE;
           const items = data.slice(0, PAGE_SIZE);
-
-          console.log(items);
 
           setChannels((prev) => [...prev, ...items]);
           setCursor(
