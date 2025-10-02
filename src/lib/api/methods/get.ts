@@ -99,8 +99,6 @@ export function searchChannels(
   params.append("order", order);
 
   if (order === "participants") {
-    console.log("snapAt");
-    console.log(snapAt);
     if (snapAt) {
       params.append("count", count?.toString() || "0");
       params.append("snapAt", snapAt);
