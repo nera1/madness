@@ -172,7 +172,7 @@ export default function SearchChannel() {
             )}
             {channels.map((ch) => (
               <ChannelSearchListItem
-                key={ch.publicId}
+                key={ch.publicId + "_" + ch.snapAt}
                 {...ch}
                 participants={`${millify(ch.participants as number, {
                   units: [""],
