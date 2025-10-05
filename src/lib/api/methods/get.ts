@@ -91,6 +91,8 @@ export function authCheck(): Promise<AuthCheckRespone> {
 export function searchChannels(
   channelSerachParam: SearchChannelParams
 ): Promise<SearchChannelsResponse> {
+  console.log(channelSerachParam);
+
   const params = new URLSearchParams();
   const { keyword, cursor, size, order, snapAt, count } = channelSerachParam;
   params.append("keyword", keyword);
