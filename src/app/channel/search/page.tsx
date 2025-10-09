@@ -26,7 +26,7 @@ import millify from "millify";
 
 type OrderType = "desc" | "asc" | "participants";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 1;
 const FETCH_SIZE = PAGE_SIZE + 1;
 
 export default function SearchChannel() {
@@ -72,9 +72,7 @@ export default function SearchChannel() {
             const items = data.slice(0, PAGE_SIZE);
 
             setChannels(items);
-            setCursor(
-              items.length > 0 ? items[items.length - 1].publicId : undefined
-            );
+            setCursor(data[data.length - 1]?.publicId);
             setHasMore(more);
           }
         })
@@ -112,7 +110,9 @@ export default function SearchChannel() {
     if (state.order === "participants") {
       const lastItem = channels[channels.length - 1];
       searchChannelParams.count = Number(lastItem.participants);
-      searchChannelParams.snapAt = lastItem.snapAt;
+      const raw = String(lastItem.snapAt);
+      const snapAtIso = new Date(raw).toISOString();
+      searchChannelParams.snapAt = snapAtIso;
     }
 
     searchChannels(searchChannelParams)
@@ -123,9 +123,7 @@ export default function SearchChannel() {
           const items = data.slice(0, PAGE_SIZE);
 
           setChannels((prev) => [...prev, ...items]);
-          setCursor(
-            items.length > 0 ? items[items.length - 1].publicId : cursor
-          );
+          setCursor(items[items.length - 1]?.publicId);
           setHasMore(more);
         }
       })
