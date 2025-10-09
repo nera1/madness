@@ -24,13 +24,33 @@ import { ChevronDown } from "lucide-react";
 import styles from "@/styles/channel-search.module.scss";
 import millify from "millify";
 
+/** ===== 인터페이스 & 타입 ===== */
 type OrderType = "desc" | "asc" | "participants";
+
+interface SearchUIState {
+  search: string;
+  order: OrderType;
+}
+
+interface PageMeta {
+  /** participants 정렬 시 고정할 스냅샷 분(서버 응답 값 그대로 사용) */
+  snapAt?: string;
+  /** 표시된 마지막 아이템의 참가자 수(= liveCount) */
+  lastCount?: number;
+  /** 표시된 마지막 아이템의 publicId (동점 정렬 보조키) */
+  lastPublicId?: string;
+}
 
 const PAGE_SIZE = 1;
 const FETCH_SIZE = PAGE_SIZE + 1;
 
+/** key 생성을 통일 */
+const makeKey = (ch: Pick<ChannelDto, "publicId" | "snapAt">) =>
+  `${ch.publicId}_${String(ch.snapAt)}`;
+
 export default function SearchChannel() {
-  const [state, setState] = useState<{ search: string; order: OrderType }>({
+  /** ===== state ===== */
+  const [state, setState] = useState<SearchUIState>({
     search: "",
     order: "desc",
   });
@@ -39,6 +59,7 @@ export default function SearchChannel() {
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [pageMeta, setPageMeta] = useState<PageMeta>({});
 
   const bottomRef = useRef<HTMLLIElement>(null);
 
@@ -47,33 +68,52 @@ export default function SearchChannel() {
   const onOrderChange = (order: OrderType) =>
     setState((prev) => ({ ...prev, order }));
 
+  /** ===== 초기 검색 트리거 ===== */
   const triggerSearch = useCallback(
     debounce((keyword: string, order: OrderType) => {
       if (!keyword) {
         setChannels([]);
         setCursor(undefined);
         setHasMore(false);
+        setPageMeta({});
         return;
       }
       setIsLoading(true);
 
-      const searchChannelParams: SearchChannelParams = {
+      const params: SearchChannelParams = {
         keyword,
         cursor: undefined,
         size: FETCH_SIZE,
         order,
       };
 
-      searchChannels(searchChannelParams)
+      searchChannels(params)
         .then((res) => {
           if (res.code === 0) {
-            const data = res.data;
+            const data: ChannelDto[] = res.data;
             const more = data.length > PAGE_SIZE;
             const items = data.slice(0, PAGE_SIZE);
 
             setChannels(items);
-            setCursor(data[data.length - 1]?.publicId);
+
+            setCursor(items[items.length - 1]?.publicId);
             setHasMore(more);
+
+            if (order === "participants" && items.length > 0) {
+              const firstSnapAt = String(data[0]?.snapAt ?? items[0]?.snapAt);
+              const lastShown = items[items.length - 1];
+              setPageMeta({
+                snapAt: firstSnapAt,
+                lastCount: Number(
+                  (lastShown as any).participants ??
+                    (lastShown as any).liveCount ??
+                    0
+                ),
+                lastPublicId: lastShown.publicId,
+              });
+            } else {
+              setPageMeta({});
+            }
           }
         })
         .finally(() => setIsLoading(false));
@@ -90,41 +130,70 @@ export default function SearchChannel() {
 
   useEffect(() => {
     if (!isLoading && loadingMore && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "instant" });
+      bottomRef.current.scrollIntoView({
+        behavior: "instant" as ScrollBehavior,
+      });
       setLoadingMore(false);
     }
   }, [isLoading, loadingMore]);
 
+  /** ===== 더보기 ===== */
   const handleLoadMore = () => {
     if (isLoading || !hasMore || !state.search) return;
     setLoadingMore(true);
     setIsLoading(true);
 
-    const searchChannelParams: SearchChannelParams = {
+    const lastShown = channels[channels.length - 1];
+
+    const params: SearchChannelParams = {
       keyword: state.search,
-      cursor,
+      cursor: lastShown?.publicId ?? cursor, // 안전하게 표시된 마지막 기준
       size: FETCH_SIZE,
       order: state.order,
     };
 
-    if (state.order === "participants") {
-      const lastItem = channels[channels.length - 1];
-      searchChannelParams.count = Number(lastItem.participants);
-      const raw = String(lastItem.snapAt);
-      const snapAtIso = new Date(raw).toISOString();
-      searchChannelParams.snapAt = snapAtIso;
+    if (state.order === "participants" && lastShown) {
+      // ✅ ISO 재포맷 금지: 서버가 준 snapAt 문자열 그대로 사용
+      params.count = Number(
+        (lastShown as any).participants ?? (lastShown as any).liveCount ?? 0
+      );
+      params.snapAt = pageMeta.snapAt ?? String(lastShown.snapAt);
     }
 
-    searchChannels(searchChannelParams)
+    searchChannels(params)
       .then((res) => {
         if (res.code === 0) {
-          const data = res.data;
+          const data: ChannelDto[] = res.data;
           const more = data.length > PAGE_SIZE;
           const items = data.slice(0, PAGE_SIZE);
 
-          setChannels((prev) => [...prev, ...items]);
-          setCursor(items[items.length - 1]?.publicId);
-          setHasMore(more);
+          // 중복 방지 가드 (id+snapAt 쌍으로 판별)
+          setChannels((prev) => {
+            const seen = new Set(prev.map(makeKey));
+            const dedup = items.filter((it) => !seen.has(makeKey(it)));
+
+            if (dedup.length === 0) {
+              setHasMore(false);
+            }
+
+            return [...prev, ...dedup];
+          });
+
+          const appendedLast = items[items.length - 1];
+          setCursor(appendedLast?.publicId);
+
+          if (state.order === "participants" && appendedLast) {
+            setPageMeta((old) => ({
+              snapAt:
+                old.snapAt ?? String(data[0]?.snapAt ?? appendedLast.snapAt),
+              lastCount: Number(
+                (appendedLast as any).participants ??
+                  (appendedLast as any).liveCount ??
+                  0
+              ),
+              lastPublicId: appendedLast.publicId,
+            }));
+          }
         }
       })
       .finally(() => setIsLoading(false));
@@ -151,7 +220,7 @@ export default function SearchChannel() {
           </form>
 
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold grow bg-red">
+            <h3 className="text-lg font-semibold grow">
               {isLoading ? (
                 <div className="flex justify-center items-center">
                   <Spinner size={28} />
@@ -162,15 +231,17 @@ export default function SearchChannel() {
             </h3>
             <ChannelListOrder value={state.order} onChange={onOrderChange} />
           </div>
+
           <ul className="py-3 flex flex-col gap-y-2">
             {!isLoading && state.search && channels.length === 0 && (
               <li className="text-center text-muted-foreground text-sm py-10">
                 검색 결과가 없습니다
               </li>
             )}
+
             {channels.map((ch) => (
               <ChannelSearchListItem
-                key={ch.publicId + "_" + ch.snapAt}
+                key={makeKey(ch)}
                 {...ch}
                 participants={`${millify(ch.participants as number, {
                   units: [""],
@@ -179,6 +250,7 @@ export default function SearchChannel() {
                 disabled={isLoading}
               />
             ))}
+
             {hasMore && (
               <li
                 className={`${styles["more"]} flex justify-center mt-6 w-full`}
