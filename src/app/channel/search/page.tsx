@@ -41,12 +41,25 @@ interface PageMeta {
   lastPublicId?: string;
 }
 
-const PAGE_SIZE = 1;
+/** 서버 응답이 상황에 따라 participants 또는 liveCount를 줄 수 있으므로 선택 필드로 확장 */
+type ChannelDtoWithCounts = ChannelDto & {
+  participants?: number;
+  liveCount?: number;
+};
+
+const PAGE_SIZE = 10;
 const FETCH_SIZE = PAGE_SIZE + 1;
 
 /** key 생성을 통일 */
 const makeKey = (ch: Pick<ChannelDto, "publicId" | "snapAt">) =>
   `${ch.publicId}_${String(ch.snapAt)}`;
+
+/** participants/liveCount 중 존재하는 값을 읽어오는 유틸(없으면 0) */
+function readCount(ch: ChannelDtoWithCounts): number {
+  if (typeof ch.participants === "number") return ch.participants;
+  if (typeof ch.liveCount === "number") return ch.liveCount;
+  return 0;
+}
 
 export default function SearchChannel() {
   /** ===== state ===== */
@@ -54,7 +67,7 @@ export default function SearchChannel() {
     search: "",
     order: "desc",
   });
-  const [channels, setChannels] = useState<ChannelDto[]>([]);
+  const [channels, setChannels] = useState<ChannelDtoWithCounts[]>([]);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,12 +103,11 @@ export default function SearchChannel() {
       searchChannels(params)
         .then((res) => {
           if (res.code === 0) {
-            const data: ChannelDto[] = res.data;
+            const data = res.data as ChannelDtoWithCounts[];
             const more = data.length > PAGE_SIZE;
             const items = data.slice(0, PAGE_SIZE);
 
             setChannels(items);
-
             setCursor(items[items.length - 1]?.publicId);
             setHasMore(more);
 
@@ -104,11 +116,7 @@ export default function SearchChannel() {
               const lastShown = items[items.length - 1];
               setPageMeta({
                 snapAt: firstSnapAt,
-                lastCount: Number(
-                  (lastShown as any).participants ??
-                    (lastShown as any).liveCount ??
-                    0
-                ),
+                lastCount: readCount(lastShown),
                 lastPublicId: lastShown.publicId,
               });
             } else {
@@ -131,7 +139,7 @@ export default function SearchChannel() {
   useEffect(() => {
     if (!isLoading && loadingMore && bottomRef.current) {
       bottomRef.current.scrollIntoView({
-        behavior: "instant" as ScrollBehavior,
+        behavior: "auto", // "instant"는 표준 타입이 아니라 타입 에러 유발 가능
       });
       setLoadingMore(false);
     }
@@ -153,47 +161,44 @@ export default function SearchChannel() {
     };
 
     if (state.order === "participants" && lastShown) {
-      // ✅ ISO 재포맷 금지: 서버가 준 snapAt 문자열 그대로 사용
-      params.count = Number(
-        (lastShown as any).participants ?? (lastShown as any).liveCount ?? 0
-      );
+      // 서버가 준 snapAt 문자열 그대로 사용
+      params.count = readCount(lastShown);
       params.snapAt = pageMeta.snapAt ?? String(lastShown.snapAt);
     }
 
     searchChannels(params)
       .then((res) => {
         if (res.code === 0) {
-          const data: ChannelDto[] = res.data;
-          const more = data.length > PAGE_SIZE;
-          const items = data.slice(0, PAGE_SIZE);
+          const data = res.data as ChannelDtoWithCounts[];
+          const rawItems = data.slice(0, PAGE_SIZE);
 
           // 중복 방지 가드 (id+snapAt 쌍으로 판별)
+          let dedup: ChannelDtoWithCounts[] = [];
           setChannels((prev) => {
             const seen = new Set(prev.map(makeKey));
-            const dedup = items.filter((it) => !seen.has(makeKey(it)));
+            dedup = rawItems.filter((it) => !seen.has(makeKey(it)));
 
             if (dedup.length === 0) {
-              setHasMore(false);
+              setHasMore(false); // 실질적으로 붙일 게 없으면 종료
+              return prev;
             }
-
             return [...prev, ...dedup];
           });
 
-          const appendedLast = items[items.length - 1];
+          const appendedLast = dedup[dedup.length - 1];
           setCursor(appendedLast?.publicId);
 
           if (state.order === "participants" && appendedLast) {
             setPageMeta((old) => ({
               snapAt:
                 old.snapAt ?? String(data[0]?.snapAt ?? appendedLast.snapAt),
-              lastCount: Number(
-                (appendedLast as any).participants ??
-                  (appendedLast as any).liveCount ??
-                  0
-              ),
+              lastCount: readCount(appendedLast),
               lastPublicId: appendedLast.publicId,
             }));
           }
+
+          // 서버 기준 hasMore(= data.length > PAGE_SIZE)로 보수적으로 설정
+          setHasMore(data.length > PAGE_SIZE);
         }
       })
       .finally(() => setIsLoading(false));
@@ -243,7 +248,7 @@ export default function SearchChannel() {
               <ChannelSearchListItem
                 key={makeKey(ch)}
                 {...ch}
-                participants={`${millify(ch.participants as number, {
+                participants={`${millify(readCount(ch), {
                   units: [""],
                   precision: 0,
                 })}명 접속 중`}
