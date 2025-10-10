@@ -41,7 +41,6 @@ interface PageMeta {
   lastPublicId?: string;
 }
 
-/** 서버 응답이 상황에 따라 participants 또는 liveCount를 줄 수 있으므로 선택 필드로 확장 */
 type ChannelDtoWithCounts = ChannelDto & {
   participants?: number;
   liveCount?: number;
@@ -50,7 +49,6 @@ type ChannelDtoWithCounts = ChannelDto & {
 const PAGE_SIZE = 10;
 const FETCH_SIZE = PAGE_SIZE + 1;
 
-/** key 생성을 통일 */
 const makeKey = (ch: Pick<ChannelDto, "publicId" | "snapAt">) =>
   `${ch.publicId}_${String(ch.snapAt)}`;
 
