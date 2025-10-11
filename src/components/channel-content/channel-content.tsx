@@ -57,7 +57,7 @@ export type Alert = {
   onSubmit: MouseEventHandler<HTMLButtonElement>;
 };
 
-const isBlank = (str: string): boolean => !str.trim();
+const isBlank = (s: string) => !/\S/.test(s);
 
 const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
@@ -138,14 +138,18 @@ const ChannelContent: FunctionComponent = () => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const domEvt = e.nativeEvent as KeyboardEvent;
 
-    const msg = inputValue.trim();
+    // Shift+Enter => 줄바꿈 (기본동작 유지)
+    if (e.key === "Enter" && e.shiftKey) return;
 
-    if (isBlank(msg)) {
-      return;
-    }
+    // 조합 입력 중이면 전송 막기
+    if (domEvt.isComposing) return;
 
-    if (e.key === "Enter" && !e.shiftKey && !domEvt.isComposing) {
-      e.preventDefault();
+    if (e.key === "Enter") {
+      e.preventDefault(); // 기본 개행 막기 (보낼 동작 전용)
+      const raw = textareaRef.current?.value ?? "";
+      const msg = raw.trim();
+      if (isBlank(msg)) return; // 빈 문자열/공백/개행 뿐이면 전송하지 않음
+
       sendMessage(msg, "CHAT");
       setInputValue("");
       resetTextareaHeight();
@@ -347,6 +351,7 @@ const ChannelContent: FunctionComponent = () => {
                 setInputValue("");
                 resetTextareaHeight();
               }}
+              disabled={isBlank(inputValue)}
             >
               <MadIcon fillColor="#000" bgColor="transparent" />
             </Button>
