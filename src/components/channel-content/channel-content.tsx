@@ -57,6 +57,8 @@ export type Alert = {
   onSubmit: MouseEventHandler<HTMLButtonElement>;
 };
 
+const isBlank = (str: string): boolean => !str.trim();
+
 const ChannelContent: FunctionComponent = () => {
   const searchParams = useSearchParams();
   const publicId = searchParams.get("c") ?? "";
@@ -136,9 +138,15 @@ const ChannelContent: FunctionComponent = () => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const domEvt = e.nativeEvent as KeyboardEvent;
 
+    const msg = inputValue.trim();
+
+    if (isBlank(msg)) {
+      return;
+    }
+
     if (e.key === "Enter" && !e.shiftKey && !domEvt.isComposing) {
       e.preventDefault();
-      sendMessage(inputValue.trim(), "CHAT");
+      sendMessage(msg, "CHAT");
       setInputValue("");
       resetTextareaHeight();
     }
@@ -331,7 +339,11 @@ const ChannelContent: FunctionComponent = () => {
               size="icon"
               className={`${styles["submit-btn"]} size-9 [&_svg]:!h-6 [&_svg]:!w-6 cursor-pointer`}
               onClick={() => {
-                sendMessage(inputValue, "CHAT");
+                const msg = inputValue.trim();
+                if (isBlank(msg)) {
+                  return;
+                }
+                sendMessage(msg, "CHAT");
                 setInputValue("");
                 resetTextareaHeight();
               }}
