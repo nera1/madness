@@ -15,7 +15,9 @@ const MessageListItem: FunctionComponent<MessageListItemProps> = ({
 }) => {
   return (
     <li className={`${styles["message-list-item"]} m-0 flex gap-x-2 px-2`}>
-      <span className={`${styles["content"]} w-full`}>
+      <span
+        className={`${styles["content"]} inline-flex items-baseline gap-1 w-full`}
+      >
         <span className={`${styles["sender"]} mr-1`} style={{ color: color }}>
           {sender}
         </span>
