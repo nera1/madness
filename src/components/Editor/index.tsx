@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-  useRef, // ⬅ 요거 추가
-} from "react";
+import React, { useMemo, useState } from "react";
 import YooptaEditor, {
   createYooptaEditor,
   type YooptaContentValue,
@@ -51,11 +46,11 @@ const { HeadingOne, HeadingTwo, HeadingThree } = Headings;
 const { BulletedList, NumberedList, TodoList } = Lists;
 
 const PLUGINS = [
-  Paragraph,
-  HeadingOne,
-  HeadingTwo,
-  HeadingThree,
-  BulletedList,
+  Paragraph.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
+  HeadingOne.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
+  HeadingTwo.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
+  HeadingThree.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
+  BulletedList.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
   NumberedList,
   TodoList,
   Blockquote,
@@ -100,6 +95,8 @@ export default function YooptaEditorClient() {
   return (
     <div className="flex w-full justify-center px-5 py-6">
       <YooptaEditor
+        data-gramm="false"
+        data-gramm_editor="false"
         editor={editor}
         plugins={
           PLUGINS as unknown as YooptaPlugin<Record<string, SlateElement>>[]
