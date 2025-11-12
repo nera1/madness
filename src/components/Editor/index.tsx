@@ -101,7 +101,7 @@ export default function YooptaEditorClient() {
   });
 
   return (
-    <div className="relative flex w-full justify-center flex-col px-5 py-6">
+    <div className="relative flex w-full justify-center items-center flex-col px-5 py-6">
       <YooptaEditor
         editor={headlineEditor}
         plugins={
@@ -131,7 +131,7 @@ export default function YooptaEditorClient() {
           setValue(nextValue);
         }}
         autoFocus
-        className="yoopta-editor border"
+        className="yoopta-editor border !pb-0"
         style={{ width: "640px" }}
       />
     </div>
