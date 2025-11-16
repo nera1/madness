@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import YooptaEditor, {
   createYooptaEditor,
   type YooptaContentValue,
   type Tools,
-  type YooptaPlugin,
-  SlateElement,
+  buildBlockData,
 } from "@yoopta/editor";
 
-// Plugins
 import Paragraph from "@yoopta/paragraph";
 import Blockquote from "@yoopta/blockquote";
 import Accordion from "@yoopta/accordion";
@@ -21,12 +19,11 @@ import Embed from "@yoopta/embed";
 import Image from "@yoopta/image";
 import Link from "@yoopta/link";
 import File from "@yoopta/file";
-import Callout from "@yoopta/callout";
+import Callout from "@yoopta/file";
 import Video from "@yoopta/video";
 import Lists from "@yoopta/lists";
 import Headings from "@yoopta/headings";
 
-// Marks (Bold, Italic, ...)
 import {
   Bold,
   Italic,
@@ -36,15 +33,11 @@ import {
   Highlight,
 } from "@yoopta/marks";
 
-// Tools (Toolbar, Slash(Action) Menu, Link Tool)
 import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
 import ActionMenu, { DefaultActionMenuRender } from "@yoopta/action-menu-list";
 import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
-import {
-  loadYooptaValue,
-  saveYooptaValueDebounced,
-  createDefaultYooptaValue,
-} from "./yoopta-storage";
+
+import styles from "@/styles/editor.module.scss";
 
 const { HeadingOne, HeadingTwo, HeadingThree } = Headings;
 const { BulletedList, NumberedList, TodoList } = Lists;
@@ -70,16 +63,19 @@ const PLUGINS = [
   Callout,
 ];
 
+const HEADLINE_PLUGINS = [
+  Paragraph.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
+  HeadingOne.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
+  HeadingTwo.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
+  HeadingThree.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
+];
+
 const MARKS = [Bold, Italic, CodeMark, Underline, Strike, Highlight];
 
-const TOOLS: Partial<Tools> = {
+const BASE_TOOLS: Partial<Tools> = {
   Toolbar: {
     tool: Toolbar,
     render: DefaultToolbarRender,
-  },
-  ActionMenu: {
-    tool: ActionMenu,
-    render: DefaultActionMenuRender,
   },
   LinkTool: {
     tool: LinkTool,
@@ -87,53 +83,237 @@ const TOOLS: Partial<Tools> = {
   },
 };
 
-export default function YooptaEditorClient() {
-  const headlineEditor = useMemo(() => createYooptaEditor(), []);
-  const editor = useMemo(() => createYooptaEditor(), []);
+const HEADLINE_BLOCK_ID = "headline";
+const BODY_BLOCK_ID = "body-root";
 
-  const [headlineValue, setHeadLineValue] = useState<YooptaContentValue>(() => {
-    const initial = loadYooptaValue();
-    return initial ?? {};
-  });
-  const [value, setValue] = useState<YooptaContentValue>(() => {
-    const initial = loadYooptaValue();
-    return initial ?? {};
-  });
+/**
+ * 어떤 구조든 간에, 깊게 내려가면서 node.text 들만 전부 이어붙여서 문자열로 만든다.
+ */
+const collectAllText = (node: any): string => {
+  if (!node) return "";
+
+  if (Array.isArray(node)) {
+    return node.map(collectAllText).join("");
+  }
+
+  if (typeof node === "object") {
+    let result = "";
+
+    if (typeof (node as any).text === "string") {
+      result += (node as any).text;
+    }
+
+    for (const value of Object.values(node)) {
+      result += collectAllText(value);
+    }
+
+    return result;
+  }
+
+  return "";
+};
+
+// YooptaContentValue 전체에서 텍스트만 뽑는 헬퍼 (공백 포함, trim 안 함!)
+const getAllText = (value?: YooptaContentValue): string => {
+  if (!value) return "";
+  const blocks = Object.values(value);
+  return collectAllText(blocks);
+};
+
+// "리셋 용" - 진짜로 아무 글자도 없을 때만 비었다고 판단 (trim 사용 X)
+const isValueReallyEmpty = (value?: YooptaContentValue): boolean => {
+  const text = getAllText(value);
+  return text.length === 0;
+};
+
+/** "초기 상태 Paragraph 블록" - 헤드라인 */
+export const createHeadlineValue = (): YooptaContentValue => {
+  return {
+    [HEADLINE_BLOCK_ID]: buildBlockData({
+      id: HEADLINE_BLOCK_ID,
+      value: [
+        {
+          id: `${HEADLINE_BLOCK_ID}-paragraph`,
+          type: "Paragraph",
+          children: [{ text: "" }],
+        },
+      ],
+    }),
+  };
+};
+
+/** "초기 상태 Paragraph 블록" - 본문(content) */
+export const createBodyValue = (): YooptaContentValue => {
+  return {
+    [BODY_BLOCK_ID]: buildBlockData({
+      id: BODY_BLOCK_ID,
+      value: [
+        {
+          id: `${BODY_BLOCK_ID}-paragraph`,
+          type: "Paragraph",
+          children: [{ text: "" }],
+        },
+      ],
+    }),
+  };
+};
+
+const isPristineHeadline = (value?: YooptaContentValue): boolean => {
+  if (!value) return false;
+
+  const block: any = (value as any)[HEADLINE_BLOCK_ID];
+  if (!block) return false;
+
+  const blockValue = block.value;
+  if (!Array.isArray(blockValue) || blockValue.length !== 1) return false;
+
+  const first = blockValue[0];
+  if (!first || first.type !== "Paragraph") return false;
+
+  const children = first.children;
+  if (!Array.isArray(children) || children.length !== 1) return false;
+
+  const textNode = children[0];
+  if (!textNode || typeof textNode.text !== "string") return false;
+
+  // 초기 상태: text === "" 만 허용
+  return textNode.text === "";
+};
+
+// 🔹 ActionMenu가 열려 있는 동안 open 상태를 알려주는 래퍼 컴포넌트
+type ActionMenuWrapperProps = {
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+};
+
+const ActionMenuWrapper: React.FC<ActionMenuWrapperProps> = ({
+  onOpenChange,
+  children,
+}) => {
+  useEffect(() => {
+    onOpenChange(true); // 마운트 시: 열림
+    return () => onOpenChange(false); // 언마운트 시: 닫힘
+  }, [onOpenChange]);
+
+  return <>{children}</>;
+};
+
+export default function NotionLikePage() {
+  const headlineEditor = useMemo(() => createYooptaEditor(), []);
+  const bodyEditor = useMemo(() => createYooptaEditor(), []);
+
+  const [headlineValue, setHeadlineValue] = useState<YooptaContentValue>(
+    createHeadlineValue()
+  );
+  const [value, setValue] = useState<YooptaContentValue>(createBodyValue());
+
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const [shouldFocusBody, setShouldFocusBody] = useState(false);
+
+  const tools = useMemo<Partial<Tools>>(
+    () => ({
+      ...BASE_TOOLS,
+      ActionMenu: {
+        tool: ActionMenu,
+        render: (props: any) => (
+          <ActionMenuWrapper onOpenChange={setIsActionMenuOpen}>
+            <DefaultActionMenuRender {...props} />
+          </ActionMenuWrapper>
+        ),
+      },
+    }),
+    []
+  );
+
+  const handleHeadlineChange = (next: YooptaContentValue) => {
+    if (!next || Object.keys(next).length === 0 || isValueReallyEmpty(next)) {
+      setHeadlineValue(createHeadlineValue());
+      return;
+    }
+
+    setHeadlineValue(next);
+  };
+
+  const handleBodyChange = (next: YooptaContentValue) => {
+    setValue(next);
+  };
+
+  // 🔹 state 변화에 반응해서 body 에디터에 포커스를 주는 effect
+  useEffect(() => {
+    if (!shouldFocusBody) return;
+
+    const anyEditor = bodyEditor as any;
+    if (typeof anyEditor.focus === "function") {
+      try {
+        anyEditor.focus({ at: "end" });
+      } catch {
+        anyEditor.focus();
+      }
+    }
+
+    setShouldFocusBody(false);
+  }, [shouldFocusBody, bodyEditor]);
 
   return (
-    <div className="relative flex w-full justify-center items-center flex-col px-5 py-6">
-      <YooptaEditor
-        editor={headlineEditor}
-        plugins={
-          PLUGINS as unknown as YooptaPlugin<Record<string, SlateElement>>[]
-        }
-        marks={MARKS}
-        tools={TOOLS}
-        value={headlineValue}
-        placeholder="Head"
-        onChange={(nextValue) => {
-          setHeadLineValue(nextValue);
+    <main className="w-[640px] flex flex-col gap-y-1">
+      <div
+        className={`${styles["headline-block"]} p-2 rounded-sm`}
+        onKeyDownCapture={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            if (isActionMenuOpen) {
+              return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+
+          if (e.key === "Tab" && !e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log("HERE");
+
+            setShouldFocusBody(true);
+            return;
+          }
+
+          if (e.key !== "Backspace") return;
+
+          const blocks = Object.values(headlineValue || {});
+          if (blocks.length !== 1) return;
+
+          if (isPristineHeadline(headlineValue)) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
         }}
-        autoFocus
-        className="yoopta-editor-headline border !pb-0"
-        style={{ width: "640px" }}
-      />
-      <YooptaEditor
-        editor={editor}
-        plugins={
-          PLUGINS as unknown as YooptaPlugin<Record<string, SlateElement>>[]
-        }
-        marks={MARKS}
-        tools={TOOLS}
-        value={value}
-        placeholder="Bottom"
-        onChange={(nextValue) => {
-          setValue(nextValue);
-        }}
-        autoFocus
-        className="yoopta-editor border !pb-0"
-        style={{ width: "640px" }}
-      />
-    </div>
+      >
+        <YooptaEditor
+          editor={headlineEditor}
+          plugins={HEADLINE_PLUGINS as any}
+          tools={tools}
+          value={headlineValue}
+          onChange={handleHeadlineChange}
+          placeholder="제목을 입력하세요"
+          autoFocus
+          className={`${styles["editor"]} ${styles["headline"]} !w-full !pb-0`}
+        />
+      </div>
+      <div className={`${styles["content-block"]} p-2 rounded-sm`}>
+        <YooptaEditor
+          editor={bodyEditor}
+          plugins={PLUGINS as any}
+          marks={MARKS as any}
+          tools={tools}
+          value={value}
+          autoFocus={false}
+          onChange={handleBodyChange}
+          className={`${styles["editor"]} ${styles["content"]} !w-full !pb-8`}
+          placeholder="내용을 입력하세요. '/' 를 눌러 블록을 추가할 수 있습니다."
+        />
+      </div>
+    </main>
   );
 }

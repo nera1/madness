@@ -1,0 +1,159 @@
+.content-block,
+.headline-block {
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.editor {
+  :global(.yoopta-block-action-buttons) {
+    margin-right: 0.5rem;
+  }
+}
+
+// 🌙 다크 모드
+:global(html.dark) {
+  .content-block,
+  .headline-block {
+    background-color: transparent;
+
+    &:hover {
+      background-color: rgba(148, 163, 184, 0.08); // 살짝 밝아지는 느낌
+    }
+  }
+
+  .editor {
+    /* 툴바 전체 배경, 테두리 같은 거 */
+    :global(.yoopta-toolbar) {
+      background-color: #111827; // 어두운 배경
+      border-radius: 9999px;
+      padding: 4px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* 툴바 버튼들 */
+    :global(.yoopta-toolbar-button) {
+      background: transparent;
+      border-radius: 9999px;
+      padding: 4px 6px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      &.is-active {
+        background: rgba(255, 255, 255, 0.14);
+      }
+    }
+
+    /* 슬래시 액션 메뉴(플러그인 선택 창) 컨테이너 */
+    :global(.yoopta-action-menu),
+    :global(.yoopta-action-menu-list) {
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+      background-color: #020617;
+    }
+
+    :global(.yoopta-action-menu-list-content) {
+      backdrop-filter: blur(2px);
+      background-color: transparent;
+
+      & button {
+        /* 액션 메뉴 아이템 기본 */
+        background-color: transparent;
+        color: #e5e7eb;
+
+        &[aria-selected="true"] {
+          background-color: #1f2933; // 선택 시 배경색 (다크)
+          color: #f9fafb;
+        }
+
+        /* 액션 메뉴 아이콘 영역 */
+        & :global(.yoo-action-menu-flex) {
+          background-color: transparent;
+          border: 0;
+        }
+
+        &:hover:not([aria-selected="true"]) {
+          background-color: rgba(255, 255, 255, 0.06);
+        }
+      }
+    }
+  }
+}
+
+/* ☀️ 라이트 테마 전용 스타일 */
+:global(html.light) {
+  .content-block,
+  .headline-block {
+    background-color: transparent;
+
+    &:hover {
+      background-color: rgba(15, 23, 42, 0.04); // 살짝 어두워지는 느낌
+    }
+  }
+
+  .editor {
+    :global(.yoopta-toolbar) {
+      background-color: #f4f4f5; // 밝은 배경
+      border-radius: 9999px;
+      padding: 4px 8px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    :global(.yoopta-toolbar-button) {
+      background: transparent;
+      border-radius: 9999px;
+      padding: 4px 6px;
+      color: #111827;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+      }
+
+      &.is-active {
+        background: rgba(0, 0, 0, 0.08);
+      }
+    }
+
+    :global(.yoopta-action-menu),
+    :global(.yoopta-action-menu-list) {
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+      background-color: #ffffff;
+    }
+
+    :global(.yoopta-action-menu-list-content) {
+      backdrop-filter: none;
+      background-color: #ffffff;
+
+      & button {
+        background-color: transparent;
+        color: #111827;
+
+        &[aria-selected="true"] {
+          background-color: #f0f0f0; // 선택 시 라이트용 색
+          color: #111827;
+        }
+
+        & :global(.yoo-action-menu-flex) {
+          background-color: transparent;
+          border: 0;
+        }
+
+        &:hover:not([aria-selected="true"]) {
+          background-color: rgba(0, 0, 0, 0.04);
+        }
+      }
+    }
+  }
+}
+
+.headline {
+  & :global(.yoopta-block-actions) {
+    display: none !important;
+  }
+}
+
+.content {
+}
