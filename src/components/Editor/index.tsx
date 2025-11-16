@@ -89,7 +89,7 @@ const BODY_BLOCK_ID = "body-root";
 /**
  * 어떤 구조든 간에, 깊게 내려가면서 node.text 들만 전부 이어붙여서 문자열로 만든다.
  */
-const collectAllText = (node: any): string => {
+const collectAllText = (node: unknown): string => {
   if (!node) return "";
 
   if (Array.isArray(node)) {
@@ -99,11 +99,13 @@ const collectAllText = (node: any): string => {
   if (typeof node === "object") {
     let result = "";
 
-    if (typeof (node as any).text === "string") {
-      result += (node as any).text;
+    const obj = node as { text?: unknown; [key: string]: unknown };
+
+    if (typeof obj.text === "string") {
+      result += obj.text;
     }
 
-    for (const value of Object.values(node)) {
+    for (const value of Object.values(obj)) {
       result += collectAllText(value);
     }
 
@@ -161,10 +163,21 @@ export const createBodyValue = (): YooptaContentValue => {
 const isPristineHeadline = (value?: YooptaContentValue): boolean => {
   if (!value) return false;
 
-  const block: any = (value as any)[HEADLINE_BLOCK_ID];
+  const block = (value as Record<string, unknown>)[HEADLINE_BLOCK_ID] as
+    | {
+        value?: unknown;
+      }
+    | undefined;
+
   if (!block) return false;
 
-  const blockValue = block.value;
+  const blockValue = block.value as
+    | Array<{
+        type?: string;
+        children?: Array<{ text?: string }>;
+      }>
+    | undefined;
+
   if (!Array.isArray(blockValue) || blockValue.length !== 1) return false;
 
   const first = blockValue[0];
@@ -198,6 +211,10 @@ const ActionMenuWrapper: React.FC<ActionMenuWrapperProps> = ({
   return <>{children}</>;
 };
 
+type FocusableEditor = {
+  focus: (options?: { at?: "start" | "end" }) => void;
+};
+
 export default function NotionLikePage() {
   const headlineEditor = useMemo(() => createYooptaEditor(), []);
   const bodyEditor = useMemo(() => createYooptaEditor(), []);
@@ -208,14 +225,15 @@ export default function NotionLikePage() {
   const [value, setValue] = useState<YooptaContentValue>(createBodyValue());
 
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
-  const [shouldFocusBody, setShouldFocusBody] = useState(false);
 
   const tools = useMemo<Partial<Tools>>(
     () => ({
       ...BASE_TOOLS,
       ActionMenu: {
         tool: ActionMenu,
-        render: (props: any) => (
+        render: (
+          props: Parameters<typeof DefaultActionMenuRender>[0]
+        ): JSX.Element => (
           <ActionMenuWrapper onOpenChange={setIsActionMenuOpen}>
             <DefaultActionMenuRender {...props} />
           </ActionMenuWrapper>
@@ -238,22 +256,6 @@ export default function NotionLikePage() {
     setValue(next);
   };
 
-  // 🔹 state 변화에 반응해서 body 에디터에 포커스를 주는 effect
-  useEffect(() => {
-    if (!shouldFocusBody) return;
-
-    const anyEditor = bodyEditor as any;
-    if (typeof anyEditor.focus === "function") {
-      try {
-        anyEditor.focus({ at: "end" });
-      } catch {
-        anyEditor.focus();
-      }
-    }
-
-    setShouldFocusBody(false);
-  }, [shouldFocusBody, bodyEditor]);
-
   return (
     <main className="w-[640px] flex flex-col gap-y-1">
       <div
@@ -273,9 +275,14 @@ export default function NotionLikePage() {
             e.preventDefault();
             e.stopPropagation();
 
-            console.log("HERE");
+            const editor = bodyEditor as unknown as FocusableEditor;
 
-            setShouldFocusBody(true);
+            try {
+              editor.focus({ at: "end" });
+            } catch {
+              editor.focus();
+            }
+
             return;
           }
 
@@ -292,7 +299,7 @@ export default function NotionLikePage() {
       >
         <YooptaEditor
           editor={headlineEditor}
-          plugins={HEADLINE_PLUGINS as any}
+          plugins={HEADLINE_PLUGINS as never}
           tools={tools}
           value={headlineValue}
           onChange={handleHeadlineChange}
@@ -304,8 +311,8 @@ export default function NotionLikePage() {
       <div className={`${styles["content-block"]} p-2 rounded-sm`}>
         <YooptaEditor
           editor={bodyEditor}
-          plugins={PLUGINS as any}
-          marks={MARKS as any}
+          plugins={PLUGINS as never}
+          marks={MARKS as never}
           tools={tools}
           value={value}
           autoFocus={false}

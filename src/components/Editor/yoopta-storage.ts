@@ -2,7 +2,6 @@
 
 import type { YooptaContentValue } from "@yoopta/editor";
 import { buildBlockData } from "@yoopta/editor";
-import debounce from "lodash/debounce";
 
 const HEADLIE_BLOCK_ID = "headline";
 
