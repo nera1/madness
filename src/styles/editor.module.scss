@@ -1,6 +1,9 @@
+@use "./variables" as *;
+
 .content-block,
 .headline-block {
-  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color $transition-fast ease,
+    box-shadow $transition-fast ease;
 }
 
 .editor {
@@ -9,62 +12,102 @@
   }
 }
 
-// 🌙 다크 모드
 :global(html.dark) {
   .content-block,
   .headline-block {
     background-color: transparent;
 
     &:hover {
-      background-color: rgba(148, 163, 184, 0.08); // 살짝 밝아지는 느낌
+      background-color: $dark-block-hover-bg;
     }
   }
 
   .editor {
+    :global(.yoopta-toolbar-root) {
+      background-color: $dark-toolbar-bg;
+      border: 0.5px solid $dark-toolbar-border;
+      & button {
+        background-color: transparent !important;
+        &:hover {
+          background: $dark-toolbar-button-hover-bg !important;
+        }
+      }
+    }
+
+    :global(
+        div[id^="yoo-highlight-color-portal"]
+          > [data-floating-ui-portal]
+          div[class^="yoo-toolbar-bg"]
+      ) {
+      background-color: $dark-toolbar-bg;
+      border: 0.5px solid $dark-toolbar-border;
+
+      & :global(.yoo-toolbar-flex) {
+        & > button {
+          color: $dark-menu-button-text;
+          &:global(.yoo-toolbar-bg-blue-50) {
+            background-color: $neutral-500;
+            color: $neutral-900;
+          }
+          &:hover:global(.yoo-toolbar-text-gray-600) {
+            background-color: $neutral-700 !important;
+            color: $neutral-200;
+          }
+        }
+      }
+
+      & :global(.yoo-toolbar-border-t) {
+        & > button {
+          color: $dark-menu-button-text;
+        }
+      }
+
+      & :global(.yoo-toolbar-grid) {
+        & > button {
+          border: 0.5px solid $neutral-400 !important;
+        }
+      }
+    }
+
     /* 툴바 전체 배경, 테두리 같은 거 */
     :global(.yoopta-toolbar) {
-      background-color: #111827; // 어두운 배경
-      border-radius: 9999px;
+      background-color: $dark-toolbar-bg;
       padding: 4px 8px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid $dark-toolbar-border;
     }
 
     /* 툴바 버튼들 */
     :global(.yoopta-toolbar-button) {
       background: transparent;
-      border-radius: 9999px;
       padding: 4px 6px;
+      color: $dark-toolbar-button-text;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: $dark-toolbar-button-hover-bg;
       }
 
       &.is-active {
-        background: rgba(255, 255, 255, 0.14);
+        background: $dark-toolbar-button-active-bg;
       }
     }
 
     /* 슬래시 액션 메뉴(플러그인 선택 창) 컨테이너 */
     :global(.yoopta-action-menu),
     :global(.yoopta-action-menu-list) {
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
-      background-color: #020617;
     }
 
     :global(.yoopta-action-menu-list-content) {
-      backdrop-filter: blur(2px);
       background-color: transparent;
-
+      border: 0.5px solid $dark-menu-border;
+      background-color: $dark-toolbar-bg;
       & button {
         /* 액션 메뉴 아이템 기본 */
         background-color: transparent;
-        color: #e5e7eb;
+        color: $dark-menu-button-text;
 
         &[aria-selected="true"] {
-          background-color: #1f2933; // 선택 시 배경색 (다크)
-          color: #f9fafb;
+          background-color: $dark-menu-button-selected-bg;
+          color: $dark-menu-button-selected-text;
         }
 
         /* 액션 메뉴 아이콘 영역 */
@@ -73,8 +116,9 @@
           border: 0;
         }
 
+        // 👉 hover 색도 살짝 더 어둡게 (변수에서 조정됨)
         &:hover:not([aria-selected="true"]) {
-          background-color: rgba(255, 255, 255, 0.06);
+          background-color: $dark-menu-button-hover-bg;
         }
       }
     }
@@ -88,52 +132,49 @@
     background-color: transparent;
 
     &:hover {
-      background-color: rgba(15, 23, 42, 0.04); // 살짝 어두워지는 느낌
+      background-color: $light-block-hover-bg;
     }
   }
 
   .editor {
     :global(.yoopta-toolbar) {
-      background-color: #f4f4f5; // 밝은 배경
-      border-radius: 9999px;
+      background-color: $light-toolbar-bg;
       padding: 4px 8px;
-      border: 1px solid rgba(0, 0, 0, 0.06);
+      border: 1px solid $light-toolbar-border;
     }
 
     :global(.yoopta-toolbar-button) {
       background: transparent;
-      border-radius: 9999px;
       padding: 4px 6px;
-      color: #111827;
+      color: $light-toolbar-button-text;
 
       &:hover {
-        background: rgba(0, 0, 0, 0.04);
+        background: $light-toolbar-button-hover-bg;
       }
 
       &.is-active {
-        background: rgba(0, 0, 0, 0.08);
+        background: $light-toolbar-button-active-bg;
       }
     }
 
     :global(.yoopta-action-menu),
     :global(.yoopta-action-menu-list) {
-      border-radius: 12px;
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
-      background-color: #ffffff;
+      border: 1px solid $light-menu-border;
+      box-shadow: $light-menu-shadow;
+      background-color: $light-menu-bg;
     }
 
     :global(.yoopta-action-menu-list-content) {
       backdrop-filter: none;
-      background-color: #ffffff;
+      background-color: $light-menu-bg;
 
       & button {
         background-color: transparent;
-        color: #111827;
+        color: $light-menu-button-text;
 
         &[aria-selected="true"] {
-          background-color: #f0f0f0; // 선택 시 라이트용 색
-          color: #111827;
+          background-color: $light-menu-button-selected-bg;
+          color: $light-menu-button-selected-text;
         }
 
         & :global(.yoo-action-menu-flex) {
@@ -142,7 +183,7 @@
         }
 
         &:hover:not([aria-selected="true"]) {
-          background-color: rgba(0, 0, 0, 0.04);
+          background-color: $light-menu-button-hover-bg;
         }
       }
     }
@@ -152,6 +193,14 @@
 .headline {
   & :global(.yoopta-block-actions) {
     display: none !important;
+  }
+  & :global(.yoopta-toolbar-root) {
+    :global(.yoopta-toolbar-separator):nth-child(2) {
+      display: none !important;
+    }
+    :global(.yoopta-toolbar-group):nth-child(3) {
+      display: none !important;
+    }
   }
 }
 

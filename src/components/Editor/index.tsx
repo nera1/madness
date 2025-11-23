@@ -43,11 +43,11 @@ const { HeadingOne, HeadingTwo, HeadingThree } = Headings;
 const { BulletedList, NumberedList, TodoList } = Lists;
 
 const PLUGINS = [
-  Paragraph.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
-  HeadingOne.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
-  HeadingTwo.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
-  HeadingThree.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
-  BulletedList.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
+  Paragraph,
+  HeadingOne,
+  HeadingTwo,
+  HeadingThree,
+  BulletedList,
   NumberedList,
   TodoList,
   Blockquote,
@@ -59,16 +59,13 @@ const PLUGINS = [
   Video,
   Embed,
   Link,
-  File,
-  Callout,
-];
+].map((item) =>
+  item.extend({ options: { HTMLAttributes: { spellCheck: false } } })
+);
 
-const HEADLINE_PLUGINS = [
-  Paragraph.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
-  HeadingOne.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
-  HeadingTwo.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
-  HeadingThree.extend({ options: { HTMLAttributes: { spellCheck: false } } }),
-];
+const HEADLINE_PLUGINS = [Paragraph, HeadingOne, HeadingTwo, HeadingThree].map(
+  (item) => item.extend({ options: { HTMLAttributes: { spellCheck: false } } })
+);
 
 const MARKS = [Bold, Italic, CodeMark, Underline, Strike, Highlight];
 
@@ -257,7 +254,7 @@ export default function NotionLikePage() {
   };
 
   return (
-    <main className="w-[640px] flex flex-col gap-y-1">
+    <main className="w-[720px] flex flex-col gap-y-1">
       <div
         className={`${styles["headline-block"]} p-2 rounded-sm`}
         onKeyDownCapture={(e) => {
@@ -301,6 +298,7 @@ export default function NotionLikePage() {
           editor={headlineEditor}
           plugins={HEADLINE_PLUGINS as never}
           tools={tools}
+          marks={MARKS as never}
           value={headlineValue}
           onChange={handleHeadlineChange}
           placeholder="제목을 입력하세요"
