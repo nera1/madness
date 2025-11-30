@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@yoopta/accordion": "^4.9.9",
     "@yoopta/action-menu-list": "^4.9.9",
     "@yoopta/blockquote": "^4.9.9",

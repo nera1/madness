@@ -2,13 +2,142 @@
 
 .content-block,
 .headline-block {
-  transition: background-color $transition-fast ease,
-    box-shadow $transition-fast ease;
 }
 
 .editor {
-  :global(.yoopta-block-action-buttons) {
-    margin-right: 0.5rem;
+  :global(.yoopta-block-actions) {
+    transform: translateX(-52px) !important;
+  }
+
+  --yoopta-font-scale: 1.125;
+
+  /* 기본 디자인 기준값 (필요하면 바꿔도 됨) */
+  --yoopta-font-size-base: 1rem; // Paragraph 기준
+  --yoopta-font-size-h1: 2.4rem;
+  --yoopta-font-size-h2: 2rem;
+  --yoopta-font-size-h3: 1.6rem;
+  --yoopta-font-size-h4: 1.3rem;
+  --yoopta-font-size-h5: 1.1rem;
+  --yoopta-font-size-h6: 1rem;
+
+  --yoopta-font-size-small: 0.875rem; // 캡션, 툴팁 등
+  --yoopta-line-height-base: 1.6;
+
+  /* 에디터 전체 기본 글자 크기 */
+  font-size: calc(var(--yoopta-font-size-base) * var(--yoopta-font-scale));
+  line-height: var(--yoopta-line-height-base);
+
+  /* ========== Headings (Yoopta Headings 플러그인) ========== */
+  h1 {
+    font-size: calc(var(--yoopta-font-size-h1) * var(--yoopta-font-scale));
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-size: calc(var(--yoopta-font-size-h2) * var(--yoopta-font-scale));
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-size: calc(var(--yoopta-font-size-h3) * var(--yoopta-font-scale));
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  h4 {
+    font-size: calc(var(--yoopta-font-size-h4) * var(--yoopta-font-scale));
+    font-weight: 600;
+  }
+
+  h5 {
+    font-size: calc(var(--yoopta-font-size-h5) * var(--yoopta-font-scale));
+    font-weight: 600;
+  }
+
+  h6 {
+    font-size: calc(var(--yoopta-font-size-h6) * var(--yoopta-font-scale));
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ========== Paragraph (Yoopta Paragraph 플러그인) ========== */
+  p {
+    font-size: calc(var(--yoopta-font-size-base) * var(--yoopta-font-scale));
+    line-height: var(--yoopta-line-height-base);
+    margin: 0; // Yoopta가 자체로 margin 관리하는 경우도 있어서 안전하게 0
+  }
+
+  /* ========== Blockquote (Yoopta Blockquote 플러그인) ========== */
+  blockquote {
+    font-size: calc(var(--yoopta-font-size-base) * var(--yoopta-font-scale));
+    line-height: var(--yoopta-line-height-base);
+    font-style: italic;
+  }
+
+  /* ========== Lists (Yoopta Lists 플러그인) ========== */
+  ul,
+  ol {
+    font-size: calc(var(--yoopta-font-size-base) * var(--yoopta-font-scale));
+    line-height: var(--yoopta-line-height-base);
+  }
+
+  li {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* ========== Code Block / Inline Code (Yoopta Code 플러그인) ========== */
+  pre,
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace;
+  }
+
+  pre {
+    font-size: calc(0.9rem * var(--yoopta-font-scale));
+    line-height: 1.5;
+  }
+
+  code {
+    font-size: calc(0.9rem * var(--yoopta-font-scale));
+  }
+
+  /* ========== Table (Yoopta Table 플러그인) ========== */
+  table {
+    font-size: calc(0.95rem * var(--yoopta-font-scale));
+  }
+
+  th,
+  td {
+    font-size: inherit;
+    line-height: 1.4;
+  }
+
+  /* ========== Callout, Caption 등 (Yoopta Callout 등) ========== */
+  [data-plugin-id="Callout"] {
+    font-size: calc(var(--yoopta-font-size-base) * var(--yoopta-font-scale));
+  }
+
+  [data-yoo-caption],
+  .yoopta-caption {
+    font-size: calc(var(--yoopta-font-size-small) * var(--yoopta-font-scale));
+    line-height: 1.4;
+  }
+
+  /* ========== 배율 프리셋 (클래스 토글용) ========== */
+  &.editor--sm {
+    --yoopta-font-scale: 0.9;
+  }
+
+  &.editor--lg {
+    --yoopta-font-scale: 1.1;
+  }
+
+  &.editor--xl {
+    --yoopta-font-scale: 1.25;
   }
 }
 
@@ -23,6 +152,17 @@
   }
 
   .editor {
+    :global(.yoopta-block-action-buttons) {
+      svg {
+        color: $dark-menu-button-text;
+      }
+    }
+
+    :global(.yoopta-block-options-menu-content) {
+      background-color: $dark-toolbar-bg;
+      border: 0.5px solid $dark-toolbar-border;
+    }
+
     :global(.yoopta-toolbar-root) {
       background-color: $dark-toolbar-bg;
       border: 0.5px solid $dark-toolbar-border;

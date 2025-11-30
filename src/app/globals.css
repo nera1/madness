@@ -10,6 +10,10 @@
   font-display: swap;
 }
 
+div[data-floating-ui-portal] > div {
+  z-index: 100;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

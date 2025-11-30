@@ -254,7 +254,7 @@ export default function NotionLikePage() {
   };
 
   return (
-    <main className="w-[720px] flex flex-col gap-y-1">
+    <main className="w-[840px] flex flex-col gap-y-1 m-3">
       <div
         className={`${styles["headline-block"]} p-2 rounded-sm`}
         onKeyDownCapture={(e) => {
@@ -315,8 +315,8 @@ export default function NotionLikePage() {
           value={value}
           autoFocus={false}
           onChange={handleBodyChange}
-          className={`${styles["editor"]} ${styles["content"]} !w-full !pb-8`}
-          placeholder="내용을 입력하세요. '/' 를 눌러 블록을 추가할 수 있습니다."
+          className={`${styles["editor"]} ${styles["content"]} !w-full !pb-6`}
+          placeholder="'/' 를 눌러 블록을 추가할 수 있습니다."
         />
       </div>
     </main>
