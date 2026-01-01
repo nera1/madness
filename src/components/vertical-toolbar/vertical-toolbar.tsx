@@ -16,6 +16,16 @@ const tools = [
   { icon: Keyboard, label: "shortcuts" },
 ];
 
+// ---- webkit 타입 확장 (any 사용 X)
+type WebkitFullscreenDocument = Document & {
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => Promise<void> | void;
+};
+
+type WebkitFullscreenElement = HTMLElement & {
+  webkitRequestFullscreen?: () => Promise<void> | void;
+};
+
 type Props = {
   fullscreenTargetRef: React.RefObject<HTMLElement | null>;
 };
@@ -27,27 +37,32 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
 
   React.useEffect(() => setMounted(true), []);
 
-  // fullscreen 상태 동기화 (ESC로 빠져나오는 경우 포함)
   React.useEffect(() => {
     if (!mounted) return;
+
+    const doc = document as WebkitFullscreenDocument;
 
     const onChange = () => {
       const el = fullscreenTargetRef.current;
       const fsEl =
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        null;
-
+        document.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
       setIsFullscreen(!!el && fsEl === el);
     };
 
     document.addEventListener("fullscreenchange", onChange);
-    document.addEventListener("webkitfullscreenchange", onChange as any);
+    // 사파리 호환 이벤트 (타입엔 없을 수 있어서 as unknown as EventListener로 안전 캐스팅)
+    document.addEventListener(
+      "webkitfullscreenchange",
+      onChange as unknown as EventListener
+    );
 
     onChange();
     return () => {
       document.removeEventListener("fullscreenchange", onChange);
-      document.removeEventListener("webkitfullscreenchange", onChange as any);
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        onChange as unknown as EventListener
+      );
     };
   }, [mounted, fullscreenTargetRef]);
 
@@ -57,29 +72,29 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
   const toggleTheme = () => setTheme(isDark ? "light" : "dark");
 
   const enterFullscreen = async () => {
-    const el = fullscreenTargetRef.current;
+    const el = fullscreenTargetRef.current as WebkitFullscreenElement | null;
     if (!el) return;
 
     try {
       if (el.requestFullscreen) await el.requestFullscreen();
-      else if ((el as any).webkitRequestFullscreen)
-        (el as any).webkitRequestFullscreen();
+      else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
     } catch {
-      // 권한/환경에 따라 실패할 수 있음 (사용자 제스처 없을 때 등)
+      // 사용자 제스처 없거나 브라우저 정책에 의해 실패할 수 있음
     }
   };
 
   const exitFullscreen = async () => {
+    const doc = document as WebkitFullscreenDocument;
+
     try {
       if (document.exitFullscreen) await document.exitFullscreen();
-      else if ((document as any).webkitExitFullscreen)
-        (document as any).webkitExitFullscreen();
+      else if (doc.webkitExitFullscreen) await doc.webkitExitFullscreen();
     } catch {}
   };
 
   const toggleFullscreen = () => {
-    if (isFullscreen) exitFullscreen();
-    else enterFullscreen();
+    if (isFullscreen) void exitFullscreen();
+    else void enterFullscreen();
   };
 
   return (
