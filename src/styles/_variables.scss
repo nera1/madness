@@ -1,9 +1,17 @@
-$neutral-50: #fafafa;
+// ============================================
+// Raw Neutral Color Palette
+// Follows Tailwind CSS neutral scale (hex)
+// Used where SCSS functions like rgba() are needed.
+// For theme-aware colors, use CSS custom properties
+// (--editor-*, --background, etc.) from globals.css.
+// ============================================
+
+$neutral-50:  #fafafa;
 $neutral-100: #f5f5f5;
 $neutral-200: #e5e5e5;
 $neutral-300: #d4d4d4;
 $neutral-400: #a3a3a3;
-$neutral-500: #e5e5e5;
+$neutral-500: #737373; // was incorrectly #e5e5e5 (neutral-200)
 $neutral-600: #525252;
 $neutral-700: #404040;
 $neutral-800: #262626;
@@ -13,39 +21,7 @@ $neutral-950: #0a0a0a;
 $white: #ffffff;
 $black: #000000;
 
+// ============================================
+// Transitions
+// ============================================
 $transition-fast: 0.15s;
-
-$dark-block-hover-bg: rgba($neutral-400, 0.08);
-
-$dark-toolbar-bg: $neutral-900;
-$dark-toolbar-border: rgba($neutral-50, 0.08);
-
-$dark-menu-border: rgba($neutral-50, 0.04);
-
-$dark-toolbar-button-text: $neutral-200;
-$dark-toolbar-button-hover-bg: rgba($neutral-50, 0.08);
-$dark-toolbar-button-active-bg: rgba($neutral-50, 0.14);
-
-$dark-menu-button-text: $neutral-200;
-$dark-menu-button-selected-bg: $neutral-800;
-$dark-menu-button-selected-text: $neutral-50;
-
-$dark-menu-button-hover-bg: rgba($neutral-50, 0.04);
-
-$light-block-hover-bg: rgba($neutral-900, 0.04);
-
-$light-toolbar-bg: $neutral-100;
-$light-toolbar-border: rgba($black, 0.06);
-
-$light-toolbar-button-text: $neutral-900;
-$light-toolbar-button-hover-bg: rgba($black, 0.04);
-$light-toolbar-button-active-bg: rgba($black, 0.08);
-
-$light-menu-border: rgba($black, 0.06);
-$light-menu-shadow: 0 18px 45px rgba($black, 0.12);
-$light-menu-bg: $white;
-
-$light-menu-button-text: $neutral-900;
-$light-menu-button-selected-bg: $neutral-200;
-$light-menu-button-selected-text: $neutral-900;
-$light-menu-button-hover-bg: rgba($black, 0.04);

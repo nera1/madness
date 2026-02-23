@@ -11,7 +11,7 @@ export default function Home() {
     <div className="flex min-h-screen items-center justify-center font-sans dark:bg-black">
       <main
         ref={mainRef}
-        className="flex min-h-screen w-full items-center justify-center pt-24 pb-32 px-12 bg-white dark:bg-black"
+        className="flex min-h-screen w-full items-start sm:items-center justify-center pt-12 pb-28 px-4 sm:pt-24 sm:pb-32 sm:px-8 md:px-12 bg-white dark:bg-black"
       >
         <VerticalToolbar fullscreenTargetRef={mainRef} />
         <Editor />

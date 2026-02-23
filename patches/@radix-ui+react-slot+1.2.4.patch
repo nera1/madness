@@ -1,0 +1,30 @@
+diff --git a/node_modules/@radix-ui/react-slot/dist/index.js b/node_modules/@radix-ui/react-slot/dist/index.js
+index 3691205..f74b77e 100644
+--- a/node_modules/@radix-ui/react-slot/dist/index.js
++++ b/node_modules/@radix-ui/react-slot/dist/index.js
+@@ -137,16 +137,20 @@ function mergeProps(slotProps, childProps) {
+   return { ...slotProps, ...overrideProps };
+ }
+ function getElementRef(element) {
+-  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
++  // Check element.ref first: React 18.3+/Next.js 15 bundles a React version
++  // where BOTH element.ref and element.props.ref have isReactWarning getters.
++  // Checking element.ref first ensures we use element.props.ref (the React 19
++  // compatible path) without triggering the deprecation warning.
++  let getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
+   let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+   if (mayWarn) {
+-    return element.ref;
++    return element.props.ref;
+   }
+-  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
++  getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
+   mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+   if (mayWarn) {
+-    return element.props.ref;
++    return element.ref;
+   }
+-  return element.props.ref || element.ref;
++  return element.props.ref !== undefined ? element.props.ref : element.ref;
+ }
+ //# sourceMappingURL=index.js.map

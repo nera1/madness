@@ -50,10 +50,9 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
     };
 
     document.addEventListener("fullscreenchange", onChange);
-    // 사파리 호환 이벤트 (타입엔 없을 수 있어서 as unknown as EventListener로 안전 캐스팅)
     document.addEventListener(
       "webkitfullscreenchange",
-      onChange as unknown as EventListener
+      onChange as unknown as EventListener,
     );
 
     onChange();
@@ -61,7 +60,7 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
       document.removeEventListener("fullscreenchange", onChange);
       document.removeEventListener(
         "webkitfullscreenchange",
-        onChange as unknown as EventListener
+        onChange as unknown as EventListener,
       );
     };
   }, [mounted, fullscreenTargetRef]);
@@ -78,9 +77,7 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
     try {
       if (el.requestFullscreen) await el.requestFullscreen();
       else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-    } catch {
-      // 사용자 제스처 없거나 브라우저 정책에 의해 실패할 수 있음
-    }
+    } catch {}
   };
 
   const exitFullscreen = async () => {
@@ -97,9 +94,77 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
     else void enterFullscreen();
   };
 
+  const btnClass =
+    "h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent";
+
+  const renderButtons = (side: "left" | "top") => (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className={btnClass}
+          >
+            {isDark ? (
+              <Sun className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Moon className="h-4 w-4" aria-hidden="true" />
+            )}
+            <span className="sr-only">테마 토글</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side={side}>
+          {isDark ? "to light" : "to dark"}
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={toggleFullscreen}
+            className={btnClass}
+          >
+            {isFullscreen ? (
+              <Minimize2 className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Maximize2 className="h-4 w-4" aria-hidden="true" />
+            )}
+            <span className="sr-only">전체화면 토글</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side={side}>
+          {isFullscreen ? "exit fullscreen" : "fullscreen"}
+        </TooltipContent>
+      </Tooltip>
+
+      {tools.map((tool) => (
+        <Tooltip key={tool.label}>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={btnClass}
+            >
+              <tool.icon className="h-4 w-4" aria-hidden="true" />
+              <span className="sr-only">{tool.label}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side={side}>{tool.label}</TooltipContent>
+        </Tooltip>
+      ))}
+    </>
+  );
+
   return (
     <TooltipProvider>
-      <div className="fixed inset-y-0 right-0 z-50 group">
+      <div className="hidden sm:block fixed inset-y-0 right-0 z-50 group">
         <div className="relative flex h-full items-center">
           <div className="absolute inset-y-0 right-0 w-10" />
 
@@ -107,77 +172,26 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
             role="toolbar"
             aria-label="tools"
             className="
-              mr-4 flex flex-col items-center gap-2 rounded-sm border bg-background/80 p-2
+              mr-4 flex flex-col items-center gap-2 rounded-xl border bg-background/80 p-2
               shadow-lg backdrop-blur
               translate-x-full opacity-0
               group-hover:translate-x-0 group-hover:opacity-100
               transition-all duration-300 ease-in-out
             "
           >
-            {/* Theme */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleTheme}
-                  className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
-                >
-                  {isDark ? (
-                    <Sun className="h-4 w-4" aria-hidden="true" />
-                  ) : (
-                    <Moon className="h-4 w-4" aria-hidden="true" />
-                  )}
-                  <span className="sr-only">테마 토글</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                {isDark ? "to light" : "to dark"}
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Fullscreen */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleFullscreen}
-                  className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
-                >
-                  {isFullscreen ? (
-                    <Minimize2 className="h-4 w-4" aria-hidden="true" />
-                  ) : (
-                    <Maximize2 className="h-4 w-4" aria-hidden="true" />
-                  )}
-                  <span className="sr-only">전체화면 토글</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                {isFullscreen ? "exit fullscreen" : "fullscreen"}
-              </TooltipContent>
-            </Tooltip>
-
-            {tools.map((tool) => (
-              <Tooltip key={tool.label}>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
-                  >
-                    <tool.icon className="h-4 w-4" aria-hidden="true" />
-                    <span className="sr-only">{tool.label}</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">{tool.label}</TooltipContent>
-              </Tooltip>
-            ))}
+            {renderButtons("left")}
           </aside>
         </div>
+      </div>
+
+      <div className="sm:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+        <aside
+          role="toolbar"
+          aria-label="tools"
+          className="flex flex-row items-center gap-1 rounded-xl border bg-background/80 px-2 py-1.5 shadow-lg backdrop-blur"
+        >
+          {renderButtons("top")}
+        </aside>
       </div>
     </TooltipProvider>
   );

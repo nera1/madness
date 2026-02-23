@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const r = require\\(''/c/Users/nera/Desktop/madness/node_modules/react/package.json''\\); console.log\\(''react:'', r.version\\)\")",
+      "Bash(node -e:*)",
+      "Bash(python -c:*)",
+      "Bash(npm install:*)",
+      "Bash(npx patch-package:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(where:*)",
+      "Bash(command -v npm:*)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(lsof:*)",
+      "Bash(netstat:*)",
+      "Bash(ss:*)"
+    ]
+  }
+}

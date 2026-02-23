@@ -61,6 +61,8 @@ div[data-floating-ui-portal] > div {
     BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   --radius: 0.625rem;
+
+  /* ---- Base Semantic Tokens ---- */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -92,9 +94,25 @@ div[data-floating-ui-portal] > div {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ---- Editor Semantic Tokens (light) ---- */
+  --editor-toolbar-bg: oklch(0.97 0 0);
+  --editor-toolbar-border: oklch(0 0 0 / 6%);
+  --editor-menu-bg: oklch(1 0 0);
+  --editor-menu-border: oklch(0 0 0 / 6%);
+  --editor-menu-shadow: 0 18px 45px oklch(0 0 0 / 12%);
+  --editor-text: oklch(0.205 0 0);
+  --editor-button-hover: oklch(0 0 0 / 4%);
+  --editor-button-active: oklch(0 0 0 / 8%);
+  --editor-block-hover: oklch(0 0 0 / 4%);
+  --editor-selected-bg: oklch(0.922 0 0);
+  --editor-selected-text: oklch(0.205 0 0);
+  --editor-swatch-selected: oklch(0.922 0 0);
+  --editor-swatch-hover: oklch(0.864 0 0);
 }
 
 .dark {
+  /* ---- Base Semantic Tokens ---- */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -126,6 +144,21 @@ div[data-floating-ui-portal] > div {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* ---- Editor Semantic Tokens (dark) ---- */
+  --editor-toolbar-bg: oklch(0.145 0 0);
+  --editor-toolbar-border: oklch(1 0 0 / 8%);
+  --editor-menu-bg: oklch(0.145 0 0);
+  --editor-menu-border: oklch(1 0 0 / 4%);
+  --editor-menu-shadow: none;
+  --editor-text: oklch(0.922 0 0);
+  --editor-button-hover: oklch(1 0 0 / 8%);
+  --editor-button-active: oklch(1 0 0 / 14%);
+  --editor-block-hover: oklch(1 0 0 / 8%);
+  --editor-selected-bg: oklch(0.269 0 0);
+  --editor-selected-text: oklch(0.985 0 0);
+  --editor-swatch-selected: oklch(0.4 0 0);
+  --editor-swatch-hover: oklch(0.333 0 0);
 }
 
 @layer base {
