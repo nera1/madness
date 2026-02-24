@@ -85,7 +85,8 @@ const createBodyValue = (): YooptaContentValue => ({
 
 // ──────────────────────────────────────────────────────────────────────────────
 // HeadlineInput
-// "# " / "## " / "### " 입력 시 h1/h2/h3 스타일로 전환하는 단순 contentEditable
+// "# " / "## " / "### " 입력 시 실제 h1/h2/h3 시맨틱 태그로 전환하는
+// contentEditable 제목 입력 컴포넌트 (Yoopta 바디 에디터와 동일한 동작)
 // ──────────────────────────────────────────────────────────────────────────────
 
 type HeadingLevel = "h1" | "h2" | "h3" | "p";
@@ -96,6 +97,13 @@ const HEADING_CLASS: Record<HeadingLevel, string> = {
   h2: "text-[2.25rem] font-bold leading-[1.25]",
   h3: "text-[1.8rem] font-semibold leading-[1.3]",
   p: "text-[1.125rem] leading-[1.6]",
+};
+
+const PLACEHOLDER_TEXT: Record<HeadingLevel, string> = {
+  h1: "제목 1",
+  h2: "제목 2",
+  h3: "제목 3",
+  p: "제목을 입력하세요",
 };
 
 function detectPrefix(text: string): { level: HeadingLevel; prefix: string } {
@@ -119,25 +127,48 @@ type HeadlineInputProps = {
   autoFocus?: boolean;
 };
 
-function HeadlineInput({ onTab, autoFocus }: HeadlineInputProps) {
-  const divRef = useRef<HTMLDivElement>(null);
+// react-best-practices: memo로 부모 리렌더 시 불필요한 재실행 방지
+const HeadlineInput = React.memo(function HeadlineInput({ onTab, autoFocus }: HeadlineInputProps) {
+  const elRef = useRef<HTMLElement | null>(null);
   const isComposingRef = useRef(false);
+  const levelRef = useRef<HeadingLevel>("p");
+  const pendingRef = useRef<{ content: string } | null>(null);
+
   const [level, setLevel] = useState<HeadingLevel>("p");
   const [isEmpty, setIsEmpty] = useState(true);
 
+  // 콜백 ref — 태그 전환 시에도 안전하게 DOM 노드 참조 유지
+  const setElRef = useCallback((node: HTMLElement | null) => {
+    elRef.current = node;
+  }, []);
+
+  // 태그 전환 후 (level 변경) 콘텐츠 복원 및 포커스 이동
   useEffect(() => {
-    if (autoFocus) divRef.current?.focus();
+    const el = elRef.current;
+    if (!el || pendingRef.current === null) return;
+
+    const { content } = pendingRef.current;
+    el.textContent = content;
+    el.focus();
+    if (content.length > 0) moveCursorToEnd(el);
+    pendingRef.current = null;
+  }, [level]);
+
+  useEffect(() => {
+    if (autoFocus) elRef.current?.focus();
   }, [autoFocus]);
 
+  // react-best-practices: ref 기반 비교로 의존성 배열 비움 → 안정적 참조
   const applyDetection = useCallback(() => {
     // IME 조합 중에는 실행하지 않음 (한국어/일본어 등 입력 버그 방지)
     if (isComposingRef.current) return;
 
-    const el = divRef.current;
+    const el = elRef.current;
     if (!el) return;
 
-    // contentEditable은 마지막에 \n을 붙이는 경우가 있어 제거
-    const raw = el.innerText;
+    // contentEditable은 후행 공백을 &nbsp;(\u00A0)로 삽입하므로
+    // 일반 공백으로 정규화해야 "# " 접두사를 즉시 감지할 수 있음
+    const raw = (el.textContent ?? "").replace(/\u00A0/g, " ");
     const text = raw.endsWith("\n") ? raw.slice(0, -1) : raw;
 
     setIsEmpty(text.length === 0);
@@ -145,10 +176,18 @@ function HeadlineInput({ onTab, autoFocus }: HeadlineInputProps) {
     const { level: newLevel, prefix } = detectPrefix(text);
     if (prefix) {
       const clean = text.slice(prefix.length);
-      setLevel(newLevel);
-      el.innerText = clean;
       setIsEmpty(clean.length === 0);
-      moveCursorToEnd(el);
+
+      if (newLevel !== levelRef.current) {
+        // 태그가 바뀌므로 콘텐츠를 ref에 저장 → useEffect에서 복원
+        pendingRef.current = { content: clean };
+        levelRef.current = newLevel;
+        setLevel(newLevel);
+      } else {
+        // 같은 레벨 → DOM에서 직접 접두사 제거
+        el.textContent = clean;
+        moveCursorToEnd(el);
+      }
     }
   }, []);
 
@@ -156,8 +195,17 @@ function HeadlineInput({ onTab, autoFocus }: HeadlineInputProps) {
     if (!isComposingRef.current) applyDetection();
   }, [applyDetection]);
 
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+  }, []);
+
+  const handleCompositionEnd = useCallback(() => {
+    isComposingRef.current = false;
+    applyDetection();
+  }, [applyDetection]);
+
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
+    (e: React.KeyboardEvent<HTMLElement>) => {
       // 줄바꿈 금지
       if (e.key === "Enter") {
         e.preventDefault();
@@ -172,17 +220,21 @@ function HeadlineInput({ onTab, autoFocus }: HeadlineInputProps) {
       }
 
       // 내용이 비어 있을 때 Backspace → 헤딩 레벨 초기화
-      if (e.key === "Backspace" && level !== "p") {
-        const text = (divRef.current?.innerText ?? "").replace(/\n/g, "");
-        if (text.length === 0) setLevel("p");
+      if (e.key === "Backspace" && levelRef.current !== "p") {
+        const text = (elRef.current?.textContent ?? "").replace(/\n/g, "");
+        if (text.length === 0) {
+          pendingRef.current = { content: "" };
+          levelRef.current = "p";
+          setLevel("p");
+        }
       }
     },
-    [level, onTab]
+    [onTab],
   );
 
   // 붙여넣기 시 줄바꿈 제거 후 plain text로만 삽입
   const handlePaste = useCallback(
-    (e: React.ClipboardEvent<HTMLDivElement>) => {
+    (e: React.ClipboardEvent<HTMLElement>) => {
       e.preventDefault();
       const plain = e.clipboardData
         .getData("text/plain")
@@ -195,8 +247,11 @@ function HeadlineInput({ onTab, autoFocus }: HeadlineInputProps) {
       range.collapse(false);
       setTimeout(applyDetection, 0);
     },
-    [applyDetection]
+    [applyDetection],
   );
+
+  // Yoopta 바디와 동일하게 실제 시맨틱 태그 사용 (h1/h2/h3/div)
+  const Tag = level === "p" ? "div" : level;
 
   return (
     <div className="relative w-full">
@@ -205,11 +260,11 @@ function HeadlineInput({ onTab, autoFocus }: HeadlineInputProps) {
           aria-hidden="true"
           className={`absolute inset-0 pl-[2px] pointer-events-none select-none text-muted-foreground ${HEADING_CLASS[level]}`}
         >
-          제목을 입력하세요
+          {PLACEHOLDER_TEXT[level]}
         </div>
       )}
-      <div
-        ref={divRef}
+      <Tag
+        ref={setElRef}
         role="textbox"
         aria-label="제목"
         aria-multiline="false"
@@ -219,13 +274,13 @@ function HeadlineInput({ onTab, autoFocus }: HeadlineInputProps) {
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
-        onCompositionStart={() => { isComposingRef.current = true; }}
-        onCompositionEnd={() => { isComposingRef.current = false; applyDetection(); }}
-        className={`outline-none w-full break-words pl-[2px] ${HEADING_CLASS[level]}`}
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
+        className={`outline-none w-full break-words pl-[2px] m-0 ${HEADING_CLASS[level]}`}
       />
     </div>
   );
-}
+});
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Editor

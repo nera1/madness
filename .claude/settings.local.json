@@ -13,7 +13,9 @@
       "Bash(ls:*)",
       "Bash(lsof:*)",
       "Bash(netstat:*)",
-      "Bash(ss:*)"
+      "Bash(ss:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npm run build:*)"
     ]
   }
 }

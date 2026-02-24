@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { useIsMounted } from "@/lib/use-is-mounted";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -10,11 +11,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Keyboard, Moon, Sun, Save, Maximize2, Minimize2 } from "lucide-react";
 import { useTheme } from "next-themes";
-
-const tools = [
-  { icon: Save, label: "save" },
-  { icon: Keyboard, label: "shortcuts" },
-];
 
 // ---- webkit 타입 확장 (any 사용 X)
 type WebkitFullscreenDocument = Document & {
@@ -30,14 +26,109 @@ type Props = {
   fullscreenTargetRef: React.RefObject<HTMLElement | null>;
 };
 
+const tools = [
+  { icon: Save, label: "저장" },
+  { icon: Keyboard, label: "단축키" },
+];
+
+const btnClass =
+  "h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent";
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ToolbarButtons (composition-patterns: renderX prop → 독립 컴포넌트)
+// ──────────────────────────────────────────────────────────────────────────────
+
+type ToolbarButtonsProps = {
+  side: "left" | "top";
+  isDark: boolean;
+  isFullscreen: boolean;
+  onToggleTheme: () => void;
+  onToggleFullscreen: () => void;
+};
+
+function ToolbarButtons({
+  side,
+  isDark,
+  isFullscreen,
+  onToggleTheme,
+  onToggleFullscreen,
+}: ToolbarButtonsProps) {
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onToggleTheme}
+            aria-label={isDark ? "라이트 모드로 전환" : "다크 모드로 전환"}
+            className={btnClass}
+          >
+            {isDark ? (
+              <Sun className="h-3.5 w-3.5" aria-hidden="true" />
+            ) : (
+              <Moon className="h-3.5 w-3.5" aria-hidden="true" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side={side}>
+          {isDark ? "라이트 모드" : "다크 모드"}
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onToggleFullscreen}
+            aria-label={isFullscreen ? "전체화면 종료" : "전체화면"}
+            className={btnClass}
+          >
+            {isFullscreen ? (
+              <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
+            ) : (
+              <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side={side}>
+          {isFullscreen ? "전체화면 종료" : "전체화면"}
+        </TooltipContent>
+      </Tooltip>
+
+      {tools.map((tool) => (
+        <Tooltip key={tool.label}>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={tool.label}
+              className={btnClass}
+            >
+              <tool.icon className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side={side}>{tool.label}</TooltipContent>
+        </Tooltip>
+      ))}
+    </>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// VerticalToolbar
+// ──────────────────────────────────────────────────────────────────────────────
+
 const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const mounted = useIsMounted();
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  React.useEffect(() => setMounted(true), []);
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mounted) return;
 
     const doc = document as WebkitFullscreenDocument;
@@ -65,132 +156,80 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
     };
   }, [mounted, fullscreenTargetRef]);
 
-  if (!mounted) return null;
-
-  const isDark = resolvedTheme === "dark";
-  const toggleTheme = () => setTheme(isDark ? "light" : "dark");
-
-  const enterFullscreen = async () => {
+  // react-best-practices: useCallback으로 안정적인 핸들러 참조 유지
+  const enterFullscreen = useCallback(async () => {
     const el = fullscreenTargetRef.current as WebkitFullscreenElement | null;
     if (!el) return;
-
     try {
       if (el.requestFullscreen) await el.requestFullscreen();
       else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
     } catch {}
-  };
+  }, [fullscreenTargetRef]);
 
-  const exitFullscreen = async () => {
+  const exitFullscreen = useCallback(async () => {
     const doc = document as WebkitFullscreenDocument;
-
     try {
       if (document.exitFullscreen) await document.exitFullscreen();
       else if (doc.webkitExitFullscreen) await doc.webkitExitFullscreen();
     } catch {}
-  };
+  }, []);
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = useCallback(() => {
     if (isFullscreen) void exitFullscreen();
     else void enterFullscreen();
-  };
+  }, [isFullscreen, exitFullscreen, enterFullscreen]);
 
-  const btnClass =
-    "h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent";
+  const toggleTheme = useCallback(() => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  }, [resolvedTheme, setTheme]);
 
-  const renderButtons = (side: "left" | "top") => (
-    <>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className={btnClass}
-          >
-            {isDark ? (
-              <Sun className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <Moon className="h-4 w-4" aria-hidden="true" />
-            )}
-            <span className="sr-only">테마 토글</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side={side}>
-          {isDark ? "to light" : "to dark"}
-        </TooltipContent>
-      </Tooltip>
+  if (!mounted) return null;
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={toggleFullscreen}
-            className={btnClass}
-          >
-            {isFullscreen ? (
-              <Minimize2 className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <Maximize2 className="h-4 w-4" aria-hidden="true" />
-            )}
-            <span className="sr-only">전체화면 토글</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side={side}>
-          {isFullscreen ? "exit fullscreen" : "fullscreen"}
-        </TooltipContent>
-      </Tooltip>
-
-      {tools.map((tool) => (
-        <Tooltip key={tool.label}>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={btnClass}
-            >
-              <tool.icon className="h-4 w-4" aria-hidden="true" />
-              <span className="sr-only">{tool.label}</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side={side}>{tool.label}</TooltipContent>
-        </Tooltip>
-      ))}
-    </>
-  );
+  const isDark = resolvedTheme === "dark";
 
   return (
     <TooltipProvider>
+      {/* 데스크톱: 오른쪽 사이드 툴바 */}
       <div className="hidden sm:block fixed inset-y-0 right-0 z-50 group">
         <div className="relative flex h-full items-center">
           <div className="absolute inset-y-0 right-0 w-10" />
 
           <aside
             role="toolbar"
-            aria-label="tools"
+            aria-label="도구"
             className="
-              mr-4 flex flex-col items-center gap-2 rounded-xl border bg-background/80 p-2
+              mr-3 flex flex-col items-center gap-1.5 rounded-lg border bg-background/80 p-1.5
               shadow-lg backdrop-blur
               translate-x-full opacity-0
               group-hover:translate-x-0 group-hover:opacity-100
-              transition-all duration-300 ease-in-out
+              transition-[transform,opacity] duration-300 ease-in-out
             "
           >
-            {renderButtons("left")}
+            <ToolbarButtons
+              side="left"
+              isDark={isDark}
+              isFullscreen={isFullscreen}
+              onToggleTheme={toggleTheme}
+              onToggleFullscreen={toggleFullscreen}
+            />
           </aside>
         </div>
       </div>
 
+      {/* 모바일: 하단 센터 툴바 */}
       <div className="sm:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
         <aside
           role="toolbar"
-          aria-label="tools"
-          className="flex flex-row items-center gap-1 rounded-xl border bg-background/80 px-2 py-1.5 shadow-lg backdrop-blur"
+          aria-label="도구"
+          className="flex flex-row items-center gap-1 rounded-lg border bg-background/80 px-1.5 py-1 shadow-lg backdrop-blur"
         >
-          {renderButtons("top")}
+          <ToolbarButtons
+            side="top"
+            isDark={isDark}
+            isFullscreen={isFullscreen}
+            onToggleTheme={toggleTheme}
+            onToggleFullscreen={toggleFullscreen}
+          />
         </aside>
       </div>
     </TooltipProvider>

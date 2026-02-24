@@ -59,6 +59,8 @@ div[data-floating-ui-portal] > div {
 :root {
   --font-geist-sans: "Pretendard Variable", system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-geist-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 
   --radius: 0.625rem;
 
@@ -168,4 +170,29 @@ div[data-floating-ui-portal] > div {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ---- Auth Modal 진입 애니메이션 ---- */
+@keyframes auth-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes auth-modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.auth-overlay-in {
+  animation: auth-overlay-in 0.2s ease-out both;
+}
+
+.auth-modal-in {
+  animation: auth-modal-in 0.2s ease-out both;
 }
