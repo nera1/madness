@@ -189,7 +189,6 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
 
   return (
     <TooltipProvider>
-      {/* 데스크톱: 오른쪽 사이드 툴바 */}
       <div className="hidden sm:block fixed inset-y-0 right-0 z-50 group">
         <div className="relative flex h-full items-center">
           <div className="absolute inset-y-0 right-0 w-10" />
@@ -216,7 +215,6 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
         </div>
       </div>
 
-      {/* 모바일: 하단 센터 툴바 */}
       <div className="sm:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
         <aside
           role="toolbar"
