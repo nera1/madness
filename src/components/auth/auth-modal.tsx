@@ -19,6 +19,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPSeparator,
+} from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { useIsMounted } from "@/lib/use-is-mounted";
 import { cn } from "@/lib/utils";
@@ -96,21 +102,255 @@ function FieldError({ message }: { message?: string }) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// VerifyCodeForm  —  6자리 인증 코드 입력
+// ──────────────────────────────────────────────────────────────────────────────
+
+function VerifyCodeForm({
+  email,
+  onVerified,
+}: {
+  email: string;
+  onVerified: () => void;
+}) {
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+  const [verified, setVerified] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // 재전송 쿨다운 타이머
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const handleVerify = useCallback(async () => {
+    if (code.length !== 6) return;
+
+    setLoading(true);
+    setError(undefined);
+
+    try {
+      const res = await fetch("/api/auth/email/verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code }),
+      });
+
+      if (!res.ok) {
+        let message = "인증에 실패했습니다";
+        try {
+          const data = await res.json();
+          if (data.message) message = data.message;
+        } catch {
+          if (res.status === 400) message = "인증 코드가 올바르지 않습니다";
+          if (res.status === 410) message = "인증 코드가 만료되었습니다";
+        }
+        setError(message);
+        setCode("");
+        return;
+      }
+
+      setVerified(true);
+    } catch {
+      setError("서버와 통신할 수 없습니다");
+    } finally {
+      setLoading(false);
+    }
+  }, [code, email, onVerified]);
+
+  // 6자리 모두 입력되면 자동 제출
+  const handleChange = useCallback(
+    (value: string) => {
+      setCode(value);
+      setError(undefined);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (code.length === 6) handleVerify();
+  }, [code, handleVerify]);
+
+  const handleResend = useCallback(async () => {
+    if (resendCooldown > 0) return;
+
+    setResending(true);
+    setError(undefined);
+
+    try {
+      const res = await fetch("/api/auth/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        setError("인증 메일 재전송에 실패했습니다");
+        return;
+      }
+
+      setResendCooldown(60);
+    } catch {
+      setError("서버와 통신할 수 없습니다");
+    } finally {
+      setResending(false);
+    }
+  }, [email, resendCooldown]);
+
+  if (verified) {
+    return (
+      <div className="flex flex-col items-center gap-5 py-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-primary"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <p className="text-base font-medium">이메일 인증이 완료되었습니다</p>
+          <p className="text-sm text-muted-foreground">
+            이제 로그인하여 서비스를 이용하실 수 있습니다.
+          </p>
+        </div>
+        <Button type="button" className="w-full" onClick={onVerified}>
+          로그인하기
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-5 py-2">
+      {/* 안내 문구 */}
+      <div className="flex flex-col items-center gap-1.5 text-center">
+        <p className="text-sm text-muted-foreground">
+          <strong className="text-foreground">{email}</strong>
+          <br />
+          으로 발송된 인증 코드를 입력해 주세요.
+        </p>
+      </div>
+
+      {/* 6자리 OTP 입력 */}
+      <div className="flex flex-col items-center gap-3">
+        <InputOTP
+          maxLength={6}
+          value={code}
+          onChange={handleChange}
+          disabled={loading}
+        >
+          <InputOTPGroup>
+            <InputOTPSlot index={0} />
+            <InputOTPSlot index={1} />
+            <InputOTPSlot index={2} />
+          </InputOTPGroup>
+          <InputOTPSeparator />
+          <InputOTPGroup>
+            <InputOTPSlot index={3} />
+            <InputOTPSlot index={4} />
+            <InputOTPSlot index={5} />
+          </InputOTPGroup>
+        </InputOTP>
+
+        {error && <FieldError message={error} />}
+
+        {loading && (
+          <p className="text-[13px] text-muted-foreground">인증 중…</p>
+        )}
+      </div>
+
+      {/* 재전송 */}
+      <p className="text-center text-sm text-muted-foreground">
+        메일을 받지 못하셨나요?{" "}
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={resendCooldown > 0 || resending}
+          className={cn(
+            "font-medium underline-offset-4 hover:underline transition-colors duration-150",
+            resendCooldown > 0 || resending
+              ? "text-muted-foreground cursor-not-allowed"
+              : "text-foreground",
+          )}
+        >
+          {resending
+            ? "전송 중…"
+            : resendCooldown > 0
+              ? `재전송 (${resendCooldown}초)`
+              : "다시 보내기"}
+        </button>
+      </p>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Form variants  (patterns-explicit-variants: boolean prop 대신 명시적 컴포넌트)
 // ──────────────────────────────────────────────────────────────────────────────
 
 function LoginForm() {
-  const { setMode } = useAuthContext();
+  const { setMode, close } = useAuthContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | undefined>();
 
-  const handleSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // TODO: 로그인 로직 연결
-  }, []);
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+
+      if (!email.trim() || !password) return;
+
+      setLoading(true);
+      setApiError(undefined);
+
+      try {
+        const res = await fetch("/api/auth/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!res.ok) {
+          let message = "로그인에 실패했습니다";
+          try {
+            const data = await res.json();
+            if (data.message) message = data.message;
+          } catch {
+            if (res.status === 401) message = "이메일 또는 비밀번호가 올바르지 않습니다";
+          }
+          setApiError(message);
+          return;
+        }
+
+        // 로그인 성공 — 모달 닫고 페이지 새로고침
+        close();
+        window.location.reload();
+      } catch {
+        setApiError("서버와 통신할 수 없습니다");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [email, password, close],
+  );
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      {apiError && (
+        <p role="alert" className="text-[13px] text-destructive leading-tight text-center">
+          {apiError}
+        </p>
+      )}
+
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="login-email">이메일</Label>
         <Input
@@ -137,8 +377,8 @@ function LoginForm() {
         />
       </div>
 
-      <Button type="submit" className="mt-1 w-full">
-        로그인
+      <Button type="submit" disabled={loading} className="mt-1 w-full">
+        {loading ? "로그인 중…" : "로그인"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
@@ -266,22 +506,7 @@ function SignupForm() {
   );
 
   if (signupSuccess) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-4">
-        <p className="text-center text-sm text-muted-foreground">
-          <strong className="text-foreground">{email}</strong>으로 인증 메일을 발송했습니다.
-          <br />
-          메일함을 확인해 주세요.
-        </p>
-        <Button
-          type="button"
-          className="w-full"
-          onClick={() => setMode("login")}
-        >
-          로그인하기
-        </Button>
-      </div>
-    );
+    return <VerifyCodeForm email={email} onVerified={() => setMode("login")} />;
   }
 
   return (

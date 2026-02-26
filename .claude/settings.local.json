@@ -15,7 +15,8 @@
       "Bash(netstat:*)",
       "Bash(ss:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx next build)"
     ]
   }
 }
