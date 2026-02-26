@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { useIsMounted } from "@/lib/use-is-mounted";
 import { cn } from "@/lib/utils";
 
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Context  (state-context-interface 패턴)
 // ──────────────────────────────────────────────────────────────────────────────
@@ -133,9 +134,10 @@ function VerifyCodeForm({
     setError(undefined);
 
     try {
-      const res = await fetch("/api/auth/email/verification", {
+      const res = await fetch("/auth/email/verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, code }),
       });
 
@@ -181,9 +183,10 @@ function VerifyCodeForm({
     setError(undefined);
 
     try {
-      const res = await fetch("/api/auth/resend", {
+      const res = await fetch("/auth/resend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email }),
       });
 
@@ -313,9 +316,10 @@ function LoginForm() {
       setApiError(undefined);
 
       try {
-        const res = await fetch("/api/auth/signin", {
+        const res = await fetch("/auth/signin", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ email, password }),
         });
 
@@ -467,9 +471,10 @@ function SignupForm() {
       setApiError(undefined);
 
       try {
-        const res = await fetch("/api/auth/signup", {
+        const res = await fetch("/auth/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ email, password, displayName }),
         });
 
