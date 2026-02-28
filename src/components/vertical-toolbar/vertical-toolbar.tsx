@@ -191,7 +191,7 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
     <TooltipProvider>
       <div className="hidden sm:block fixed inset-y-0 right-0 z-50 group">
         <div className="relative flex h-full items-center">
-          <div className="absolute inset-y-0 right-0 w-10" />
+          <div className="absolute inset-y-0 right-0 w-14" />
 
           <aside
             role="toolbar"
@@ -201,7 +201,8 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
               shadow-lg backdrop-blur
               translate-x-full opacity-0
               group-hover:translate-x-0 group-hover:opacity-100
-              transition-[transform,opacity] duration-300 ease-in-out
+              transition-[translate,opacity] duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]
+              will-change-[translate,opacity]
             "
           >
             <ToolbarButtons

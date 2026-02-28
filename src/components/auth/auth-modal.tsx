@@ -29,7 +29,6 @@ import { Label } from "@/components/ui/label";
 import { useIsMounted } from "@/lib/use-is-mounted";
 import { cn } from "@/lib/utils";
 
-
 // ──────────────────────────────────────────────────────────────────────────────
 // Context  (state-context-interface 패턴)
 // ──────────────────────────────────────────────────────────────────────────────
@@ -48,7 +47,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 function useAuthContext(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuthContext: <AuthModal> 내부에서만 사용하세요");
+  if (!ctx)
+    throw new Error("useAuthContext: <AuthModal> 내부에서만 사용하세요");
   return ctx;
 }
 
@@ -63,7 +63,8 @@ const DISPLAY_NAME_MAX = 16;
 
 function validateDisplayName(v: string): string | undefined {
   if (!v.trim()) return "닉네임을 입력해 주세요";
-  if (v.length > DISPLAY_NAME_MAX) return `닉네임은 ${DISPLAY_NAME_MAX}자 이내로 입력해 주세요`;
+  if (v.length > DISPLAY_NAME_MAX)
+    return `닉네임은 ${DISPLAY_NAME_MAX}자 이내로 입력해 주세요`;
   return undefined;
 }
 
@@ -77,7 +78,8 @@ function validatePassword(v: string): string | undefined {
   if (!v) return "비밀번호를 입력해 주세요";
   if (v.length < 8) return "비밀번호는 8자 이상이어야 합니다";
   if (v.length > 64) return "비밀번호는 64자 이내로 입력해 주세요";
-  if (!PASSWORD_RE.test(v)) return "영문, 숫자, 특수문자(~!@#$%^&*()_=+-)를 모두 포함해야 합니다";
+  if (!PASSWORD_RE.test(v))
+    return "영문, 숫자, 특수문자(~!@#$%^&*()_=+-)를 모두 포함해야 합니다";
   return undefined;
 }
 
@@ -164,13 +166,10 @@ function VerifyCodeForm({
   }, [code, email, onVerified]);
 
   // 6자리 모두 입력되면 자동 제출
-  const handleChange = useCallback(
-    (value: string) => {
-      setCode(value);
-      setError(undefined);
-    },
-    [],
-  );
+  const handleChange = useCallback((value: string) => {
+    setCode(value);
+    setError(undefined);
+  }, []);
 
   useEffect(() => {
     if (code.length === 6) handleVerify();
@@ -215,7 +214,11 @@ function VerifyCodeForm({
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </div>
         <div className="flex flex-col items-center gap-1.5 text-center">
@@ -329,7 +332,8 @@ function LoginForm() {
             const data = await res.json();
             if (data.message) message = data.message;
           } catch {
-            if (res.status === 401) message = "이메일 또는 비밀번호가 올바르지 않습니다";
+            if (res.status === 401)
+              message = "이메일 또는 비밀번호가 올바르지 않습니다";
           }
           setApiError(message);
           return;
@@ -350,7 +354,10 @@ function LoginForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       {apiError && (
-        <p role="alert" className="text-[13px] text-destructive leading-tight text-center">
+        <p
+          role="alert"
+          className="text-[13px] text-destructive leading-tight text-center"
+        >
           {apiError}
         </p>
       )}
@@ -517,7 +524,10 @@ function SignupForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       {apiError && (
-        <p role="alert" className="text-[13px] text-destructive leading-tight text-center">
+        <p
+          role="alert"
+          className="text-[13px] text-destructive leading-tight text-center"
+        >
           {apiError}
         </p>
       )}
@@ -536,7 +546,11 @@ function SignupForm() {
           onChange={(e) => setDisplayName(e.target.value)}
           onBlur={() => markTouched("displayName")}
           aria-invalid={showError("displayName") && !!errors.displayName}
-          aria-describedby={showError("displayName") && errors.displayName ? "err-displayName" : undefined}
+          aria-describedby={
+            showError("displayName") && errors.displayName
+              ? "err-displayName"
+              : undefined
+          }
         />
         {showError("displayName") && (
           <FieldError message={errors.displayName} />
@@ -556,7 +570,9 @@ function SignupForm() {
           onChange={handleEmailChange}
           onBlur={() => markTouched("email")}
           aria-invalid={showError("email") && !!errors.email}
-          aria-describedby={showError("email") && errors.email ? "err-email" : undefined}
+          aria-describedby={
+            showError("email") && errors.email ? "err-email" : undefined
+          }
         />
         {showError("email") && <FieldError message={errors.email} />}
       </div>
@@ -574,14 +590,20 @@ function SignupForm() {
           onChange={(e) => setPassword(e.target.value)}
           onBlur={() => markTouched("password")}
           aria-invalid={showError("password") && !!errors.password}
-          aria-describedby={showError("password") && errors.password ? "err-password" : undefined}
+          aria-describedby={
+            showError("password") && errors.password
+              ? "err-password"
+              : undefined
+          }
         />
-        {showError("password") && (
-          <FieldError message={errors.password} />
-        )}
+        {showError("password") && <FieldError message={errors.password} />}
       </div>
 
-      <Button type="submit" disabled={emailChecking || loading} className="mt-1 w-full">
+      <Button
+        type="submit"
+        disabled={emailChecking || loading}
+        className="mt-1 w-full"
+      >
         {emailChecking || loading ? "처리 중…" : "회원가입"}
       </Button>
 
