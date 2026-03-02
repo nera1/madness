@@ -7,10 +7,12 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { createPortal } from "react-dom";
 import { FocusScope } from "@radix-ui/react-focus-scope";
-import { UserRound, X } from "lucide-react";
+import { Layers, LogOut, UserRound, X } from "lucide-react";
+import { DeckModal } from "@/components/deck/deck-modal";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -35,12 +37,44 @@ import { cn } from "@/lib/utils";
 
 type AuthMode = "login" | "signup";
 
+type StoredUser = { email: string; displayName: string };
+
+const STORAGE_KEY = "madness_user";
+
+// ── useSyncExternalStore 를 통한 localStorage 유저 정보 구독 ──
+let _cachedRaw: string | null | undefined;
+let _cachedUser: StoredUser | null = null;
+
+function _subscribeStorage(cb: () => void) {
+  window.addEventListener("storage", cb);
+  return () => window.removeEventListener("storage", cb);
+}
+
+function _getSnapshot(): StoredUser | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw !== _cachedRaw) {
+      _cachedRaw = raw;
+      _cachedUser = raw ? JSON.parse(raw) : null;
+    }
+    return _cachedUser;
+  } catch {
+    return null;
+  }
+}
+
+function _getServerSnapshot(): StoredUser | null {
+  return null;
+}
+
 interface AuthContextValue {
   open: boolean;
   mode: AuthMode;
   openWith: (mode: AuthMode) => void;
   setMode: (mode: AuthMode) => void;
   close: () => void;
+  user: StoredUser | null;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -98,7 +132,7 @@ async function checkEmailDuplicate(email: string): Promise<boolean> {
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <p role="alert" className="text-[13px] text-destructive leading-tight">
+    <p role="alert" className="text-sm text-destructive leading-tight">
       {message}
     </p>
   );
@@ -269,7 +303,7 @@ function VerifyCodeForm({
         {error && <FieldError message={error} />}
 
         {loading && (
-          <p className="text-[13px] text-muted-foreground">인증 중…</p>
+          <p className="text-sm text-muted-foreground">인증 중…</p>
         )}
       </div>
 
@@ -339,7 +373,24 @@ function LoginForm() {
           return;
         }
 
-        // 로그인 성공 — 모달 닫고 페이지 새로고침
+        // 로그인 성공 — 유저 정보 저장 후 모달 닫고 새로고침
+        try {
+          const data = await res.json();
+          const info = data.data ?? data;
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              email: info.email ?? email,
+              displayName: info.displayName ?? "",
+            }),
+          );
+        } catch {
+          // 응답 파싱 실패 시 이메일만이라도 저장
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({ email, displayName: "" }),
+          );
+        }
         close();
         window.location.reload();
       } catch {
@@ -356,7 +407,7 @@ function LoginForm() {
       {apiError && (
         <p
           role="alert"
-          className="text-[13px] text-destructive leading-tight text-center"
+          className="text-sm text-destructive leading-tight text-center"
         >
           {apiError}
         </p>
@@ -526,7 +577,7 @@ function SignupForm() {
       {apiError && (
         <p
           role="alert"
-          className="text-[13px] text-destructive leading-tight text-center"
+          className="text-sm text-destructive leading-tight text-center"
         >
           {apiError}
         </p>
@@ -716,12 +767,101 @@ interface AuthModalTriggerProps {
 }
 
 function AuthModalTrigger({ className }: AuthModalTriggerProps) {
-  const { openWith } = useAuthContext();
+  const { openWith, user, logout } = useAuthContext();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deckModalOpen, setDeckModalOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [menuOpen]);
+
+  // ── 로그인 상태: 이니셜 버튼 + 드롭다운 메뉴 ──
+  if (user) {
+    const initial = (user.displayName || user.email)[0]?.toUpperCase() ?? "?";
+
+    return (
+      <div ref={containerRef} className={cn("relative", className)}>
+        <aside className="flex items-center rounded-lg border bg-background/80 p-1.5 shadow-lg backdrop-blur">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="계정 메뉴"
+            aria-expanded={menuOpen}
+            className="h-7 w-7 flex items-center justify-center rounded-md text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors duration-150"
+          >
+            {initial}
+          </button>
+        </aside>
+
+        {/* 드롭다운 메뉴 */}
+        {menuOpen && (
+          <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border bg-background shadow-lg py-2 z-10">
+            {/* 유저 정보 */}
+            <div className="px-3 py-2">
+              <p className="text-[13px] font-medium truncate">
+                {user.displayName || "사용자"}
+              </p>
+              <p className="text-[12px] text-muted-foreground truncate">
+                {user.email}
+              </p>
+            </div>
+
+            <div className="border-t my-1" />
+
+            {/* 내 프로젝트 */}
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                setDeckModalOpen(true);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            >
+              <Layers className="h-3.5 w-3.5" />
+              내 프로젝트
+            </button>
+
+            {/* 로그아웃 */}
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                logout();
+              }}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              로그아웃
+            </button>
+          </div>
+        )}
+
+        {/* 프로젝트 관리 모달 */}
+        <DeckModal
+          open={deckModalOpen}
+          onClose={() => setDeckModalOpen(false)}
+        />
+      </div>
+    );
+  }
+
+  // ── 비로그인 상태: 기존 동작 ──
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          {/* 툴바와 동일한 플로팅 패널 컨테이너 */}
           <aside
             className={cn(
               "flex items-center rounded-lg border bg-background/80 p-1.5 shadow-lg backdrop-blur",
@@ -755,6 +895,11 @@ interface AuthModalProps {
 function AuthModalRoot({ children }: AuthModalProps) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
+  const user = useSyncExternalStore(
+    _subscribeStorage,
+    _getSnapshot,
+    _getServerSnapshot,
+  );
 
   // rerender-functional-setstate: 콜백 내 상태 업데이트 안정화
   const openWith = useCallback((m: AuthMode) => {
@@ -764,8 +909,20 @@ function AuthModalRoot({ children }: AuthModalProps) {
 
   const close = useCallback(() => setOpen(false), []);
 
+  const logout = useCallback(async () => {
+    localStorage.removeItem(STORAGE_KEY);
+    try {
+      await fetch("/auth/signout", { credentials: "include" });
+    } catch {
+      // 실패해도 로컬 상태는 정리
+    }
+    window.location.reload();
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ open, mode, openWith, setMode, close }}>
+    <AuthContext.Provider
+      value={{ open, mode, openWith, setMode, close, user, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

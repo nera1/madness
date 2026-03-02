@@ -24,6 +24,7 @@ type WebkitFullscreenElement = HTMLElement & {
 
 type Props = {
   fullscreenTargetRef: React.RefObject<HTMLElement | null>;
+  onSave?: () => void;
 };
 
 const tools = [
@@ -44,6 +45,7 @@ type ToolbarButtonsProps = {
   isFullscreen: boolean;
   onToggleTheme: () => void;
   onToggleFullscreen: () => void;
+  onSave?: () => void;
 };
 
 function ToolbarButtons({
@@ -52,6 +54,7 @@ function ToolbarButtons({
   isFullscreen,
   onToggleTheme,
   onToggleFullscreen,
+  onSave,
 }: ToolbarButtonsProps) {
   return (
     <>
@@ -108,6 +111,7 @@ function ToolbarButtons({
               size="icon"
               aria-label={tool.label}
               className={btnClass}
+              onClick={tool.label === "저장" ? onSave : undefined}
             >
               <tool.icon className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
@@ -123,7 +127,7 @@ function ToolbarButtons({
 // VerticalToolbar
 // ──────────────────────────────────────────────────────────────────────────────
 
-const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
+const VerticalToolbar = ({ fullscreenTargetRef, onSave }: Props) => {
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useIsMounted();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -211,6 +215,7 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
               isFullscreen={isFullscreen}
               onToggleTheme={toggleTheme}
               onToggleFullscreen={toggleFullscreen}
+              onSave={onSave}
             />
           </aside>
         </div>
@@ -228,6 +233,7 @@ const VerticalToolbar = ({ fullscreenTargetRef }: Props) => {
             isFullscreen={isFullscreen}
             onToggleTheme={toggleTheme}
             onToggleFullscreen={toggleFullscreen}
+            onSave={onSave}
           />
         </aside>
       </div>
