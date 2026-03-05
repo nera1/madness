@@ -122,25 +122,49 @@ function moveCursorToEnd(el: HTMLElement) {
   sel?.addRange(range);
 }
 
+/** 외부에서 headline 현재 상태를 읽기 위한 ref 타입 */
+export type HeadlineHandle = {
+  getText: () => string;
+  getLevel: () => HeadingLevel;
+};
+
 type HeadlineInputProps = {
   onTab: () => void;
   autoFocus?: boolean;
+  initialText?: string;
+  initialLevel?: HeadingLevel;
+  headlineRef?: React.RefObject<HeadlineHandle | null>;
 };
 
 // react-best-practices: memo로 부모 리렌더 시 불필요한 재실행 방지
-const HeadlineInput = React.memo(function HeadlineInput({ onTab, autoFocus }: HeadlineInputProps) {
+const HeadlineInput = React.memo(function HeadlineInput({
+  onTab,
+  autoFocus,
+  initialText,
+  initialLevel,
+  headlineRef,
+}: HeadlineInputProps) {
   const elRef = useRef<HTMLElement | null>(null);
   const isComposingRef = useRef(false);
-  const levelRef = useRef<HeadingLevel>("p");
+  const levelRef = useRef<HeadingLevel>(initialLevel ?? "p");
   const pendingRef = useRef<{ content: string } | null>(null);
 
-  const [level, setLevel] = useState<HeadingLevel>("p");
-  const [isEmpty, setIsEmpty] = useState(true);
+  const [level, setLevel] = useState<HeadingLevel>(initialLevel ?? "p");
+  const [isEmpty, setIsEmpty] = useState(!(initialText && initialText.length > 0));
 
   // 콜백 ref — 태그 전환 시에도 안전하게 DOM 노드 참조 유지
   const setElRef = useCallback((node: HTMLElement | null) => {
     elRef.current = node;
   }, []);
+
+  // 외부에서 현재 headline 상태를 읽을 수 있도록 ref 노출
+  useEffect(() => {
+    if (!headlineRef) return;
+    (headlineRef as React.MutableRefObject<HeadlineHandle | null>).current = {
+      getText: () => (elRef.current?.textContent ?? "").replace(/\u00A0/g, " ").replace(/\n$/, ""),
+      getLevel: () => levelRef.current,
+    };
+  }, [headlineRef]);
 
   // 태그 전환 후 (level 변경) 콘텐츠 복원 및 포커스 이동
   useEffect(() => {
@@ -154,9 +178,17 @@ const HeadlineInput = React.memo(function HeadlineInput({ onTab, autoFocus }: He
     pendingRef.current = null;
   }, [level]);
 
+  // 초기값 세팅
   useEffect(() => {
-    if (autoFocus) elRef.current?.focus();
-  }, [autoFocus]);
+    const el = elRef.current;
+    if (!el) return;
+    if (initialText) {
+      el.textContent = initialText;
+      setIsEmpty(false);
+    }
+    if (autoFocus) el.focus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // react-best-practices: ref 기반 비교로 의존성 배열 비움 → 안정적 참조
   const applyDetection = useCallback(() => {
@@ -290,9 +322,25 @@ type FocusableEditor = {
   focus: (options?: { at?: "start" | "end" }) => void;
 };
 
-export default function NotionLikePage() {
+export type EditorSaveData = {
+  headline: { text: string; level: string };
+  body: YooptaContentValue;
+};
+
+type EditorProps = {
+  initialHeadline?: { text: string; level: string };
+  initialBody?: YooptaContentValue;
+  onSave?: (data: EditorSaveData) => void;
+  /** 부모에서 save를 트리거할 수 있는 ref (VerticalToolbar 연동용) */
+  saveRef?: React.RefObject<(() => void) | null>;
+};
+
+export default function Editor({ initialHeadline, initialBody, onSave, saveRef }: EditorProps = {}) {
   const bodyEditor = useMemo(() => createYooptaEditor(), []);
-  const [value, setValue] = useState<YooptaContentValue>(createBodyValue());
+  const [value, setValue] = useState<YooptaContentValue>(initialBody ?? createBodyValue());
+  const headlineRef = useRef<HeadlineHandle | null>(null);
+  const valueRef = useRef(value);
+  useEffect(() => { valueRef.current = value; }, [value]);
 
   const tools = useMemo<Partial<Tools>>(
     () => ({
@@ -314,10 +362,60 @@ export default function NotionLikePage() {
     }
   }, [bodyEditor]);
 
+  // Ctrl+S / Cmd+S → onSave 호출
+  const onSaveRef = useRef(onSave);
+  useEffect(() => { onSaveRef.current = onSave; }, [onSave]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        const saveFn = onSaveRef.current;
+        if (!saveFn) return;
+        const h = headlineRef.current;
+        saveFn({
+          headline: {
+            text: h?.getText() ?? "",
+            level: h?.getLevel() ?? "p",
+          },
+          body: valueRef.current,
+        });
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  // VerticalToolbar의 onSave 호출 시 사용할 핸들러를 노출
+  const handleSave = useCallback(() => {
+    if (!onSave) return;
+    const h = headlineRef.current;
+    onSave({
+      headline: {
+        text: h?.getText() ?? "",
+        level: h?.getLevel() ?? "p",
+      },
+      body: valueRef.current,
+    });
+  }, [onSave]);
+
+  // 부모에서 save를 트리거할 수 있도록 ref에 노출
+  useEffect(() => {
+    if (saveRef) {
+      (saveRef as React.MutableRefObject<(() => void) | null>).current = handleSave;
+    }
+  }, [saveRef, handleSave]);
+
   return (
     <main className="w-full max-w-[840px] flex flex-col gap-y-1 mx-auto">
       <div className={`${styles["headline-block"]} p-2 rounded-sm`}>
-        <HeadlineInput onTab={focusBodyEditor} autoFocus />
+        <HeadlineInput
+          onTab={focusBodyEditor}
+          autoFocus
+          initialText={initialHeadline?.text}
+          initialLevel={initialHeadline?.level as HeadingLevel | undefined}
+          headlineRef={headlineRef}
+        />
       </div>
       <div className={`${styles["content-block"]} p-2 rounded-sm`}>
         <YooptaEditor
@@ -335,3 +433,6 @@ export default function NotionLikePage() {
     </main>
   );
 }
+
+// handleSave를 외부에서 호출할 수 있도록 export
+export { type HeadingLevel };

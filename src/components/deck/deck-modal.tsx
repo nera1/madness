@@ -52,7 +52,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await authFetch("/api/decks");
+      const res = await authFetch("/api/projects");
       if (!res.ok) {
         throw new Error("프로젝트 목록을 불러올 수 없습니다");
       }
@@ -101,7 +101,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
     if (!title) return;
 
     try {
-      const res = await authFetch("/api/decks", {
+      const res = await authFetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title }),
@@ -120,7 +120,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
   const handleDelete = useCallback(
     async (id: number) => {
       try {
-        const res = await authFetch(`/api/decks/${id}`, { method: "DELETE" });
+        const res = await authFetch(`/api/projects/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error("프로젝트 삭제에 실패했습니다");
 
         setDeletingId(null);
@@ -136,7 +136,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
   const handleNavigate = useCallback(
     (id: number) => {
       onClose();
-      router.push(`/decks/${id}`);
+      router.push(`/projects/${id}`);
     },
     [onClose, router],
   );
@@ -241,10 +241,17 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
                         </Button>
                       </div>
                     ) : (
-                      <button
-                        type="button"
+                      <div
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleNavigate(deck.id)}
-                        className="w-full text-left flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-accent transition-colors group"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleNavigate(deck.id);
+                          }
+                        }}
+                        className="w-full text-left flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-accent transition-colors group cursor-pointer"
                       >
                         {/* 프로젝트 정보 */}
                         <div className="flex-1 min-w-0">
@@ -268,7 +275,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
-                      </button>
+                      </div>
                     )}
                   </li>
                 ))}
