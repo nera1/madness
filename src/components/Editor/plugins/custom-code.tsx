@@ -10,7 +10,7 @@ import {
   type SlateElement,
   type PluginCustomEditorRenderProps,
 } from "@yoopta/editor";
-import { createEditor, type Text, Node, Editor, type BaseRange, type Descendant } from "slate";
+import { createEditor, type Text, Node, type BaseRange, type Descendant } from "slate";
 import { Slate, Editable, withReact, type RenderLeafProps } from "slate-react";
 import hljs from "highlight.js/lib/core";
 
@@ -155,18 +155,19 @@ function flattenTokens(node: HljsTreeNode, parentClass?: string): FlatToken[] {
 }
 
 // ──── decorate 함수 ───────────────────────────────────────────────────
+// element 레벨(path.length === 1)에서 호출, 내부 텍스트 노드 기준 range 생성
 
-function getDecorations(
-  editor: Editor,
+function getDecorationsForElement(
+  elementPath: number[],
+  text: string,
   language: string,
 ): (BaseRange & TokenLeaf)[] {
   const ranges: (BaseRange & TokenLeaf)[] = [];
-  const fullText = Node.string(editor);
-  if (!fullText) return ranges;
+  if (!text) return ranges;
 
   let result;
   try {
-    result = hljs.highlight(fullText, { language, ignoreIllegals: true });
+    result = hljs.highlight(text, { language, ignoreIllegals: true });
   } catch {
     return ranges;
   }
@@ -176,39 +177,21 @@ function getDecorations(
   if (!rootNode) return ranges;
 
   const tokens = flattenTokens(rootNode);
+  const textPath = [...elementPath, 0]; // text node는 element의 첫 번째 자식
 
-  // fullText 기준 offset → Slate path/offset 변환
-  // Slate 노드를 순회하며 각 text node의 시작 offset 계산
-  const textEntries: { path: number[]; text: string; start: number }[] = [];
-  let cumulative = 0;
-  for (const [node, path] of Node.texts(editor)) {
-    textEntries.push({ path: path as number[], text: node.text, start: cumulative });
-    cumulative += node.text.length;
-  }
-
-  let tokenOffset = 0;
+  let offset = 0;
   for (const token of tokens) {
-    const tokenStart = tokenOffset;
-    const tokenEnd = tokenOffset + token.text.length;
-    tokenOffset = tokenEnd;
+    const start = offset;
+    const end = start + token.text.length;
+    offset = end;
 
     if (!token.className) continue;
 
-    // 토큰이 걸치는 text node들에 대해 range 생성
-    for (const entry of textEntries) {
-      const entryEnd = entry.start + entry.text.length;
-      if (entryEnd <= tokenStart) continue;
-      if (entry.start >= tokenEnd) break;
-
-      const rangeStart = Math.max(tokenStart, entry.start) - entry.start;
-      const rangeEnd = Math.min(tokenEnd, entryEnd) - entry.start;
-
-      ranges.push({
-        anchor: { path: entry.path, offset: rangeStart },
-        focus: { path: entry.path, offset: rangeEnd },
-        tokenType: token.className,
-      });
-    }
+    ranges.push({
+      anchor: { path: textPath, offset: start },
+      focus: { path: textPath, offset: end },
+      tokenType: token.className,
+    });
   }
 
   return ranges;
@@ -273,7 +256,8 @@ function CustomCodeEditor({ blockId }: PluginCustomEditorRenderProps) {
     if (isSyncingRef.current) return;
     if (yooptaText !== prevTextRef.current) {
       prevTextRef.current = yooptaText;
-      // Slate 전체 교체
+      // selection 초기화 후 Slate 전체 교체 (DOM point 불일치 방지)
+      slateEditor.selection = null;
       slateEditor.children = [{ type: "paragraph", children: [{ text: yooptaText }] }] as unknown as Descendant[];
       slateEditor.onChange();
     }
@@ -299,16 +283,15 @@ function CustomCodeEditor({ blockId }: PluginCustomEditorRenderProps) {
     setTimeout(() => { isSyncingRef.current = false; }, 0);
   }, [yooEditor, blockId, slateEditor]);
 
-  // decorate
+  // decorate — element 레벨(path.length === 1)에서만 decoration 생성
   const decorate = useCallback(
-    ([, path]: [Node, number[]]) => {
-      // 전체 에디터 기준으로 decoration (path [0]인 paragraph 노드일 때만)
-      if (path.length === 0) {
-        return getDecorations(slateEditor, language);
+    ([node, path]: [Node, number[]]) => {
+      if (path.length === 1) {
+        return getDecorationsForElement(path, Node.string(node), language);
       }
       return [];
     },
-    [slateEditor, language],
+    [language],
   );
 
   // 키보드 핸들링
