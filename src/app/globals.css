@@ -292,6 +292,11 @@ div[data-floating-ui-portal] > div {
   background-color: transparent !important;
 }
 
+/* -- Todo list 체크박스 수직 중앙 정렬 -- */
+.yoopta-todo-list {
+  align-items: center !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
