@@ -178,6 +178,7 @@ function getDecorationsForElement(
 
   const tokens = flattenTokens(rootNode);
   const textPath = [...elementPath, 0]; // text node는 element의 첫 번째 자식
+  const textLength = text.length;
 
   let offset = 0;
   for (const token of tokens) {
@@ -186,6 +187,8 @@ function getDecorationsForElement(
     offset = end;
 
     if (!token.className) continue;
+    // 방어: offset이 텍스트 길이를 초과하면 중단
+    if (end > textLength) break;
 
     ranges.push({
       anchor: { path: textPath, offset: start },
@@ -232,6 +235,7 @@ function CustomCodeEditor({ blockId }: PluginCustomEditorRenderProps) {
   const blockData = useBlockData(blockId);
   const readOnly = useYooptaReadOnly();
   const [copied, setCopied] = useState(false);
+  const [syncKey, setSyncKey] = useState(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isSyncingRef = useRef(false);
 
@@ -241,25 +245,27 @@ function CustomCodeEditor({ blockId }: PluginCustomEditorRenderProps) {
   const element = blockData.value[0] as unknown as CodeElement | undefined;
   const language = element?.props?.language || "javascript";
 
-  const initialValue = useMemo(() => {
+  // 초기 텍스트 추출 + Slate children 세팅
+  const initialText = useMemo(() => {
     const children = element?.children as unknown as { text?: string }[] | undefined;
     const text = children?.map((c) => c.text ?? "").join("") ?? "";
-    return [{ type: "paragraph", children: [{ text }] }] as unknown as Descendant[];
+    slateEditor.children = [{ type: "paragraph", children: [{ text }] }] as unknown as Descendant[];
+    return text;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const prevTextRef = useRef<string>(initialText);
 
   // Yoopta 외부 변경(undo 등) → Slate 동기화
-  const prevTextRef = useRef<string>("");
+  // onChange() 대신 key 변경으로 Slate을 클린 리마운트 (DOM point 불일치 방지)
   useEffect(() => {
     const children = element?.children as unknown as { text?: string }[] | undefined;
     const yooptaText = children?.map((c) => c.text ?? "").join("") ?? "";
     if (isSyncingRef.current) return;
     if (yooptaText !== prevTextRef.current) {
       prevTextRef.current = yooptaText;
-      // selection 초기화 후 Slate 전체 교체 (DOM point 불일치 방지)
       slateEditor.selection = null;
       slateEditor.children = [{ type: "paragraph", children: [{ text: yooptaText }] }] as unknown as Descendant[];
-      slateEditor.onChange();
+      setSyncKey((k) => k + 1);
     }
   }, [element?.children, slateEditor]);
 
@@ -287,7 +293,11 @@ function CustomCodeEditor({ blockId }: PluginCustomEditorRenderProps) {
   const decorate = useCallback(
     ([node, path]: [Node, number[]]) => {
       if (path.length === 1) {
-        return getDecorationsForElement(path, Node.string(node), language);
+        try {
+          return getDecorationsForElement(path, Node.string(node), language);
+        } catch {
+          return [];
+        }
       }
       return [];
     },
@@ -332,7 +342,7 @@ function CustomCodeEditor({ blockId }: PluginCustomEditorRenderProps) {
   return (
     <div ref={wrapperRef} className={styles.codeWrapper} data-yoopta-block-id={blockId}>
       <div className={styles.codeBlock}>
-        <Slate editor={slateEditor} initialValue={initialValue} onChange={handleChange}>
+        <Slate key={syncKey} editor={slateEditor} initialValue={slateEditor.children} onChange={handleChange}>
           <Editable
             className={styles.editable}
             decorate={decorate}
