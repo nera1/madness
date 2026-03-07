@@ -14,28 +14,28 @@ import { useRouter } from "next/navigation";
 // Types
 // ──────────────────────────────────────────────────────────────────────────────
 
-type DeckItem = {
-  id: number;
+type ProjectItem = {
+  id: string;
   title: string;
   slideCount: number;
   createdAt: string;
   updatedAt: string;
 };
 
-interface DeckModalProps {
+interface ProjectModalProps {
   open: boolean;
   onClose: () => void;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// DeckModal
+// ProjectModal
 // ──────────────────────────────────────────────────────────────────────────────
 
-export function DeckModal({ open, onClose }: DeckModalProps) {
+export function ProjectModal({ open, onClose }: ProjectModalProps) {
   const mounted = useIsMounted();
   const router = useRouter();
 
-  const [decks, setDecks] = useState<DeckItem[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,10 +45,10 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
   const newTitleRef = useRef<HTMLInputElement>(null);
 
   // 삭제 확인 중인 프로젝트 ID
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // ── 프로젝트 목록 조회 ──
-  const fetchDecks = useCallback(async () => {
+  const fetchProjects = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -57,7 +57,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
         throw new Error("프로젝트 목록을 불러올 수 없습니다");
       }
       const json = await res.json();
-      setDecks(json.data ?? []);
+      setProjects(json.data ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {
@@ -68,12 +68,12 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
   // 모달 열릴 때 목록 조회
   useEffect(() => {
     if (open) {
-      fetchDecks();
+      fetchProjects();
       setCreating(false);
       setNewTitle("");
       setDeletingId(null);
     }
-  }, [open, fetchDecks]);
+  }, [open, fetchProjects]);
 
   // Escape 키
   useEffect(() => {
@@ -108,33 +108,32 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
       });
       if (!res.ok) throw new Error("프로젝트 생성에 실패했습니다");
 
+      const json = await res.json();
+      const created: ProjectItem = json.data;
+      setProjects((prev) => [created, ...prev]);
       setCreating(false);
       setNewTitle("");
-      await fetchDecks();
     } catch (e) {
       setError(e instanceof Error ? e.message : "프로젝트 생성 실패");
     }
-  }, [newTitle, fetchDecks]);
+  }, [newTitle]);
 
   // ── 프로젝트 삭제 ──
-  const handleDelete = useCallback(
-    async (id: number) => {
-      try {
-        const res = await authFetch(`/api/projects/${id}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("프로젝트 삭제에 실패했습니다");
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const res = await authFetch(`/api/projects/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("프로젝트 삭제에 실패했습니다");
 
-        setDeletingId(null);
-        await fetchDecks();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "프로젝트 삭제 실패");
-      }
-    },
-    [fetchDecks],
-  );
+      setDeletingId(null);
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "프로젝트 삭제 실패");
+    }
+  }, []);
 
   // ── 프로젝트 클릭 → 이동 ──
   const handleNavigate = useCallback(
-    (id: number) => {
+    (id: string) => {
       onClose();
       router.push(`/projects/${id}`);
     },
@@ -162,7 +161,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="deck-dialog-title"
+          aria-labelledby="project-dialog-title"
           className="relative bg-background border rounded-2xl shadow-2xl px-6 py-5 sm:px-8 sm:py-6 flex flex-col gap-4 auth-modal-in w-[min(480px,calc(100vw-2rem))] max-h-[min(600px,calc(100vh-4rem))]"
         >
           {/* 닫기 버튼 */}
@@ -179,7 +178,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-muted-foreground" />
             <h2
-              id="deck-dialog-title"
+              id="project-dialog-title"
               className="text-lg font-semibold leading-none"
             >
               내 프로젝트
@@ -199,7 +198,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
               </p>
             )}
 
-            {!loading && decks.length === 0 && (
+            {!loading && projects.length === 0 && (
               <div className="text-center py-8">
                 <Layers className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
@@ -211,12 +210,12 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
               </div>
             )}
 
-            {!loading && decks.length > 0 && (
+            {!loading && projects.length > 0 && (
               <ul className="space-y-1.5">
-                {decks.map((deck) => (
-                  <li key={deck.id}>
+                {projects.map((project) => (
+                  <li key={project.id}>
                     {/* 삭제 확인 상태 */}
-                    {deletingId === deck.id ? (
+                    {deletingId === project.id ? (
                       <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
                         <p className="flex-1 text-[13px] text-destructive">
                           삭제하시겠습니까?
@@ -226,7 +225,7 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
                           variant="destructive"
                           size="sm"
                           className="h-7 px-2 text-[12px]"
-                          onClick={() => handleDelete(deck.id)}
+                          onClick={() => handleDelete(project.id)}
                         >
                           삭제
                         </Button>
@@ -244,11 +243,11 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
                       <div
                         role="button"
                         tabIndex={0}
-                        onClick={() => handleNavigate(deck.id)}
+                        onClick={() => handleNavigate(project.id)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
-                            handleNavigate(deck.id);
+                            handleNavigate(project.id);
                           }
                         }}
                         className="w-full text-left flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-accent transition-colors group cursor-pointer"
@@ -256,10 +255,10 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
                         {/* 프로젝트 정보 */}
                         <div className="flex-1 min-w-0">
                           <p className="text-[13px] font-medium truncate">
-                            {deck.title || "제목 없음"}
+                            {project.title || "제목 없음"}
                           </p>
                           <p className="text-[11px] text-muted-foreground">
-                            슬라이드 {deck.slideCount}개
+                            슬라이드 {project.slideCount}개
                           </p>
                         </div>
 
@@ -268,9 +267,9 @@ export function DeckModal({ open, onClose }: DeckModalProps) {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setDeletingId(deck.id);
+                            setDeletingId(project.id);
                           }}
-                          aria-label={`${deck.title} 삭제`}
+                          aria-label={`${project.title} 삭제`}
                           className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                         >
                           <Trash2 className="h-3.5 w-3.5" />

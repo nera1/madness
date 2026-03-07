@@ -34,6 +34,7 @@
     "@yoopta/video": "^4.9.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "highlight.js": "^11.11.1",
     "input-otp": "^1.4.2",
     "lodash": "^4.17.21",
     "lucide-react": "^0.553.0",
@@ -44,6 +45,9 @@
     "slate": "^0.102.0",
     "slate-react": "^0.102.0",
     "tailwind-merge": "^3.3.1"
+  },
+  "overrides": {
+    "@codemirror/view": "^6.39.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

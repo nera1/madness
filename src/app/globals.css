@@ -148,19 +148,148 @@ div[data-floating-ui-portal] > div {
   --sidebar-ring: oklch(0.556 0 0);
 
   /* ---- Editor Semantic Tokens (dark) ---- */
-  --editor-toolbar-bg: oklch(0.145 0 0);
-  --editor-toolbar-border: oklch(1 0 0 / 8%);
-  --editor-menu-bg: oklch(0.145 0 0);
-  --editor-menu-border: oklch(1 0 0 / 4%);
-  --editor-menu-shadow: none;
+  --editor-toolbar-bg: oklch(0.205 0 0);
+  --editor-toolbar-border: oklch(1 0 0 / 10%);
+  --editor-menu-bg: oklch(0.205 0 0);
+  --editor-menu-border: oklch(1 0 0 / 10%);
+  --editor-menu-shadow: 0 8px 24px oklch(0 0 0 / 40%);
   --editor-text: oklch(0.922 0 0);
   --editor-button-hover: oklch(1 0 0 / 8%);
   --editor-button-active: oklch(1 0 0 / 14%);
-  --editor-block-hover: oklch(1 0 0 / 8%);
-  --editor-selected-bg: oklch(0.269 0 0);
+  --editor-block-hover: oklch(1 0 0 / 6%);
+  --editor-selected-bg: oklch(1 0 0 / 12%);
   --editor-selected-text: oklch(0.985 0 0);
   --editor-swatch-selected: oklch(0.4 0 0);
   --editor-swatch-hover: oklch(0.333 0 0);
+}
+
+/* ---- Yoopta Dark Mode Overrides ----
+   Yoopta editor hard-codes light-mode utility classes (e.g. yoo-toolbar-bg-[#FFFFFF]).
+   We override them in .dark with !important. */
+
+/* -- Toolbar root -- */
+.dark .yoo-toolbar-bg-\[\#FFFFFF\] {
+  background-color: oklch(0.205 0 0) !important;
+}
+.dark .yoo-toolbar-border-\[\#e5e7eb\] {
+  border-color: oklch(1 0 0 / 10%) !important;
+}
+.dark .yoo-toolbar-shadow-md {
+  --tw-shadow: 0 4px 6px -1px oklch(0 0 0 / 30%), 0 2px 4px -2px oklch(0 0 0 / 20%);
+}
+.dark .yoopta-toolbar-root {
+  background-color: oklch(0.205 0 0) !important;
+  border-color: oklch(1 0 0 / 10%) !important;
+}
+.dark .yoopta-toolbar-item:hover {
+  background-color: oklch(1 0 0 / 8%) !important;
+}
+.dark .yoopta-toolbar-item-mark:hover {
+  background-color: oklch(1 0 0 / 8%) !important;
+}
+.dark .yoopta-toolbar-separator {
+  background-color: oklch(1 0 0 / 12%) !important;
+}
+.dark .yoo-toolbar-text-gray-600 {
+  color: oklch(0.708 0 0) !important;
+}
+.dark .hover\:yoo-toolbar-text-gray-900:hover {
+  color: oklch(0.922 0 0) !important;
+}
+.dark .hover\:yoo-toolbar-bg-gray-50:hover {
+  background-color: oklch(1 0 0 / 8%) !important;
+}
+.dark .yoo-toolbar-bg-blue-50 {
+  background-color: oklch(0.3 0.08 260) !important;
+}
+.dark .yoo-toolbar-text-blue-600 {
+  color: oklch(0.7 0.15 260) !important;
+}
+
+/* -- Action menu (slash command) -- */
+.dark .yoopta-action-menu-list-content {
+  background-color: oklch(0.205 0 0) !important;
+  border-color: oklch(1 0 0 / 10%) !important;
+}
+.dark .yoo-action-menu-bg-\[\#FFFFFF\] {
+  background-color: oklch(0.269 0 0) !important;
+}
+.dark .yoo-action-menu-border-\[\#e5e7eb\] {
+  border-color: oklch(1 0 0 / 10%) !important;
+}
+.dark .hover\:yoo-action-menu-bg-\[\#f4f4f5\]:hover {
+  background-color: oklch(1 0 0 / 8%) !important;
+}
+.dark .aria-selected\:yoo-action-menu-bg-\[\#f0f0f0\][aria-selected="true"] {
+  background-color: oklch(1 0 0 / 12%) !important;
+}
+.dark .yoo-action-menu-text-foreground {
+  color: oklch(0.922 0 0) !important;
+}
+
+/* -- Code block language select -- */
+.dark .yoo-code-bg-\[\#ffffff\] {
+  background-color: oklch(0.205 0 0) !important;
+}
+.dark .yoo-code-border-\[\#e3e3e3\] {
+  border-color: oklch(1 0 0 / 10%) !important;
+}
+.dark .focus\:yoo-code-bg-\[\#eeeeee\]:focus {
+  background-color: oklch(1 0 0 / 10%) !important;
+}
+.dark .yoo-code-text-popover-foreground {
+  color: oklch(0.922 0 0) !important;
+}
+
+/* -- Highlight color picker portal -- */
+.dark .react-colorful__pointer {
+  border-color: oklch(0.5 0 0) !important;
+}
+
+/* -- Block options menu -- */
+.dark .yoopta-block-options-menu-content {
+  background-color: oklch(0.205 0 0) !important;
+  border-color: oklch(1 0 0 / 10%) !important;
+}
+
+/* -- Code block -- */
+.dark .yoopta-code-cm-editor .cm-editor {
+  border-color: oklch(1 0 0 / 10%) !important;
+}
+.dark .yoopta-code-cm-editor .cm-focused {
+  outline-color: oklch(0.6 0.15 250) !important;
+}
+
+/* -- Extended block actions button (code block options, etc.) -- */
+.dark .yoopta-extended-block-actions {
+  background-color: oklch(0.269 0 0) !important;
+  color: oklch(0.708 0 0) !important;
+}
+.dark .yoopta-extended-block-actions:hover {
+  background-color: oklch(0.333 0 0) !important;
+  color: oklch(0.922 0 0) !important;
+}
+.dark .yoopta-extended-block-actions svg {
+  color: inherit !important;
+}
+
+/* -- Light mode: table & divider 선 색 진하게 -- */
+:root .yoopta-table td,
+:root .yoopta-table th {
+  border-color: oklch(0.65 0 0) !important;
+}
+:root .yoopta-divider-solid hr {
+  border-color: oklch(0.55 0 0) !important;
+}
+.dark .yoopta-table td,
+.dark .yoopta-table th {
+  border-color: oklch(1 0 0 / 15%) !important;
+}
+
+/* -- Table header cell: 배경 투명 유지 -- */
+.yoopta-table-data-cell-head,
+.yoopta-table th {
+  background-color: transparent !important;
 }
 
 @layer base {

@@ -14,7 +14,7 @@ import Blockquote from "@yoopta/blockquote";
 import Accordion from "@yoopta/accordion";
 import Divider from "@yoopta/divider";
 import Table from "@yoopta/table";
-import Code from "@yoopta/code";
+import CustomCode from "./plugins/custom-code";
 import Embed from "@yoopta/embed";
 import Image from "@yoopta/image";
 import Link from "@yoopta/link";
@@ -35,13 +35,31 @@ import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
 import ActionMenu, { DefaultActionMenuRender } from "@yoopta/action-menu-list";
 import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
 
+import { Node, Transforms, Editor as SlateEditor } from "slate";
 import styles from "@/styles/editor.module.scss";
 
 const { HeadingOne, HeadingTwo, HeadingThree } = Headings;
 const { BulletedList, NumberedList, TodoList } = Lists;
 
 const PLUGINS = [
-  Paragraph,
+  // Paragraph: ``` 입력 시 즉시 코드 블록으로 전환 (스페이스 불필요)
+  Paragraph.extend({
+    events: {
+      onKeyDown: (editor, slate) => (e) => {
+        if (e.key !== "`") return;
+        try {
+          const text = Node.string(slate);
+          if (text === "``") {
+            e.preventDefault();
+            // Clear the `` text before toggling
+            Transforms.select(slate, SlateEditor.range(slate, []));
+            Transforms.delete(slate);
+            editor.toggleBlock("Code");
+          }
+        } catch { /* noop */ }
+      },
+    },
+  }),
   HeadingOne,
   HeadingTwo,
   HeadingThree,
@@ -49,7 +67,7 @@ const PLUGINS = [
   NumberedList,
   TodoList,
   Blockquote,
-  Code,
+  CustomCode,
   Divider,
   Accordion,
   Table,
@@ -70,7 +88,7 @@ const BASE_TOOLS: Partial<Tools> = {
 
 const BODY_BLOCK_ID = "body-root";
 
-const createBodyValue = (): YooptaContentValue => ({
+export const createBodyValue = (): YooptaContentValue => ({
   [BODY_BLOCK_ID]: buildBlockData({
     id: BODY_BLOCK_ID,
     value: [
@@ -134,6 +152,8 @@ type HeadlineInputProps = {
   initialText?: string;
   initialLevel?: HeadingLevel;
   headlineRef?: React.RefObject<HeadlineHandle | null>;
+  /** 제목 내용이 변경될 때 호출 (자동 저장 타이머 리셋용) */
+  onChange?: () => void;
 };
 
 // react-best-practices: memo로 부모 리렌더 시 불필요한 재실행 방지
@@ -143,6 +163,7 @@ const HeadlineInput = React.memo(function HeadlineInput({
   initialText,
   initialLevel,
   headlineRef,
+  onChange,
 }: HeadlineInputProps) {
   const elRef = useRef<HTMLElement | null>(null);
   const isComposingRef = useRef(false);
@@ -225,7 +246,8 @@ const HeadlineInput = React.memo(function HeadlineInput({
 
   const handleInput = useCallback(() => {
     if (!isComposingRef.current) applyDetection();
-  }, [applyDetection]);
+    onChange?.();
+  }, [applyDetection, onChange]);
 
   const handleCompositionStart = useCallback(() => {
     isComposingRef.current = true;
@@ -330,17 +352,33 @@ export type EditorSaveData = {
 type EditorProps = {
   initialHeadline?: { text: string; level: string };
   initialBody?: YooptaContentValue;
-  onSave?: (data: EditorSaveData) => void;
+  onSave?: (data: EditorSaveData) => void | Promise<void>;
   /** 부모에서 save를 트리거할 수 있는 ref (VerticalToolbar 연동용) */
-  saveRef?: React.RefObject<(() => void) | null>;
+  saveRef?: React.RefObject<(() => Promise<void>) | null>;
+  /** 마운트 시 제목에 자동 포커스 (기본: true) */
+  autoFocus?: boolean;
+  /** 자동 저장 딜레이 (ms). 미설정 시 자동 저장 비활성 */
+  autoSaveMs?: number;
 };
 
-export default function Editor({ initialHeadline, initialBody, onSave, saveRef }: EditorProps = {}) {
+export default function Editor({ initialHeadline, initialBody, onSave, saveRef, autoFocus = true, autoSaveMs }: EditorProps = {}) {
   const bodyEditor = useMemo(() => createYooptaEditor(), []);
   const [value, setValue] = useState<YooptaContentValue>(initialBody ?? createBodyValue());
   const headlineRef = useRef<HeadlineHandle | null>(null);
   const valueRef = useRef(value);
   useEffect(() => { valueRef.current = value; }, [value]);
+
+  // ── 자동 저장: 변경 감지 카운터 ──
+  const [changeCount, setChangeCount] = useState(0);
+
+  const handleBodyChange = useCallback((next: YooptaContentValue) => {
+    setValue(next);
+    if (autoSaveMs) setChangeCount((c) => c + 1);
+  }, [autoSaveMs]);
+
+  const handleHeadlineChange = useCallback(() => {
+    if (autoSaveMs) setChangeCount((c) => c + 1);
+  }, [autoSaveMs]);
 
   const tools = useMemo<Partial<Tools>>(
     () => ({
@@ -387,10 +425,10 @@ export default function Editor({ initialHeadline, initialBody, onSave, saveRef }
   }, []);
 
   // VerticalToolbar의 onSave 호출 시 사용할 핸들러를 노출
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!onSave) return;
     const h = headlineRef.current;
-    onSave({
+    await onSave({
       headline: {
         text: h?.getText() ?? "",
         level: h?.getLevel() ?? "p",
@@ -402,19 +440,37 @@ export default function Editor({ initialHeadline, initialBody, onSave, saveRef }
   // 부모에서 save를 트리거할 수 있도록 ref에 노출
   useEffect(() => {
     if (saveRef) {
-      (saveRef as React.MutableRefObject<(() => void) | null>).current = handleSave;
+      (saveRef as React.MutableRefObject<(() => Promise<void>) | null>).current = handleSave;
     }
   }, [saveRef, handleSave]);
+
+  // ── 자동 저장: changeCount가 변경되면 debounce 후 저장 ──
+  useEffect(() => {
+    if (!autoSaveMs || changeCount === 0) return;
+
+    const timer = setTimeout(() => {
+      const saveFn = onSaveRef.current;
+      if (!saveFn) return;
+      const h = headlineRef.current;
+      saveFn({
+        headline: { text: h?.getText() ?? "", level: h?.getLevel() ?? "p" },
+        body: valueRef.current,
+      });
+    }, autoSaveMs);
+
+    return () => clearTimeout(timer);
+  }, [changeCount, autoSaveMs]);
 
   return (
     <main className="w-full max-w-[840px] flex flex-col gap-y-1 mx-auto">
       <div className={`${styles["headline-block"]} p-2 rounded-sm`}>
         <HeadlineInput
           onTab={focusBodyEditor}
-          autoFocus
+          autoFocus={autoFocus}
           initialText={initialHeadline?.text}
           initialLevel={initialHeadline?.level as HeadingLevel | undefined}
           headlineRef={headlineRef}
+          onChange={handleHeadlineChange}
         />
       </div>
       <div className={`${styles["content-block"]} p-2 rounded-sm`}>
@@ -425,7 +481,7 @@ export default function Editor({ initialHeadline, initialBody, onSave, saveRef }
           tools={tools}
           value={value}
           autoFocus={false}
-          onChange={(next) => setValue(next)}
+          onChange={handleBodyChange}
           className={`${styles["editor"]} ${styles["content"]} !w-full !pb-6`}
           placeholder="'/' 를 눌러 블록을 추가할 수 있습니다."
         />

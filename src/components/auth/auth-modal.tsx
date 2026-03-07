@@ -12,7 +12,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { FocusScope } from "@radix-ui/react-focus-scope";
 import { Layers, LogOut, UserRound, X } from "lucide-react";
-import { DeckModal } from "@/components/deck/deck-modal";
+import { ProjectModal } from "@/components/project/project-modal";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -769,7 +769,7 @@ interface AuthModalTriggerProps {
 function AuthModalTrigger({ className }: AuthModalTriggerProps) {
   const { openWith, user, logout } = useAuthContext();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [deckModalOpen, setDeckModalOpen] = useState(false);
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 외부 클릭 시 드롭다운 닫기
@@ -825,7 +825,7 @@ function AuthModalTrigger({ className }: AuthModalTriggerProps) {
               type="button"
               onClick={() => {
                 setMenuOpen(false);
-                setDeckModalOpen(true);
+                setProjectModalOpen(true);
               }}
               className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
             >
@@ -849,9 +849,9 @@ function AuthModalTrigger({ className }: AuthModalTriggerProps) {
         )}
 
         {/* 프로젝트 관리 모달 */}
-        <DeckModal
-          open={deckModalOpen}
-          onClose={() => setDeckModalOpen(false)}
+        <ProjectModal
+          open={projectModalOpen}
+          onClose={() => setProjectModalOpen(false)}
         />
       </div>
     );

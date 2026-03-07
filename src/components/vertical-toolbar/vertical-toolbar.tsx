@@ -9,7 +9,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Keyboard, Moon, Sun, Save, Maximize2, Minimize2 } from "lucide-react";
+import {
+  Moon,
+  Sun,
+  Save,
+  Maximize2,
+  Minimize2,
+  ChevronUp,
+  ChevronDown,
+  Plus,
+  Trash2,
+  Loader2,
+  Check,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 
 // ---- webkit 타입 확장 (any 사용 X)
@@ -22,15 +34,21 @@ type WebkitFullscreenElement = HTMLElement & {
   webkitRequestFullscreen?: () => Promise<void> | void;
 };
 
+type SaveStatus = "idle" | "saving" | "saved";
+
 type Props = {
   fullscreenTargetRef: React.RefObject<HTMLElement | null>;
   onSave?: () => void;
+  saveStatus?: SaveStatus;
+  onAddSlide?: () => void;
+  onDeleteSlide?: () => void;
+  onPrevSlide?: () => void;
+  onNextSlide?: () => void;
+  canPrev?: boolean;
+  canNext?: boolean;
+  canDelete?: boolean;
+  slidePosition?: string; // e.g. "2 / 5"
 };
-
-const tools = [
-  { icon: Save, label: "저장" },
-  { icon: Keyboard, label: "단축키" },
-];
 
 const btnClass =
   "h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent";
@@ -46,6 +64,15 @@ type ToolbarButtonsProps = {
   onToggleTheme: () => void;
   onToggleFullscreen: () => void;
   onSave?: () => void;
+  saveStatus?: SaveStatus;
+  onAddSlide?: () => void;
+  onDeleteSlide?: () => void;
+  onPrevSlide?: () => void;
+  onNextSlide?: () => void;
+  canPrev?: boolean;
+  canNext?: boolean;
+  canDelete?: boolean;
+  slidePosition?: string;
 };
 
 function ToolbarButtons({
@@ -55,9 +82,26 @@ function ToolbarButtons({
   onToggleTheme,
   onToggleFullscreen,
   onSave,
+  saveStatus = "idle",
+  onAddSlide,
+  onDeleteSlide,
+  onPrevSlide,
+  onNextSlide,
+  canPrev,
+  canNext,
+  canDelete,
+  slidePosition,
 }: ToolbarButtonsProps) {
+  const isVertical = side === "left";
+  const separator = isVertical ? (
+    <div className="w-full border-t border-border/50 my-0.5" />
+  ) : (
+    <div className="h-full border-l border-border/50 mx-0.5" />
+  );
+
   return (
     <>
+      {/* 테마 전환 */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -80,6 +124,7 @@ function ToolbarButtons({
         </TooltipContent>
       </Tooltip>
 
+      {/* 전체화면 */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -102,23 +147,124 @@ function ToolbarButtons({
         </TooltipContent>
       </Tooltip>
 
-      {tools.map((tool) => (
-        <Tooltip key={tool.label}>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={tool.label}
-              className={btnClass}
-              onClick={tool.label === "저장" ? onSave : undefined}
-            >
-              <tool.icon className="h-3.5 w-3.5" aria-hidden="true" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side={side}>{tool.label}</TooltipContent>
-        </Tooltip>
-      ))}
+      {/* ── 슬라이드 이동 ── */}
+      {onPrevSlide && (
+        <>
+          {separator}
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onPrevSlide}
+                disabled={!canPrev}
+                aria-label="이전 슬라이드 (Alt+←)"
+                className={btnClass}
+              >
+                <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side={side}>이전 슬라이드</TooltipContent>
+          </Tooltip>
+
+          {slidePosition && (
+            <span className="text-[10px] text-muted-foreground select-none tabular-nums text-center leading-none py-0.5">
+              {slidePosition}
+            </span>
+          )}
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onNextSlide}
+                disabled={!canNext}
+                aria-label="다음 슬라이드 (Alt+→)"
+                className={btnClass}
+              >
+                <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side={side}>다음 슬라이드</TooltipContent>
+          </Tooltip>
+        </>
+      )}
+
+      {/* ── 슬라이드 추가/삭제 ── */}
+      {onAddSlide && (
+        <>
+          {separator}
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onAddSlide}
+                aria-label="새 슬라이드"
+                className={btnClass}
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side={side}>새 슬라이드</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onDeleteSlide}
+                disabled={!canDelete}
+                aria-label="슬라이드 삭제"
+                className={btnClass}
+              >
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side={side}>슬라이드 삭제</TooltipContent>
+          </Tooltip>
+        </>
+      )}
+
+      {/* ── 저장 ── */}
+      {onSave && (
+        <>
+          {separator}
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onSave}
+                disabled={saveStatus === "saving"}
+                aria-label="저장"
+                className={`${btnClass} ${saveStatus === "saved" ? "text-green-500 hover:text-green-500" : ""}`}
+              >
+                {saveStatus === "saving" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                ) : saveStatus === "saved" ? (
+                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : (
+                  <Save className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side={side}>
+              {saveStatus === "saving" ? "저장 중…" : saveStatus === "saved" ? "저장됨" : "저장"}
+            </TooltipContent>
+          </Tooltip>
+        </>
+      )}
     </>
   );
 }
@@ -127,7 +273,19 @@ function ToolbarButtons({
 // VerticalToolbar
 // ──────────────────────────────────────────────────────────────────────────────
 
-const VerticalToolbar = ({ fullscreenTargetRef, onSave }: Props) => {
+const VerticalToolbar = ({
+  fullscreenTargetRef,
+  onSave,
+  saveStatus,
+  onAddSlide,
+  onDeleteSlide,
+  onPrevSlide,
+  onNextSlide,
+  canPrev,
+  canNext,
+  canDelete,
+  slidePosition,
+}: Props) => {
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useIsMounted();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -191,6 +349,23 @@ const VerticalToolbar = ({ fullscreenTargetRef, onSave }: Props) => {
 
   const isDark = resolvedTheme === "dark";
 
+  const toolbarButtonProps = {
+    isDark,
+    isFullscreen,
+    onToggleTheme: toggleTheme,
+    onToggleFullscreen: toggleFullscreen,
+    onSave,
+    saveStatus,
+    onAddSlide,
+    onDeleteSlide,
+    onPrevSlide,
+    onNextSlide,
+    canPrev,
+    canNext,
+    canDelete,
+    slidePosition,
+  };
+
   return (
     <TooltipProvider>
       <div className="hidden sm:block fixed inset-y-0 right-0 z-50 group">
@@ -209,14 +384,7 @@ const VerticalToolbar = ({ fullscreenTargetRef, onSave }: Props) => {
               will-change-[translate,opacity]
             "
           >
-            <ToolbarButtons
-              side="left"
-              isDark={isDark}
-              isFullscreen={isFullscreen}
-              onToggleTheme={toggleTheme}
-              onToggleFullscreen={toggleFullscreen}
-              onSave={onSave}
-            />
+            <ToolbarButtons side="left" {...toolbarButtonProps} />
           </aside>
         </div>
       </div>
@@ -227,14 +395,7 @@ const VerticalToolbar = ({ fullscreenTargetRef, onSave }: Props) => {
           aria-label="도구"
           className="flex flex-row items-center gap-1 rounded-lg border bg-background/80 px-1.5 py-1 shadow-lg backdrop-blur"
         >
-          <ToolbarButtons
-            side="top"
-            isDark={isDark}
-            isFullscreen={isFullscreen}
-            onToggleTheme={toggleTheme}
-            onToggleFullscreen={toggleFullscreen}
-            onSave={onSave}
-          />
+          <ToolbarButtons side="top" {...toolbarButtonProps} />
         </aside>
       </div>
     </TooltipProvider>
