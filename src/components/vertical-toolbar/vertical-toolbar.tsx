@@ -21,6 +21,10 @@ import {
   Trash2,
   Loader2,
   Check,
+  Pen,
+  Undo2,
+  RotateCcw,
+  EraserIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -36,6 +40,14 @@ type WebkitFullscreenElement = HTMLElement & {
 
 type SaveStatus = "idle" | "saving" | "saved";
 
+// ── 그리기 컨트롤 상수 ──
+
+const DRAW_SIZES = [
+  { size: 4, label: "S" },
+  { size: 8, label: "M" },
+  { size: 16, label: "L" },
+];
+
 type Props = {
   fullscreenTargetRef: React.RefObject<HTMLElement | null>;
   onSave?: () => void;
@@ -48,6 +60,15 @@ type Props = {
   canNext?: boolean;
   canDelete?: boolean;
   slidePosition?: string; // e.g. "2 / 5"
+  // ── 그리기 ──
+  onToggleDrawing?: () => void;
+  isDrawing?: boolean;
+  drawColor?: string;
+  onDrawColorChange?: (color: string) => void;
+  drawSize?: number;
+  onDrawSizeChange?: (size: number) => void;
+  onUndoStroke?: () => void;
+  onClearDrawing?: () => void;
 };
 
 const btnClass =
@@ -73,6 +94,15 @@ type ToolbarButtonsProps = {
   canNext?: boolean;
   canDelete?: boolean;
   slidePosition?: string;
+  // ── 그리기 ──
+  onToggleDrawing?: () => void;
+  isDrawing?: boolean;
+  drawColor?: string;
+  onDrawColorChange?: (color: string) => void;
+  drawSize?: number;
+  onDrawSizeChange?: (size: number) => void;
+  onUndoStroke?: () => void;
+  onClearDrawing?: () => void;
 };
 
 function ToolbarButtons({
@@ -91,6 +121,14 @@ function ToolbarButtons({
   canNext,
   canDelete,
   slidePosition,
+  onToggleDrawing,
+  isDrawing,
+  drawColor,
+  onDrawColorChange,
+  drawSize,
+  onDrawSizeChange,
+  onUndoStroke,
+  onClearDrawing,
 }: ToolbarButtonsProps) {
   const isVertical = side === "left";
   const separator = isVertical ? (
@@ -234,6 +272,123 @@ function ToolbarButtons({
         </>
       )}
 
+      {/* ── 그리기 (데스크톱 전용) ── */}
+      {onToggleDrawing && isVertical && (
+        <>
+          {separator}
+
+          {/* 펜 토글 */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onToggleDrawing}
+                aria-label={isDrawing ? "그리기 종료" : "그리기"}
+                className={`${btnClass} ${isDrawing ? "text-blue-500 hover:text-blue-500 bg-accent" : ""}`}
+              >
+                <Pen className="h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side={side}>
+              {isDrawing ? "그리기 종료" : "그리기"}
+            </TooltipContent>
+          </Tooltip>
+
+          {/* 그리기 모드 ON일 때만 컨트롤 표시 */}
+          {isDrawing && (
+            <>
+              {separator}
+
+              {/* 색상 선택 */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <label
+                    className="relative flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent cursor-pointer"
+                    aria-label="색상 선택"
+                  >
+                    <span
+                      className="h-4 w-4 rounded-full border border-border"
+                      style={{ backgroundColor: drawColor }}
+                    />
+                    <input
+                      type="color"
+                      value={drawColor}
+                      onChange={(e) => onDrawColorChange?.(e.target.value)}
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      tabIndex={-1}
+                    />
+                  </label>
+                </TooltipTrigger>
+                <TooltipContent side={side}>색상 선택</TooltipContent>
+              </Tooltip>
+
+              {separator}
+
+              {/* 굵기 프리셋 */}
+              {DRAW_SIZES.map((ds) => (
+                <Tooltip key={ds.size}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDrawSizeChange?.(ds.size)}
+                      aria-label={`굵기 ${ds.label}`}
+                      className={`h-7 w-7 rounded-md text-[10px] font-bold ${
+                        drawSize === ds.size
+                          ? "bg-accent text-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      }`}
+                    >
+                      {ds.label}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side={side}>굵기 {ds.label}</TooltipContent>
+                </Tooltip>
+              ))}
+
+              {separator}
+
+              {/* 되돌리기 */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={onUndoStroke}
+                    aria-label="되돌리기"
+                    className={btnClass}
+                  >
+                    <Undo2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side={side}>되돌리기</TooltipContent>
+              </Tooltip>
+
+              {/* 전체 지우기 */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClearDrawing}
+                    aria-label="전체 지우기"
+                    className={btnClass}
+                  >
+                    <EraserIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side={side}>전체 지우기</TooltipContent>
+              </Tooltip>
+            </>
+          )}
+        </>
+      )}
+
       {/* ── 저장 ── */}
       {onSave && (
         <>
@@ -251,7 +406,10 @@ function ToolbarButtons({
                 className={`${btnClass} ${saveStatus === "saved" ? "text-green-500 hover:text-green-500" : ""}`}
               >
                 {saveStatus === "saving" ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  <Loader2
+                    className="h-3.5 w-3.5 animate-spin"
+                    aria-hidden="true"
+                  />
                 ) : saveStatus === "saved" ? (
                   <Check className="h-3.5 w-3.5" aria-hidden="true" />
                 ) : (
@@ -260,7 +418,11 @@ function ToolbarButtons({
               </Button>
             </TooltipTrigger>
             <TooltipContent side={side}>
-              {saveStatus === "saving" ? "저장 중…" : saveStatus === "saved" ? "저장됨" : "저장"}
+              {saveStatus === "saving"
+                ? "저장 중…"
+                : saveStatus === "saved"
+                  ? "저장됨"
+                  : "저장"}
             </TooltipContent>
           </Tooltip>
         </>
@@ -285,6 +447,14 @@ const VerticalToolbar = ({
   canNext,
   canDelete,
   slidePosition,
+  onToggleDrawing,
+  isDrawing,
+  drawColor,
+  onDrawColorChange,
+  drawSize,
+  onDrawSizeChange,
+  onUndoStroke,
+  onClearDrawing,
 }: Props) => {
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useIsMounted();
@@ -364,6 +534,14 @@ const VerticalToolbar = ({
     canNext,
     canDelete,
     slidePosition,
+    onToggleDrawing,
+    isDrawing,
+    drawColor,
+    onDrawColorChange,
+    drawSize,
+    onDrawSizeChange,
+    onUndoStroke,
+    onClearDrawing,
   };
 
   return (
@@ -378,8 +556,7 @@ const VerticalToolbar = ({
             className="
               mr-3 flex flex-col items-center gap-1.5 rounded-lg border bg-background/80 p-1.5
               shadow-lg backdrop-blur
-              translate-x-full opacity-0
-              group-hover:translate-x-0 group-hover:opacity-100
+              translate-x-full opacity-0 group-hover:translate-x-0 group-hover:opacity-100
               transition-[translate,opacity] duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]
               will-change-[translate,opacity]
             "

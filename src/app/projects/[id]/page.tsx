@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Editor, { type EditorSaveData, createBodyValue } from "@/components/Editor";
 import VerticalToolbar from "@/components/vertical-toolbar/vertical-toolbar";
+import DrawingOverlay, { type Stroke } from "@/components/drawing/drawing-overlay";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { authFetch } from "@/lib/auth-fetch";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +41,12 @@ export default function ProjectPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+
+  // ── 그리기 상태 ──
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawColor, setDrawColor] = useState("#ef4444");
+  const [drawSize, setDrawSize] = useState(8);
+  const [strokes, setStrokes] = useState<Stroke[]>([]);
 
   // Editor에서 노출하는 save 트리거
   const editorSaveRef = useRef<(() => Promise<void>) | null>(null);
@@ -97,6 +104,8 @@ export default function ProjectPage() {
   // ── 슬라이드 이동 ──
   const navigateToSlide = useCallback(
     (targetSlideId: string) => {
+      setStrokes([]);
+      setIsDrawing(false);
       router.replace(`/projects/${params.id}?slide=${targetSlideId}`);
     },
     [router, params.id],
@@ -310,6 +319,14 @@ export default function ProjectPage() {
           canNext={currentIndex < sortedSlides.length - 1}
           canDelete={sortedSlides.length > 1}
           slidePosition={sortedSlides.length > 0 ? `${currentIndex + 1} / ${sortedSlides.length}` : undefined}
+          onToggleDrawing={() => setIsDrawing((d) => !d)}
+          isDrawing={isDrawing}
+          drawColor={drawColor}
+          onDrawColorChange={setDrawColor}
+          drawSize={drawSize}
+          onDrawSizeChange={setDrawSize}
+          onUndoStroke={() => setStrokes((prev) => prev.slice(0, -1))}
+          onClearDrawing={() => setStrokes([])}
         />
 
         {currentSlide ? (
@@ -324,6 +341,15 @@ export default function ProjectPage() {
           />
         ) : (
           <p className="text-sm text-muted-foreground">슬라이드가 없습니다</p>
+        )}
+
+        {isDrawing && (
+          <DrawingOverlay
+            strokes={strokes}
+            onStrokesChange={setStrokes}
+            color={drawColor}
+            size={drawSize}
+          />
         )}
       </main>
     </AuthModal>
