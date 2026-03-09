@@ -162,7 +162,7 @@ function ToolbarButtons({
         </TooltipContent>
       </Tooltip>
 
-      {/* 전체화면 */}
+      {/* 전체화면 – 작은 화면에서는 숨김 */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -171,7 +171,7 @@ function ToolbarButtons({
             size="icon"
             onClick={onToggleFullscreen}
             aria-label={isFullscreen ? "전체화면 종료" : "전체화면"}
-            className={btnClass}
+            className={`${btnClass} hidden sm:inline-flex`}
           >
             {isFullscreen ? (
               <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
