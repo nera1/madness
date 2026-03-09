@@ -208,7 +208,7 @@ function ToolbarButtons({
           </Tooltip>
 
           {slidePosition && (
-            <span className="text-[10px] text-muted-foreground select-none tabular-nums text-center leading-none py-0.5">
+            <span className="text-[10px] text-muted-foreground select-none tabular-nums text-center leading-none py-0.5 whitespace-nowrap">
               {slidePosition}
             </span>
           )}
