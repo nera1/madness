@@ -570,7 +570,7 @@ const VerticalToolbar = ({
         <aside
           role="toolbar"
           aria-label="도구"
-          className="flex flex-row items-center gap-1 rounded-lg border bg-background/80 px-1.5 py-1 shadow-lg backdrop-blur"
+          className="flex flex-row items-center gap-2 rounded-lg border bg-background/80 px-3 py-1.5 shadow-lg backdrop-blur"
         >
           <ToolbarButtons side="top" {...toolbarButtonProps} />
         </aside>
