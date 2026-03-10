@@ -7,7 +7,6 @@ import VerticalToolbar from "@/components/vertical-toolbar/vertical-toolbar";
 import DrawingOverlay, { type Stroke } from "@/components/drawing/drawing-overlay";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { authFetch } from "@/lib/auth-fetch";
-import { useSlideSwipe, useMergedSwipeRef } from "@/lib/use-slide-swipe";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { YooptaContentValue } from "@yoopta/editor";
 
@@ -123,16 +122,6 @@ export default function ProjectPage() {
     await editorSaveRef.current?.();
     navigateToSlide(sortedSlides[currentIndex + 1].id);
   }, [currentIndex, sortedSlides, navigateToSlide]);
-
-  // ── 모바일 스와이프 슬라이드 전환 ──
-  const { handlers: swipeHandlers, contentRef: swipeContentRef } = useSlideSwipe({
-    onSwipeLeft: handleNextSlide,
-    onSwipeRight: handlePrevSlide,
-    canSwipeLeft: currentIndex < sortedSlides.length - 1,
-    canSwipeRight: currentIndex > 0,
-    enabled: !isDrawing,
-  });
-  const mergedMainRef = useMergedSwipeRef(mainRef, swipeHandlers.ref);
 
   // ── 저장 핸들러 (Editor의 onSave 콜백) ──
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -315,7 +304,7 @@ export default function ProjectPage() {
       <AuthModal.Content />
 
       <main
-        ref={mergedMainRef}
+        ref={mainRef}
         className="flex min-h-screen w-full items-start sm:items-center justify-center pt-16 pb-28 px-4 sm:pt-24 sm:pb-32 sm:px-8 md:px-12 bg-white dark:bg-black"
       >
         <VerticalToolbar
@@ -340,21 +329,19 @@ export default function ProjectPage() {
           onClearDrawing={() => setStrokes([])}
         />
 
-        <div ref={swipeContentRef} className="w-full flex justify-center">
-          {currentSlide ? (
-            <Editor
-              key={currentSlide.id}
-              initialHeadline={currentSlide.headline}
-              initialBody={currentSlide.body}
-              onSave={handleSave}
-              saveRef={editorSaveRef}
-              autoFocus={false}
-              autoSaveMs={1000}
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">슬라이드가 없습니다</p>
-          )}
-        </div>
+        {currentSlide ? (
+          <Editor
+            key={currentSlide.id}
+            initialHeadline={currentSlide.headline}
+            initialBody={currentSlide.body}
+            onSave={handleSave}
+            saveRef={editorSaveRef}
+            autoFocus={false}
+            autoSaveMs={1000}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">슬라이드가 없습니다</p>
+        )}
 
         {isDrawing && (
           <DrawingOverlay
