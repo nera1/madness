@@ -125,7 +125,7 @@ export default function ProjectPage() {
   }, [currentIndex, sortedSlides, navigateToSlide]);
 
   // ── 모바일 스와이프 슬라이드 전환 ──
-  const { handlers: swipeHandlers, swipeState } = useSlideSwipe({
+  const { handlers: swipeHandlers, contentRef: swipeContentRef } = useSlideSwipe({
     onSwipeLeft: handleNextSlide,
     onSwipeRight: handlePrevSlide,
     canSwipeLeft: currentIndex < sortedSlides.length - 1,
@@ -133,18 +133,6 @@ export default function ProjectPage() {
     enabled: !isDrawing,
   });
   const mergedMainRef = useMergedSwipeRef(mainRef, swipeHandlers.ref);
-
-  const swipeStyle: React.CSSProperties =
-    swipeState.phase === "idle"
-      ? {}
-      : {
-          transform: `translateX(${swipeState.deltaX}px)`,
-          transition:
-            swipeState.phase === "exiting"
-              ? "transform 200ms ease-out, opacity 200ms ease-out"
-              : "none",
-          opacity: swipeState.phase === "exiting" ? 0 : 1,
-        };
 
   // ── 저장 핸들러 (Editor의 onSave 콜백) ──
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -352,7 +340,7 @@ export default function ProjectPage() {
           onClearDrawing={() => setStrokes([])}
         />
 
-        <div className="w-full flex justify-center" style={swipeStyle}>
+        <div ref={swipeContentRef} className="w-full flex justify-center">
           {currentSlide ? (
             <Editor
               key={currentSlide.id}
