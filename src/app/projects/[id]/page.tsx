@@ -125,7 +125,7 @@ export default function ProjectPage() {
   }, [currentIndex, sortedSlides, navigateToSlide]);
 
   // ── 모바일 스와이프 슬라이드 전환 ──
-  const swipeHandlers = useSlideSwipe({
+  const { handlers: swipeHandlers, swipeState } = useSlideSwipe({
     onSwipeLeft: handleNextSlide,
     onSwipeRight: handlePrevSlide,
     canSwipeLeft: currentIndex < sortedSlides.length - 1,
@@ -133,6 +133,18 @@ export default function ProjectPage() {
     enabled: !isDrawing,
   });
   const mergedMainRef = useMergedSwipeRef(mainRef, swipeHandlers.ref);
+
+  const swipeStyle: React.CSSProperties =
+    swipeState.phase === "idle"
+      ? {}
+      : {
+          transform: `translateX(${swipeState.deltaX}px)`,
+          transition:
+            swipeState.phase === "exiting"
+              ? "transform 200ms ease-out, opacity 200ms ease-out"
+              : "none",
+          opacity: swipeState.phase === "exiting" ? 0 : 1,
+        };
 
   // ── 저장 핸들러 (Editor의 onSave 콜백) ──
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -340,19 +352,21 @@ export default function ProjectPage() {
           onClearDrawing={() => setStrokes([])}
         />
 
-        {currentSlide ? (
-          <Editor
-            key={currentSlide.id}
-            initialHeadline={currentSlide.headline}
-            initialBody={currentSlide.body}
-            onSave={handleSave}
-            saveRef={editorSaveRef}
-            autoFocus={false}
-            autoSaveMs={1000}
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground">슬라이드가 없습니다</p>
-        )}
+        <div className="w-full flex justify-center" style={swipeStyle}>
+          {currentSlide ? (
+            <Editor
+              key={currentSlide.id}
+              initialHeadline={currentSlide.headline}
+              initialBody={currentSlide.body}
+              onSave={handleSave}
+              saveRef={editorSaveRef}
+              autoFocus={false}
+              autoSaveMs={1000}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">슬라이드가 없습니다</p>
+          )}
+        </div>
 
         {isDrawing && (
           <DrawingOverlay
