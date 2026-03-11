@@ -297,6 +297,20 @@ div[data-floating-ui-portal] > div {
   align-items: center !important;
 }
 
+/* ---- 스크롤바 숨기기 (스크롤은 유지) ---- */
+.scrollbar-hidden {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* ---- 전체화면 시 세로 중앙정렬 해제 (스크롤 가능하게) ---- */
+main:fullscreen {
+  align-items: flex-start !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

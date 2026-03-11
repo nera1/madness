@@ -305,7 +305,7 @@ export default function ProjectPage() {
 
       <main
         ref={mainRef}
-        className="flex min-h-screen w-full items-start sm:items-center justify-center pt-16 pb-28 px-4 sm:pt-24 sm:pb-32 sm:px-8 md:px-12 bg-white dark:bg-black"
+        className="flex min-h-screen w-full items-start sm:items-center justify-center pt-16 pb-28 px-4 sm:pt-24 sm:pb-32 sm:px-8 md:px-12 bg-white dark:bg-black overflow-y-auto scrollbar-hidden"
       >
         <VerticalToolbar
           fullscreenTargetRef={mainRef}

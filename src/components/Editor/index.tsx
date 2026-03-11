@@ -15,6 +15,7 @@ import Accordion from "@yoopta/accordion";
 import Divider from "@yoopta/divider";
 import Table from "@yoopta/table";
 import CustomCode from "./plugins/custom-code";
+import MermaidDiagram from "./plugins/mermaid-diagram";
 import Embed from "@yoopta/embed";
 import Image from "@yoopta/image";
 import Link from "@yoopta/link";
@@ -68,6 +69,7 @@ const PLUGINS = [
   TodoList,
   Blockquote,
   CustomCode,
+  MermaidDiagram,
   Divider,
   Accordion,
   Table,
