@@ -353,7 +353,7 @@ function GoogleOAuthButton() {
       variant="outline"
       className="w-full gap-2"
       onClick={() => {
-        window.location.href = "/oauth2/authorization/google";
+        window.location.href = "/auth/oauth/google";
       }}
     >
       <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
@@ -950,6 +950,25 @@ function AuthModalRoot({ children }: AuthModalProps) {
     _getSnapshot,
     _getServerSnapshot,
   );
+
+  // OAuth 콜백 처리: ?oauth=success&email=...&displayName=...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("oauth") !== "success") return;
+
+    const email = params.get("email") ?? "";
+    const displayName = params.get("displayName") ?? "";
+    if (email) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ email, displayName }));
+    }
+    // URL에서 쿼리 파라미터 제거
+    const url = new URL(window.location.href);
+    url.searchParams.delete("oauth");
+    url.searchParams.delete("email");
+    url.searchParams.delete("displayName");
+    window.history.replaceState({}, "", url.pathname + url.search);
+    window.location.reload();
+  }, []);
 
   // rerender-functional-setstate: 콜백 내 상태 업데이트 안정화
   const openWith = useCallback((m: AuthMode) => {
