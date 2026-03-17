@@ -147,6 +147,16 @@
     --yoopta-font-scale: 1.25;
   }
 
+  /* ========== Image (Yoopta Image 플러그인) ========== */
+  :global(.yoo-image-my-0) {
+    max-width: 100% !important;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
   /* ========== Placeholder (overrides Yoopta's 75% font-size default) ========== */
   :global(.yoopta-placeholder::after) {
     font-size: 1em;

@@ -38,6 +38,7 @@ import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
 
 import { Node, Transforms, Editor as SlateEditor } from "slate";
 import styles from "@/styles/editor.module.scss";
+import { authFetch } from "@/lib/auth-fetch";
 
 const { HeadingOne, HeadingTwo, HeadingThree } = Headings;
 const { BulletedList, NumberedList, TodoList } = Lists;
@@ -73,13 +74,57 @@ const PLUGINS = [
   Divider,
   Accordion,
   Table,
-  Image,
+  Image.extend({
+    options: {
+      onUpload: async (file: File) => {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await authFetch("/api/images", { method: "POST", body: form });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error?.message ?? "Upload failed");
+        return { src: json.data.url, alt: json.data.fileName };
+      },
+    },
+  }),
   Video,
   Embed,
   Link,
 ].map((item) =>
   item.extend({ options: { HTMLAttributes: { spellCheck: false } } })
 );
+
+/** YooptaContentValue에서 모든 이미지 src URL을 추출 */
+function extractImageSrcs(content: YooptaContentValue): Set<string> {
+  const srcs = new Set<string>();
+  for (const block of Object.values(content)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const b = block as any;
+    if (b?.type !== "Image") continue;
+    const src = b?.value?.[0]?.props?.src;
+    if (typeof src === "string") srcs.add(src);
+  }
+  return srcs;
+}
+
+/** 이미지 URL에서 R2 object key 추출 (예: "images/uuid.webp") */
+function objectKeyFromSrc(src: string): string | null {
+  try {
+    const path = new URL(src).pathname;
+    return path.startsWith("/") ? path.slice(1) : path;
+  } catch {
+    return null;
+  }
+}
+
+/** 삭제된 이미지를 R2에서 정리 (fire-and-forget) */
+function cleanupRemovedImages(oldSrcs: Set<string>, newSrcs: Set<string>) {
+  for (const src of oldSrcs) {
+    if (newSrcs.has(src)) continue;
+    const key = objectKeyFromSrc(src);
+    if (!key) continue;
+    authFetch(`/api/images/by-key?objectKey=${encodeURIComponent(key)}`, { method: "DELETE" }).catch(() => {});
+  }
+}
 
 const MARKS = [Bold, Italic, CodeMark, Underline, Strike, Highlight];
 
@@ -374,6 +419,9 @@ export default function Editor({ initialHeadline, initialBody, onSave, saveRef, 
   const [changeCount, setChangeCount] = useState(0);
 
   const handleBodyChange = useCallback((next: YooptaContentValue) => {
+    const oldSrcs = extractImageSrcs(valueRef.current);
+    const newSrcs = extractImageSrcs(next);
+    if (oldSrcs.size > 0) cleanupRemovedImages(oldSrcs, newSrcs);
     setValue(next);
     if (autoSaveMs) setChangeCount((c) => c + 1);
   }, [autoSaveMs]);
