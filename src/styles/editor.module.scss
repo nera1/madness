@@ -150,11 +150,272 @@
   /* ========== Image (Yoopta Image 플러그인) ========== */
   :global(.yoo-image-my-0) {
     max-width: 100% !important;
+
+    // 리사이즈 핸들: 기본 숨김 → hover 시 표시
+    [style*="col-resize"] {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    &:hover [style*="col-resize"] {
+      opacity: 1;
+    }
+  }
+
+  :global(.yoopta-image-alt) {
+    display: none;
+  }
+
+  // 이미지 블록 선택 시 파란 하이라이트 제거
+  :global(.yoopta-image-inner) {
+    max-width: 100% !important;
+  }
+
+  // 선택 오버레이 (rgba(35,131,226,0.14) 파란 배경) 숨기기
+  :global(.yoo-image-absolute.yoo-image-pointer-events-none.yoo-image-inset-0) {
+    background-color: transparent !important;
+  }
+
+  :global([data-yoopta-block]:has(.yoopta-image-inner)) {
+    &::selection,
+    & *::selection {
+      background: transparent !important;
+    }
   }
 
   img {
     max-width: 100%;
     height: auto;
+  }
+
+  // ── 이미지 업로드 placeholder 버튼 ──
+  // 드롭존 스타일: 중앙 정렬, 아이콘 위 + 텍스트 아래
+  :global(.yoopta-button[class*="yoo-image-p-"][class*="yoo-image-flex"][class*="yoo-image-items-center"]) {
+    background-color: transparent !important;
+    color: var(--muted-foreground) !important;
+    border: 2px dashed var(--editor-toolbar-border) !important;
+    border-radius: 12px !important;
+    padding: 32px 16px !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
+
+    &:hover {
+      background-color: var(--editor-block-hover) !important;
+      border-color: var(--muted-foreground) !important;
+    }
+
+    // 아이콘 크기 확대
+    svg {
+      color: var(--muted-foreground) !important;
+      opacity: 0.5;
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    // 텍스트
+    span {
+      font-size: 13px !important;
+      opacity: 0.7;
+    }
+  }
+
+  // ── 이미지 블록 options (⋯) 버튼 ──
+  :global(.yoo-image-my-0) {
+    :global(button[class*="yoo-image"][class*="absolute"]) {
+      background-color: var(--editor-toolbar-bg) !important;
+      color: var(--editor-text) !important;
+      border: 1px solid var(--editor-toolbar-border) !important;
+      border-radius: 4px !important;
+
+      &:hover {
+        background-color: var(--editor-button-hover) !important;
+      }
+    }
+  }
+
+  // ── 업로드 팝업 패널 ──
+  :global(div[class*="yoo-image-flex"][class*="yoo-image-flex-col"][class*="yoo-image-bg-"]) {
+    background-color: var(--editor-toolbar-bg) !important;
+    border: 1px solid var(--editor-toolbar-border) !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    min-width: 400px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  // 탭 바 (Upload | Image link) — 탭 버튼을 포함하는 div만 대상
+  :global(div[class*="yoo-image-shadow-"][class*="yoo-image-flex"][class*="yoo-image-p-"]) {
+    box-shadow: none !important;
+    border-bottom: 1px solid var(--editor-toolbar-border) !important;
+    padding: 4px 8px !important;
+    gap: 4px !important;
+  }
+
+  // 탭 버튼
+  :global(.yoopta-button[class*="yoo-image-py-"][class*="yoo-image-whitespace-nowrap"]) {
+    background-color: transparent !important;
+    color: var(--muted-foreground) !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: var(--editor-text) !important;
+    }
+  }
+
+  // 활성 탭 (inline style border-bottom이 설정된 탭)
+  :global(.yoopta-button[class*="yoo-image-py-"][style*="rgb(36, 131, 226)"]) {
+    color: var(--editor-text) !important;
+    border-bottom-color: var(--editor-text) !important;
+  }
+
+  // "Upload image" 버튼 영역
+  :global(div[class*="yoo-image-pt-"][class*="yoo-image-pb-"][class*="yoo-image-flex"][class*="yoo-image-justify-center"]) {
+    padding: 24px 16px !important;
+  }
+
+  // "Upload image" 버튼 자체 → shadcn ghost icon button (label 포함 요소만)
+  :global(div[class*="yoo-image-user-select-none"][class*="yoo-image-rounded-"]:has(> label)) {
+    // shadcn: size="icon" (size-9 = 36px) + variant="ghost"
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0.375rem !important; // rounded-md
+    color: var(--editor-text) !important;
+    width: 36px !important;
+    height: 36px !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    cursor: pointer !important;
+
+    &:hover {
+      background-color: var(--accent) !important;
+      color: var(--accent-foreground) !important;
+    }
+
+    // label 텍스트 숨기고 아이콘으로 대체
+    label {
+      color: transparent !important;
+      font-size: 0 !important;
+      cursor: pointer;
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      position: relative !important;
+
+      &::before {
+        content: "" !important;
+        display: block;
+        width: 16px;
+        height: 16px;
+        // 이미지(산/태양) + 플러스 아이콘
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='m21 15-5-5L5 21'/%3E%3Cline x1='17' y1='1' x2='17' y2='7'/%3E%3Cline x1='14' y1='4' x2='20' y2='4'/%3E%3C/svg%3E");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+    }
+  }
+
+  // 다크모드 Upload 아이콘 색상 반전
+  :root:global(.dark) & {
+    :global(div[class*="yoo-image-user-select-none"][class*="yoo-image-rounded-"]:has(> label)) label::before {
+      filter: invert(1);
+    }
+  }
+
+  // Image link 입력 필드
+  :global(input[class*="yoo-image-"]) {
+    background-color: var(--background) !important;
+    color: var(--editor-text) !important;
+    border: 1px solid var(--editor-toolbar-border) !important;
+    border-radius: 0.375rem !important; // rounded-md (shadcn 통일)
+    height: 36px !important; // size-9 (버튼과 동일)
+    padding: 0 12px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+
+    &::placeholder {
+      color: var(--muted-foreground) !important;
+    }
+
+    &:focus {
+      border-color: var(--muted-foreground) !important;
+      outline: none !important;
+    }
+  }
+
+  // Image link 탭 — input + Embed 버튼을 가로 배치
+  :global(div[class*="yoo-image-cursor-pointer"][class*="yoo-image-user-select-none"][class*="yoo-image-w-full"]:has(input[type="text"])) {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  // "Embed image" 버튼 → shadcn outline icon button
+  :global(.yoopta-button[class*="yoo-image-user-select-none"][class*="yoo-image-cursor-pointer"][class*="yoo-image-justify-center"]) {
+    background-color: var(--accent) !important;
+    color: var(--editor-text) !important;
+    border: 1px solid var(--editor-toolbar-border) !important;
+    border-radius: 0.375rem !important; // rounded-md
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0 !important;
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+
+    // → 화살표 아이콘
+    &::before {
+      content: "" !important;
+      display: block;
+      width: 16px;
+      height: 16px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3Cpolyline points='12 5 19 12 12 19'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    &:hover {
+      background-color: var(--accent) !important;
+      color: var(--accent-foreground) !important;
+    }
+  }
+
+  // 다크모드 Embed 아이콘 색상 반전
+  :root:global(.dark) & {
+    :global(.yoopta-button[class*="yoo-image-user-select-none"][class*="yoo-image-cursor-pointer"][class*="yoo-image-justify-center"])::before {
+      filter: invert(1);
+    }
   }
 
   /* ========== Placeholder (overrides Yoopta's 75% font-size default) ========== */
