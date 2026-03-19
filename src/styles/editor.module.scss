@@ -418,6 +418,334 @@
     }
   }
 
+  /* ========== Video (Yoopta Video 플러그인) ========== */
+
+  // 비디오 placeholder 버튼 (Click to add video)
+  :global(.yoopta-button[class*="yoo-video-p-"][class*="yoo-video-flex"][class*="yoo-video-items-center"]) {
+    background-color: transparent !important;
+    color: var(--muted-foreground) !important;
+    border: 2px dashed var(--editor-toolbar-border) !important;
+    border-radius: 12px !important;
+    padding: 32px 16px !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
+
+    &:hover {
+      background-color: var(--editor-block-hover) !important;
+      border-color: var(--muted-foreground) !important;
+    }
+
+    // 아이콘 → 비디오 아이콘으로 교체
+    svg {
+      color: var(--muted-foreground) !important;
+      opacity: 0.5;
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    // 텍스트
+    span {
+      font-size: 13px !important;
+      opacity: 0.7;
+    }
+  }
+
+  // 비디오 팝업 패널
+  :global(div[class*="yoo-video-flex"][class*="yoo-video-flex-col"][class*="yoo-video-bg-"]) {
+    background-color: var(--editor-toolbar-bg) !important;
+    border: 1px solid var(--editor-toolbar-border) !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    min-width: 400px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  // 비디오 탭 바 — Upload 탭 숨기기, Video link만 표시
+  :global(div[class*="yoo-video-shadow-"][class*="yoo-video-flex"][class*="yoo-video-p-"]) {
+    box-shadow: none !important;
+    border-bottom: 1px solid var(--editor-toolbar-border) !important;
+    padding: 4px 8px !important;
+    gap: 4px !important;
+
+    // Upload 탭 숨기기 (첫 번째 버튼)
+    :global(.yoopta-button):first-child {
+      display: none !important;
+    }
+  }
+
+  // 비디오 탭 버튼
+  :global(.yoopta-button[class*="yoo-video-py-"][class*="yoo-video-whitespace-nowrap"]) {
+    background-color: transparent !important;
+    color: var(--muted-foreground) !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: var(--editor-text) !important;
+    }
+  }
+
+  // 비디오 활성 탭
+  :global(.yoopta-button[class*="yoo-video-py-"][style*="rgb(36, 131, 226)"]) {
+    color: var(--editor-text) !important;
+    border-bottom-color: var(--editor-text) !important;
+  }
+
+  // Upload 영역 숨기기 (label이 있는 영역)
+  :global(div[class*="yoo-video-pt-"][class*="yoo-video-pb-"][class*="yoo-video-flex"][class*="yoo-video-justify-center"]:has(label)) {
+    display: none !important;
+  }
+
+  // Video link 컨텐츠 영역 패딩
+  :global(div[class*="yoo-video-pt-"][class*="yoo-video-pb-"][class*="yoo-video-flex"]:not(:has(label))) {
+    padding: 24px 16px !important;
+    justify-content: center !important;
+  }
+
+  // Video link 입력 필드
+  :global(input[class*="yoo-video-"]) {
+    background-color: var(--background) !important;
+    color: var(--editor-text) !important;
+    border: 1px solid var(--editor-toolbar-border) !important;
+    border-radius: 0.375rem !important;
+    height: 36px !important;
+    padding: 0 12px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+
+    &::placeholder {
+      color: var(--muted-foreground) !important;
+    }
+
+    &:focus {
+      border-color: var(--muted-foreground) !important;
+      outline: none !important;
+    }
+  }
+
+  // Video link 탭 — input + Embed 버튼 가로 배치
+  :global(div[class*="yoo-video-cursor-pointer"][class*="yoo-video-user-select-none"][class*="yoo-video-w-full"]:has(input[type="text"])) {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  // "Embed video" 버튼 → shadcn outline icon button
+  :global(.yoopta-button[class*="yoo-video-user-select-none"][class*="yoo-video-cursor-pointer"][class*="yoo-video-justify-center"]) {
+    background-color: var(--accent) !important;
+    color: var(--editor-text) !important;
+    border: 1px solid var(--editor-toolbar-border) !important;
+    border-radius: 0.375rem !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0 !important;
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+
+    &::before {
+      content: "" !important;
+      display: block;
+      width: 16px;
+      height: 16px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3Cpolyline points='12 5 19 12 12 19'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    &:hover {
+      background-color: var(--accent) !important;
+      color: var(--accent-foreground) !important;
+    }
+  }
+
+  // 다크모드 Video Embed 아이콘 색상 반전
+  :root:global(.dark) & {
+    :global(.yoopta-button[class*="yoo-video-user-select-none"][class*="yoo-video-cursor-pointer"][class*="yoo-video-justify-center"])::before {
+      filter: invert(1);
+    }
+  }
+
+  /* ========== Embed (Yoopta Embed 플러그인) ========== */
+
+  // Embed placeholder 버튼
+  :global(.yoopta-button[class*="yoo-embed-p-"][class*="yoo-embed-flex"][class*="yoo-embed-items-center"]) {
+    background-color: transparent !important;
+    color: var(--muted-foreground) !important;
+    border: 2px dashed var(--editor-toolbar-border) !important;
+    border-radius: 12px !important;
+    padding: 32px 16px !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
+
+    &:hover {
+      background-color: var(--editor-block-hover) !important;
+      border-color: var(--muted-foreground) !important;
+    }
+
+    svg {
+      color: var(--muted-foreground) !important;
+      opacity: 0.5;
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    span {
+      font-size: 13px !important;
+      opacity: 0.7;
+    }
+  }
+
+  // Embed 팝업 패널
+  :global(div[class*="yoo-embed-flex"][class*="yoo-embed-flex-col"][class*="yoo-embed-bg-"]) {
+    background-color: var(--editor-toolbar-bg) !important;
+    border: 1px solid var(--editor-toolbar-border) !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    min-width: 400px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  // Embed 탭 바
+  :global(div[class*="yoo-embed-shadow-"][class*="yoo-embed-flex"][class*="yoo-embed-p-"]) {
+    box-shadow: none !important;
+    border-bottom: 1px solid var(--editor-toolbar-border) !important;
+    padding: 4px 8px !important;
+  }
+
+  // Embed 탭 버튼
+  :global(.yoopta-button[class*="yoo-embed-py-"][class*="yoo-embed-whitespace-nowrap"]) {
+    background-color: transparent !important;
+    color: var(--muted-foreground) !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: var(--editor-text) !important;
+    }
+  }
+
+  // Embed 활성 탭
+  :global(.yoopta-button[class*="yoo-embed-py-"][style*="rgb(36, 131, 226)"]) {
+    color: var(--editor-text) !important;
+    border-bottom-color: var(--editor-text) !important;
+  }
+
+  // Embed 컨텐츠 영역 패딩
+  :global(div[class*="yoo-embed-pt-"][class*="yoo-embed-pb-"][class*="yoo-embed-flex"]) {
+    padding: 24px 16px !important;
+    justify-content: center !important;
+  }
+
+  // Embed 입력 필드
+  :global(input[class*="yoo-embed-"]) {
+    background-color: var(--background) !important;
+    color: var(--editor-text) !important;
+    border: 1px solid var(--editor-toolbar-border) !important;
+    border-radius: 0.375rem !important;
+    height: 36px !important;
+    padding: 0 12px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    box-shadow: none !important;
+
+    &::placeholder {
+      color: var(--muted-foreground) !important;
+    }
+
+    &:focus {
+      border-color: var(--muted-foreground) !important;
+      outline: none !important;
+    }
+  }
+
+  // Embed link — input + 버튼 가로 배치
+  :global(div[class*="yoo-embed-cursor-pointer"][class*="yoo-embed-user-select-none"][class*="yoo-embed-w-full"]:has(input)) {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  // "Embed link" 버튼 → shadcn outline icon button
+  :global(.yoopta-button[class*="yoo-embed-user-select-none"][class*="yoo-embed-cursor-pointer"][class*="yoo-embed-justify-center"]) {
+    background-color: var(--accent) !important;
+    color: var(--editor-text) !important;
+    border: 1px solid var(--editor-toolbar-border) !important;
+    border-radius: 0.375rem !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0 !important;
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+
+    &::before {
+      content: "" !important;
+      display: block;
+      width: 16px;
+      height: 16px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3Cpolyline points='12 5 19 12 12 19'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    &:hover {
+      background-color: var(--accent) !important;
+      color: var(--accent-foreground) !important;
+    }
+  }
+
+  // 다크모드 Embed 아이콘 색상 반전
+  :root:global(.dark) & {
+    :global(.yoopta-button[class*="yoo-embed-user-select-none"][class*="yoo-embed-cursor-pointer"][class*="yoo-embed-justify-center"])::before {
+      filter: invert(1);
+    }
+  }
+
   /* ========== Placeholder (overrides Yoopta's 75% font-size default) ========== */
   :global(.yoopta-placeholder::after) {
     font-size: 1em;
@@ -515,15 +843,23 @@
   /* ========== Slash command / action menu ========== */
   :global(.yoopta-action-menu),
   :global(.yoopta-action-menu-list) {
-    border: 1px solid var(--editor-menu-border);
+    border: 1px solid var(--editor-menu-border) !important;
+    border-radius: 12px !important;
     box-shadow: var(--editor-menu-shadow);
-    background-color: var(--editor-menu-bg);
+    background-color: var(--editor-menu-bg) !important;
+    overflow: hidden !important;
+
+    // 모든 직계 자식도 동일 배경
+    & > * {
+      background-color: var(--editor-menu-bg) !important;
+    }
   }
 
   :global(.yoopta-action-menu-list-content) {
     backdrop-filter: none;
-    background-color: var(--editor-menu-bg);
-    border: 0.5px solid var(--editor-menu-border);
+    background-color: var(--editor-menu-bg) !important;
+    border: none !important;
+    border-radius: 12px !important;
 
     & button {
       background-color: transparent;

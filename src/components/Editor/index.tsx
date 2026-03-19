@@ -219,6 +219,7 @@ const HeadlineInput = React.memo(function HeadlineInput({
 
   const [level, setLevel] = useState<HeadingLevel>(initialLevel ?? "p");
   const [isEmpty, setIsEmpty] = useState(!(initialText && initialText.length > 0));
+  const [isFocused, setIsFocused] = useState(false);
 
   // 콜백 ref — 태그 전환 시에도 안전하게 DOM 노드 참조 유지
   const setElRef = useCallback((node: HTMLElement | null) => {
@@ -356,7 +357,7 @@ const HeadlineInput = React.memo(function HeadlineInput({
 
   return (
     <div className="relative w-full">
-      {isEmpty && (
+      {isEmpty && isFocused && (
         <div
           aria-hidden="true"
           className={`absolute inset-0 pl-[2px] pointer-events-none select-none text-muted-foreground ${HEADING_CLASS[level]}`}
@@ -377,6 +378,8 @@ const HeadlineInput = React.memo(function HeadlineInput({
         onPaste={handlePaste}
         onCompositionStart={handleCompositionStart}
         onCompositionEnd={handleCompositionEnd}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         className={`outline-none w-full break-words pl-[2px] m-0 ${HEADING_CLASS[level]}`}
       />
     </div>
@@ -449,6 +452,28 @@ export default function Editor({ initialHeadline, initialBody, onSave, saveRef, 
       editor.focus();
     }
   }, [bodyEditor]);
+
+  // ── 액션 메뉴 스크롤 잠금 + 비디오 팝업 Video link 탭 자동 선택 ──
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      // 액션 메뉴 스크롤 잠금
+      const menu = document.querySelector(".yoopta-action-menu-list");
+      document.body.style.overflow = menu ? "hidden" : "";
+
+      // 비디오 팝업이 열리면 "Video link" 탭 자동 클릭
+      const videoTab = document.querySelector<HTMLButtonElement>(
+        '.yoopta-button[class*="yoo-video-py-"][class*="yoo-video-whitespace-nowrap"]:last-child'
+      );
+      if (videoTab && !videoTab.style.borderBottom?.includes("currentColor")) {
+        videoTab.click();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   // Ctrl+S / Cmd+S → onSave 호출
   const onSaveRef = useRef(onSave);
