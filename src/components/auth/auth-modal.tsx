@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { FocusScope } from "@radix-ui/react-focus-scope";
-import { Layers, LogOut, UserRound, X } from "lucide-react";
+import { Layers, LogOut, Settings, UserRound, X } from "lucide-react";
 import { ProjectModal } from "@/components/project/project-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -881,6 +881,19 @@ function AuthModalTrigger({ className }: AuthModalTriggerProps) {
             >
               <Layers className="h-3.5 w-3.5" />
               내 프로젝트
+            </button>
+
+            {/* 설정 */}
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                window.location.href = "/settings";
+              }}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            >
+              <Settings className="h-3.5 w-3.5" />
+              설정
             </button>
 
             {/* 로그아웃 */}
