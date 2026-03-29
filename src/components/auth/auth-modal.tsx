@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { FocusScope } from "@radix-ui/react-focus-scope";
-import { Layers, LogOut, Settings, UserRound, X } from "lucide-react";
+import { Layers, Loader2, LogOut, Settings, UserRound, X } from "lucide-react";
 import { ProjectModal } from "@/components/project/project-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -487,7 +487,7 @@ function LoginForm() {
       </div>
 
       <Button type="submit" disabled={loading} className="mt-1 w-full">
-        {loading ? "로그인 중…" : "로그인"}
+        {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />로그인 중…</> : "로그인"}
       </Button>
 
       <OAuthDivider />
@@ -705,7 +705,7 @@ function SignupForm() {
         disabled={emailChecking || loading}
         className="mt-1 w-full"
       >
-        {emailChecking || loading ? "처리 중…" : "회원가입"}
+        {emailChecking || loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />처리 중…</> : "회원가입"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
